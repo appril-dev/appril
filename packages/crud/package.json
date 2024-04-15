@@ -1,6 +1,6 @@
 {
   "name": "@appril/crud",
-  "version": "0.0.0-beta.0",
+  "version": "0.0.0",
   "description": "Appril CRUD Api and Generators",
   "author": "Slee Woo",
   "license": "MIT",
