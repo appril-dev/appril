@@ -1,0 +1,53 @@
+{
+  "name": "@appril/fetch",
+  "version": "0.0.0-beta.0",
+  "description": "Appril Fetch",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.10",
+    "pnpm": ">=8.15"
+  },
+  "files": [
+    "pkg/*"
+  ],
+  "exports": {
+    ".": {
+      "default": "./pkg/fetch/index.mjs",
+      "types": "./pkg/fetch/index.d.ts"
+    },
+    "./node": {
+      "require": "./pkg/node/index.mjs",
+      "types": "./pkg/node/index.d.ts"
+    }
+  },
+  "scripts": {
+    "// ✨ linters": "",
+    "lint": "biome lint ./src",
+    "// ✨ types": "",
+    "tsc": "tsc --emitDeclarationOnly",
+    "// ✨ build": "",
+    "prebuild:000": "mkdir -p pkg; find pkg -type f -exec rm -fv {} \\;",
+    "prebuild:001": "pnpm run lint",
+    "prebuild:002": "pnpm run tsc",
+    "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
+    "build": "node ../../esbuild.mjs fetch/index node/index"
+  },
+  "dependencies": {
+    "follow-redirects": "^1.15.6",
+    "form-data": "^4.0.0",
+    "qs": "^6.12.1"
+  },
+  "devDependencies": {
+    "@appril/configs": "workspace:^",
+    "@biomejs/biome": "^1.6.4",
+    "@types/follow-redirects": "^1.14.4",
+    "@types/node": "^20.12.7",
+    "@types/qs": "^6.9.14",
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.5"
+  }
+}

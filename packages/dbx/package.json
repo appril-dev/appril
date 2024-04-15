@@ -1,0 +1,74 @@
+{
+  "name": "@appril/dbx",
+  "version": "0.0.0-beta.0",
+  "description": "Thin wrapper arounbd Knex, with type generators and migration handlers",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.12",
+    "pnpm": ">=8.15"
+  },
+  "files": [
+    "pkg/*"
+  ],
+  "bin": {
+    "dbx": "pkg/cli.sh"
+  },
+  "exports": {
+    ".": {
+      "default": "./pkg/api/index.mjs",
+      "types": "./pkg/api/index.d.ts"
+    },
+    "./cli": {
+      "default": "./pkg/cli/index.mjs",
+      "types": "./pkg/cli/index.d.ts"
+    }
+  },
+  "scripts": {
+    "// ✨ linters": "",
+    "lint": "biome lint ./src",
+    "// ✨ types": "",
+    "tsc": "tsc --emitDeclarationOnly",
+    "// ✨ build api": "",
+    "build:api": "node ../../esbuild.mjs api/index",
+    "// ✨ build cli": "",
+    "build:cli": "node ../../esbuild.mjs cli/index cli/generators/index cli/migrations/index",
+    "postbuild:cli": "for e in cli.sh bash_completion.sh; do cp src/cli/$e pkg; done",
+    "// ✨ build": "",
+    "prebuild:000": "mkdir -p pkg; find pkg -type f -exec rm -fv {} \\;",
+    "prebuild:001": "pnpm run lint",
+    "prebuild:002": "pnpm run tsc",
+    "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
+    "build": "set -e; for e in api cli; do pnpm run build:$e; done"
+  },
+  "dependencies": {
+    "@appril/pgts": "workspace:^",
+    "date-fns": "^3.6.0",
+    "fast-glob": "^3.3.2",
+    "fs-extra": "^11.2.0",
+    "handlebars": "^4.7.8",
+    "lodash-es": "^4.17.21",
+    "nopt": "^7.2.0",
+    "pg": "^8.11.5",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@appril/configs": "workspace:^",
+    "@biomejs/biome": "^1.6.4",
+    "@types/fs-extra": "^11.0.4",
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "^20.12.7",
+    "@types/nopt": "^3.0.32",
+    "@types/pg": "^8.11.5",
+    "@types/prompts": "^2.4.9",
+    "esbuild": "^0.20.2",
+    "knex": "^3.1.0",
+    "typescript": "^5.4.5"
+  },
+  "peerDependencies": {
+    "knex": "^3.1.0"
+  }
+}

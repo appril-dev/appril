@@ -1,0 +1,6 @@
+{
+  "extends": ["./packages/configs/biome.json"],
+  "files": {
+    "ignore": ["packages/*/pkg/*", "packages/*/var/*"]
+  }
+}

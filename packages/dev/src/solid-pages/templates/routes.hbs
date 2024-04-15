@@ -1,0 +1,37 @@
+{{BANNER}}
+
+import { lazy } from "solid-js";
+import type { RouteDefinition } from "@solidjs/router";
+
+{{#each pages}}
+{{#if dataLoaderConsumer}}
+import { {{dataLoaderConsumer.importDatafunc}} as {{importName}}$dl } from "{{dataLoaderConsumer.importDatafile}}";
+{{/if}}
+{{/each}}
+
+export type RouteMap = {
+  {{#each pages}}
+  "{{originalPath}}": RouteDefinition<"{{path}}">;
+  {{/each}}
+}
+
+export const routeMap: RouteMap = {
+  {{#each pages}}
+  "{{originalPath}}": {
+    path: "{{path}}",
+    component: lazy(() => import("{{../sourceFolder}}/{{../pagesDir}}/{{importPath}}")),
+    {{#if dataLoaderConsumer}}
+    load: ({ params }) => {{importName}}$dl(params),
+    {{/if}}
+    {{#if meta}}
+    info: {{meta}},
+    {{/if}}
+  },
+  {{/each}}
+}
+
+export default [
+{{#each pages}}
+  routeMap["{{originalPath}}"],
+{{/each}}
+];

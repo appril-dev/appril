@@ -1,0 +1,45 @@
+import { type MaybeRef, serialize, stringify } from "{{sourceFolder}}/../base/fetch";
+
+export type { MaybeRef };
+
+export { fetch as fetchFactory } from "@appril/fetch";
+
+export { baseurl, apiurl } from "{{sourceFolder}}/config";
+
+export const fetchOptions = {
+  ...serialize ? { serialize } : {},
+  ...stringify ? { stringify } : {},
+}
+
+export function pathMaker(path: string, params: unknown[]) {
+  const values = [ ...params ]
+  return path.split(/\/+/).flatMap((e) => {
+    if (e.startsWith(":")) {
+      if (/\+[oa]$/.test(e)) {
+        return values.splice(0)
+      }
+      return values.splice(0, 1)
+    }
+    return [ e ]
+  })
+}
+
+export function join(...args: unknown[]): string {
+  return args
+    .filter((e) => e)
+    .join("/")
+    .replace(/\/+/g, "/");
+}
+
+export async function withLoader(
+  worker: () => Promise<any>,
+  toggler?: (_s?: boolean) => boolean,
+) {
+  try {
+    toggler?.(true)
+    return await worker()
+  }
+  finally {
+    toggler?.(false)
+  }
+}

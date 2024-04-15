@@ -1,0 +1,64 @@
+{{BANNER}}
+import { join } from "node:path";
+
+import {
+  type Meta, type RouteEndpoint,
+  routeMapper,
+} from "@appril/router";
+
+import { baseurl, apiurl } from "{{sourceFolder}}/config";
+import router from "./router";
+
+{{#each routes}}
+import {{importName}} from "{{../sourceFolder}}/{{../apiDir}}/{{importPath}}";
+{{#unless optedFile}}
+import {{importName}}$assets from "{{../defaults.generated.api}}/{{importPath}}/assets";
+{{/unless}}
+
+{{/each}}
+
+type Exports = {
+  endpoints: { endpoints: RouteEndpoint[] };
+  router: { router: InstanceType<typeof import("@koa/router")> };
+}
+
+type RouteSetup = {
+  path: string;
+  originalPath: string;
+  file: string;
+  exports: Exports["endpoints"] | Exports["router"];
+  meta?: Meta;
+}
+
+export const routeStack: RouteSetup[] = [
+{{#each routes}}
+  {
+    path: join(baseurl, apiurl, "{{path}}"),
+    originalPath: "{{originalPath}}",
+    file: "{{file}}",
+    {{#if meta}}
+    meta: {{meta}},
+    {{/if}}
+    exports: Array.isArray({{importName}})
+      ? {
+          endpoints: routeMapper(
+            {{importName}} as never,
+            {{#unless optedFile}}{{importName}}$assets{{/unless}}
+          )
+        }
+      : {{importName}} as Exports["router"],
+  },
+{{/each}}
+]
+
+for (const { path, originalPath, exports } of routeStack) {
+  if ("endpoints" in exports) {
+    for (const { method, middleware } of exports.endpoints) {
+      router.register(path, [method], middleware, { name: originalPath });
+    }
+  } else if ("router" in exports) {
+    router.use(path, exports.router.routes())
+  }
+}
+
+export default router.routes();

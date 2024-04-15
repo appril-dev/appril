@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@solidjs/router": "^0.0.0",
+    "solid-js": "^0.0.0"
+  },
+  "devDependencies": {
+    "vite-plugin-solid": "^0.0.0"
+  }
+}

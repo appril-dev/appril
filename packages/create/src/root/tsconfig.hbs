@@ -1,0 +1,30 @@
+{
+
+  "extends": "@appril/configs/tsconfig.json",
+
+  "include": [
+    {{#if solidFramework}}
+    "**/*.tsx",
+    {{/if}}
+    "**/*.ts"
+  ],
+
+  "exclude": [
+    {{#each excludedSourceFolders}}
+    {{this}}
+    {{/each}}
+  ],
+
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~/*": [ "./*" ],
+      {{#each aliases}}
+      {{this}}
+      {{/each}}
+    },
+    "types": [
+      "node"
+    ]
+  }
+}

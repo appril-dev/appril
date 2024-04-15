@@ -1,0 +1,51 @@
+{
+  "name": "@appril/pgts",
+  "version": "0.0.0-beta.0",
+  "description": "PostgreSQL Typed Schema",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.12",
+    "pnpm": ">=8.15"
+  },
+  "files": [
+    "pkg/*"
+  ],
+  "exports": {
+    ".": {
+      "default": "./pkg/index.mjs",
+      "types": "./pkg/index.d.ts"
+    }
+  },
+  "scripts": {
+    "// ✨ linters": "",
+    "lint": "biome lint ./src",
+    "// ✨ types": "",
+    "tsc": "tsc --emitDeclarationOnly",
+    "// ✨ build": "",
+    "prebuild:000": "mkdir -p pkg; find pkg -type f -exec rm -fv {} \\;",
+    "prebuild:001": "pnpm run lint",
+    "prebuild:002": "pnpm run tsc",
+    "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
+    "build": "node ../../esbuild.mjs index"
+  },
+  "dependencies": {
+    "extract-pg-schema": "^5.1.1",
+    "lodash-es": "^4.17.21",
+    "pluralize": "^8.0.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@appril/configs": "workspace:^",
+    "@biomejs/biome": "^1.6.4",
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "^20.12.7",
+    "@types/pg": "^8.11.5",
+    "@types/pluralize": "^0.0.33",
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.5"
+  }
+}

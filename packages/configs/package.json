@@ -1,0 +1,27 @@
+{
+  "name": "@appril/configs",
+  "version": "0.0.0-beta.0",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.12",
+    "pnpm": ">=8.15"
+  },
+  "files": [
+    "tsconfig*.json",
+    "biome*.json"
+  ],
+  "exports": {
+    "./tsconfig.json": "./tsconfig.json",
+    "./tsconfig.vite-solid.json": "./tsconfig.vite-solid.json",
+    "./tsconfig.lib.json": "./tsconfig.lib.json",
+    "./tsconfig.lib.vite-solid.json": "./tsconfig.lib.vite-solid.json",
+    "./biome": "./biome.json"
+  },
+  "devDependencies": {
+    "@appril/configs": "workspace:^"
+  }
+}

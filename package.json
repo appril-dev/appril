@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "packageManager": "pnpm@8.15.6",
+  "type": "module",
+  "devDependencies": {
+    "@biomejs/biome": "^1.6.4",
+    "@changesets/cli": "^2.27.1",
+    "@types/nopt": "^3.0.32",
+    "esbuild": "^0.20.2",
+    "nopt": "^7.2.0",
+    "typescript": "^5.4.5"
+  }
+}

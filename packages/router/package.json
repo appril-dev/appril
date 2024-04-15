@@ -1,0 +1,66 @@
+{
+  "name": "@appril/router",
+  "version": "0.0.0-beta.0",
+  "description": "Appril Router",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.12",
+    "pnpm": ">=8.15"
+  },
+  "files": [
+    "pkg/*"
+  ],
+  "exports": {
+    ".": {
+      "default": "./pkg/router/index.mjs",
+      "types": "./pkg/router/index.d.ts"
+    },
+    "./queryparser": {
+      "default": "./pkg/queryparser/index.mjs",
+      "types": "./pkg/queryparser/index.d.ts"
+    },
+    "./bodyparser": {
+      "default": "./pkg/bodyparser/index.mjs",
+      "types": "./pkg/bodyparser/index.d.ts"
+    }
+  },
+  "scripts": {
+    "// ✨ linters": "",
+    "lint": "biome lint ./src",
+    "// ✨ types": "",
+    "tsc": "tsc --emitDeclarationOnly",
+    "// ✨ build": "",
+    "prebuild:000": "mkdir -p pkg; find pkg -type f -exec rm -fv {} \\;",
+    "prebuild:001": "pnpm run lint",
+    "prebuild:002": "pnpm run tsc",
+    "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
+    "build": "node ../../esbuild.mjs router/index queryparser/index bodyparser/index"
+  },
+  "dependencies": {
+    "formidable": "^3.5.1",
+    "kleur": "^4.1.5",
+    "qs": "^6.12.1",
+    "raw-body": "^2.5.2"
+  },
+  "devDependencies": {
+    "@appril/configs": "workspace:^",
+    "@biomejs/biome": "^1.6.4",
+    "@types/formidable": "^3.4.5",
+    "@types/koa": "^2.15.0",
+    "@types/koa-bodyparser": "^4.3.12",
+    "@types/koa__router": "^12.0.4",
+    "@types/node": "^20.12.7",
+    "@types/qs": "^6.9.14",
+    "esbuild": "^0.20.2",
+    "koa": "^2.15.3",
+    "typescript": "^5.4.5"
+  },
+  "peerDependencies": {
+    "@koa/router": "^12.0.1",
+    "koa": "^2.15.2"
+  }
+}

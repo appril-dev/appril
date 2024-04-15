@@ -1,0 +1,43 @@
+import type { Middleware } from "koa";
+
+{{#if importZodErrorHandlerFrom}}
+import { zodErrorHandler } from "{{importZodErrorHandlerFrom}}";
+{{else}}
+import { fromZodError } from "zod-validation-error";
+function zodErrorHandler(error: any) {
+  return fromZodError(error, {
+    prefix: null,
+    issueSeparator: ";\n",
+  })
+};
+{{/if}}
+
+{{zodSchemas}}
+
+export default {
+  payloadValidation: {
+    {{#each payloadTypes}}
+    {{index}}: [
+      (ctx, next) => {
+        try {
+          {{id}}.parse(ctx.payload)
+        } catch (error: any) {
+          throw zodErrorHandler(error)
+        }
+        return next()
+      }
+    ] satisfies Middleware[],
+    {{/each}}
+  },
+}
+
+const errors: string[] = [
+{{#each errors}}
+`{{this}}`,
+{{/each}}
+]
+
+if (errors.length) {
+  console.error("\n[ \x1b[31m{{file}}\x1b[0m ]: failed building zod schema(s)")
+  errors.forEach(console.error)
+}

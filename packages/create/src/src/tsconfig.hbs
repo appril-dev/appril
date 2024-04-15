@@ -1,0 +1,31 @@
+{
+
+  {{#if solidFramework}}
+  "extends": "@appril/configs/tsconfig.vite-solid.json",
+  {{/if}}
+
+  "include": [
+    {{#if solidFramework}}
+    "**/*.tsx",
+    {{/if}}
+    "../**/*.d.ts",
+    "**/*.ts"
+  ],
+
+  "exclude": [
+    {{#each excludedSourceFolders}}
+    {{this}}
+    {{/each}}
+  ],
+
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~/*": [ "../*" ],
+      "@/*": [ "./*"  ],
+      {{#each aliases}}
+      {{this}}
+      {{/each}}
+    }
+  }
+}

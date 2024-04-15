@@ -1,0 +1,13 @@
+import type { Knex } from "knex";
+{{#if table}}
+
+const table = "{{table}}"
+{{/if}}
+
+export function up(knex: Knex) {
+  // return knex.schema
+}
+
+export function down(knex: Knex) {
+  // return knex.schema
+}

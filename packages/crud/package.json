@@ -1,0 +1,70 @@
+{
+  "name": "@appril/crud",
+  "version": "0.0.0-beta.0",
+  "description": "Appril CRUD Api and Generators",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.12",
+    "pnpm": ">=8.15"
+  },
+  "files": [
+    "pkg/*"
+  ],
+  "exports": {
+    ".": {
+      "default": "./pkg/index.mjs",
+      "types": "./pkg/index.d.ts"
+    },
+    "./templates": {
+      "default": "./pkg/templates.mjs",
+      "types": "./pkg/templates.d.ts"
+    }
+  },
+  "scripts": {
+    "// ✨ linters": "",
+    "lint": "biome lint ./src",
+    "// ✨ types": "",
+    "tsc": "tsc --emitDeclarationOnly",
+    "// ✨ build": "",
+    "prebuild:000": "mkdir -p pkg; find pkg -type f -exec rm -fv {} \\;",
+    "prebuild:001": "pnpm run lint",
+    "prebuild:002": "pnpm run tsc",
+    "prebuild:003": "rsync -av --delete src/templates pkg",
+    "prebuild": "set -e; for i in 0 1 2 3; do pnpm run prebuild:00${i}; done",
+    "build": "node ../../esbuild.mjs index templates"
+  },
+  "prettier": "@appril/prettier-config",
+  "devDependencies": {
+    "@appril/configs": "workspace:^",
+    "@appril/dbx": "workspace:^",
+    "@appril/fetch": "workspace:^",
+    "@biomejs/biome": "^1.6.4",
+    "@types/koa": "^2.15.0",
+    "@types/koa-bodyparser": "^4.3.12",
+    "@types/koa__router": "^12.0.4",
+    "@types/node": "^20.12.7",
+    "@types/pg": "^8.11.5",
+    "esbuild": "^0.20.2",
+    "knex": "^3.1.0",
+    "koa": "^2.15.3",
+    "pinia": "^2.1.7",
+    "typescript": "^5.4.5",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0"
+  },
+  "peerDependencies": {
+    "@appril/dbx": "workspace:^",
+    "@appril/fetch": "workspace:^",
+    "@appril/router": "workspace:^",
+    "@koa/router": "^12.0.1",
+    "zod": "^3.22.4",
+    "zod-validation-error": "^3.0.3"
+  },
+  "dependencies": {
+    "pg": "^8.11.5"
+  }
+}

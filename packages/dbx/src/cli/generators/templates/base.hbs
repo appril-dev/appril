@@ -1,0 +1,54 @@
+{{BANNER}}
+
+import dbx, { withoutPrimaryKey } from "@appril/dbx";
+import { connection } from "../setup";
+
+{{#each tables}}
+export function {{name}}<
+  TExtra = import("{{../base}}:{{name}}").TExtra
+>(
+  extra: TExtra,
+) {
+  {{#if primaryKey}}
+  return dbx<
+    "{{../base}}:{{name}}",
+    TExtra
+  >({
+    connection,
+    tableName: "{{schema}}.{{name}}",
+    primaryKey: "{{primaryKey}}",
+  }, extra)
+  {{else}}
+  return withoutPrimaryKey<
+    "{{../base}}:{{name}}",
+    TExtra
+  >({
+    connection,
+    tableName: "{{schema}}.{{name}}",
+  }, extra)
+  {{/if}}
+};
+
+{{name}}.tableName = "{{name}}";
+
+{{/each}}
+
+{{#each views}}
+export function {{name}}<
+  TExtra = import("{{../base}}:{{name}}").TExtra
+>(
+  extra: TExtra,
+) {
+  return dbx<
+    "{{../base}}:{{name}}",
+    TExtra
+  >({
+    connection,
+    tableName: "{{schema}}.{{name}}",
+    primaryKey: "{{primaryKey}}",
+  }, extra)
+};
+
+{{name}}.tableName = "{{name}}";
+
+{{/each}}

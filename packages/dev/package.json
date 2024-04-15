@@ -1,0 +1,67 @@
+{
+  "type": "module",
+  "name": "@appril/dev",
+  "version": "0.0.0-beta.0",
+  "description": "Appril Dev",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.12",
+    "pnpm": ">=8.15"
+  },
+  "files": [
+    "pkg/*"
+  ],
+  "directories": {
+    "bin": "pkg/bin"
+  },
+  "exports": {
+    ".": {
+      "default": "./pkg/index.mjs",
+      "types": "./pkg/index.d.ts"
+    }
+  },
+  "scripts": {
+    "// ✨ linters": "",
+    "lint": "biome lint ./src",
+    "// ✨ types": "",
+    "tsc": "tsc --emitDeclarationOnly",
+    "// ✨ build": "",
+    "prebuild:000": "mkdir -p pkg; find pkg -type f -exec rm -fv {} \\;",
+    "prebuild:001": "pnpm run lint",
+    "prebuild:002": "pnpm run tsc",
+    "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
+    "build": "node ../../esbuild.mjs index worker"
+  },
+  "prettier": "@appril/prettier-config",
+  "dependencies": {
+    "@phenomnomnominal/tsquery": "^6.1.3",
+    "crc": "^4.3.2",
+    "dotenv": "^16.4.5",
+    "esbuild": "^0.20.2",
+    "fast-glob": "^3.3.2",
+    "fs-extra": "^11.2.0",
+    "handlebars": "^4.7.8",
+    "qs": "^6.12.1",
+    "smol-toml": "^1.1.4",
+    "ts-to-zod": "^3.8.3",
+    "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "@appril/configs": "workspace:^",
+    "@appril/crud": "workspace:^",
+    "@appril/pgts": "workspace:^",
+    "@appril/router": "workspace:^",
+    "@biomejs/biome": "^1.6.4",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.12.7",
+    "vite": "^5.2.8"
+  },
+  "peerDependencies": {
+    "zod": "^3.22.4",
+    "zod-validation-error": "^3.0.3"
+  }
+}

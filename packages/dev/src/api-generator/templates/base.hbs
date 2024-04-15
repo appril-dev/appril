@@ -1,0 +1,11 @@
+import { type DefinitionI, definitionFactory, use } from "@appril/router";
+
+export type ParamsT = { {{route.paramsType}} }
+export { use };
+{{#each apiMethods}}
+
+export const {{this}}: DefinitionI<
+  object,
+  { params: ParamsT }
+> = (a) => definitionFactory("{{this}}", a)
+{{/each}}

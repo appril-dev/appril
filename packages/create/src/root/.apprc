@@ -1,0 +1,5 @@
+
+for f in `find -L node_modules/@appril -type f -name bash_completion.sh`; do
+  source $f
+done
+

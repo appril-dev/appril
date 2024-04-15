@@ -1,0 +1,10 @@
+
+{{#each routes}}
+import {{importName}} from "./{{../apiDir}}/{{importPath}}";
+{{/each}}
+
+export default {
+  {{#each routes}}
+  "{{originalPath}}": {{importName}},
+  {{/each}}
+}

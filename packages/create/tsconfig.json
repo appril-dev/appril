@@ -1,0 +1,9 @@
+{
+  "extends": "@appril/configs/tsconfig.lib.json",
+  "include": ["src"],
+  "compilerOptions": {
+    "noEmit": true,
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js"
+  }
+}

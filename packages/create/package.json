@@ -1,0 +1,64 @@
+{
+  "name": "@appril/create",
+  "version": "0.0.0-beta.0",
+  "description": "Easily bootstrap Appril projects",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.12",
+    "pnpm": ">=8.15"
+  },
+  "files": [
+    "pkg/*"
+  ],
+  "bin": {
+    "create": "pkg/index.mjs"
+  },
+  "scripts": {
+    "// ✨ linters": "",
+    "lint": "biome lint ./src",
+    "// ✨ types": "",
+    "tsc": "tsc --noEmit",
+    "// ✨ build": "",
+    "prebuild:000": "rsync -av --delete --exclude '/*.ts' --exclude '/frameworks/*.ts' --exclude '/presets/*.ts' src/ pkg",
+    "prebuild:001": "pnpm run lint",
+    "prebuild:002": "pnpm run tsc",
+    "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
+    "build": "node ../../esbuild.mjs index --outfile=pkg/index.mjs",
+    "postbuild": "chmod +x pkg/index.*"
+  },
+  "dependencies": {
+    "fs-extra": "^11.2.0",
+    "handlebars": "^4.7.8",
+    "merge": "^2.1.1",
+    "npm-check-updates": "^16.14.18",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@appril/configs": "workspace:^",
+    "@appril/dbx": "workspace:^",
+    "@appril/dev": "workspace:^",
+    "@appril/fetch": "workspace:^",
+    "@appril/router": "workspace:^",
+    "@biomejs/biome": "^1.6.4",
+    "@solidjs/router": "^0.13.2",
+    "@types/fs-extra": "^11.0.4",
+    "@types/koa": "^2.15.0",
+    "@types/koa-logger": "^3.1.5",
+    "@types/koa__router": "^12.0.4",
+    "@types/node": "^20.12.7",
+    "@types/nopt": "^3.0.32",
+    "@types/prompts": "^2.4.9",
+    "esbuild": "^0.20.2",
+    "knex": "^3.1.0",
+    "koa": "^2.15.3",
+    "koa-logger": "^3.2.1",
+    "solid-js": "^1.8.16",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.8",
+    "vite-plugin-solid": "^2.10.2"
+  }
+}
