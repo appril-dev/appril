@@ -15,6 +15,7 @@
     "handlebars": "^4.7.8",
     "lodash-es": "^4.17.21",
     "nopt": "^7.2.0",
+    "rimraf": "^5.0.5",
     "typescript": "^5.4.5"
   }
 }

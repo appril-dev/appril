@@ -26,7 +26,7 @@
     "// ✨ types": "",
     "tsc": "tsc --emitDeclarationOnly",
     "// ✨ build": "",
-    "prebuild:000": "mkdir -p pkg; find pkg -type f -exec rm -fv {} \\;",
+    "prebuild:000": "rimraf pkg",
     "prebuild:001": "pnpm run lint",
     "prebuild:002": "pnpm run tsc",
     "prebuild:003": "rsync -av --delete src/templates pkg",

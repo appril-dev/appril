@@ -34,7 +34,7 @@
     "build:cli": "node ../../esbuild.mjs cli/index cli/generators/index cli/migrations/index",
     "postbuild:cli": "for e in cli.sh bash_completion.sh; do cp src/cli/$e pkg; done",
     "// ✨ build": "",
-    "prebuild:000": "mkdir -p pkg; find pkg -type f -exec rm -fv {} \\;",
+    "prebuild:000": "rimraf pkg",
     "prebuild:001": "pnpm run lint",
     "prebuild:002": "pnpm run tsc",
     "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
