@@ -214,7 +214,7 @@ function columnsMapper(
         isPrimaryKey,
         isOptional,
         isGenerated,
-        isRegular: isPrimaryKey || isGenerated ? false : true,
+        isRegular: !(isPrimaryKey || isGenerated),
         defaultValue,
         declaredType,
         comments,
