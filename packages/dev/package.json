@@ -30,7 +30,8 @@
     "prebuild:001": "pnpm run lint",
     "prebuild:002": "pnpm run tsc",
     "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
-    "build": "node ../../esbuild.mjs index worker"
+    "build": "node ../../esbuild.mjs index worker",
+    "prepack": "pnpm run build"
   },
   "prettier": "@appril/prettier-config",
   "dependencies": {
