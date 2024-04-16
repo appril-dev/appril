@@ -2,12 +2,11 @@ import solidPlugin from "vite-plugin-solid";
 import apprilDevPlugin, { definePlugin } from "@appril/dev";
 
 import { apiurl } from "./config";
-import esbuildConfig from "../esbuild.config";
 
 export default [
   solidPlugin(),
 
-  apprilDevPlugin({ apiurl, esbuildConfig, solidPages: {} }),
+  apprilDevPlugin({ apiurl, solidPages: {} }),
 
   definePlugin([
     {

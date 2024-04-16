@@ -10,8 +10,13 @@ export async function apiHandlerFactory(
   config: ResolvedConfig,
   options: ResolvedPluginOptions,
 ) {
-  const { esbuildConfig, sourceFolder, apiurl, apiDir } = options;
+  const { sourceFolder, sourceFolderPath, apiurl, apiDir } = options;
   const outDir = resolve(config.build.outDir, join("..", apiDir));
+
+  const esbuildConfig = await import(
+    resolve(sourceFolderPath, "../esbuild.json"),
+    { with: { type: "json" } }
+  ).then((m) => m.default);
 
   let app: {
     callback: () => (

@@ -1,5 +1,4 @@
 export type PluginOptions = {
-  esbuildConfig: import("esbuild").BuildOptions;
   apiurl: string;
   apiDir?: string;
   routerDir?: string;
