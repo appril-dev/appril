@@ -7,10 +7,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "engines": {
-    "node": ">=20.12",
-    "pnpm": ">=8.15"
-  },
   "files": [
     "pkg/*"
   ],
@@ -45,13 +41,10 @@
     "@types/koa": "^2.15.0",
     "@types/koa-bodyparser": "^4.3.12",
     "@types/koa__router": "^12.0.4",
-    "@types/node": "^20.12.7",
     "@types/pg": "^8.11.5",
-    "esbuild": "^0.20.2",
     "knex": "^3.1.0",
     "koa": "^2.15.3",
     "pinia": "^2.1.7",
-    "typescript": "^5.4.5",
     "vue": "^3.4.22",
     "vue-router": "^4.3.0"
   },

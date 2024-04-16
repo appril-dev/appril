@@ -6,10 +6,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "engines": {
-    "node": ">=20.12",
-    "pnpm": ">=8.15"
-  },
   "files": [
     "tsconfig*.json",
     "biome*.json"
@@ -20,8 +16,5 @@
     "./tsconfig.lib.json": "./tsconfig.lib.json",
     "./tsconfig.lib.vite-solid.json": "./tsconfig.lib.vite-solid.json",
     "./biome": "./biome.json"
-  },
-  "devDependencies": {
-    "@appril/configs": "workspace:^"
   }
 }

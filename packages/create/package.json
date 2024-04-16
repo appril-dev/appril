@@ -7,10 +7,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "engines": {
-    "node": ">=20.12",
-    "pnpm": ">=8.15"
-  },
   "files": [
     "pkg/*"
   ],
@@ -31,8 +27,6 @@
     "postbuild": "chmod +x pkg/index.*"
   },
   "dependencies": {
-    "fs-extra": "^11.2.0",
-    "handlebars": "^4.7.8",
     "merge": "^2.1.1",
     "npm-check-updates": "^16.14.18",
     "prompts": "^2.4.2"
@@ -44,19 +38,14 @@
     "@appril/fetch": "workspace:^",
     "@appril/router": "workspace:^",
     "@solidjs/router": "^0.13.2",
-    "@types/fs-extra": "^11.0.4",
     "@types/koa": "^2.15.0",
     "@types/koa-logger": "^3.1.5",
     "@types/koa__router": "^12.0.4",
-    "@types/node": "^20.12.7",
-    "@types/nopt": "^3.0.32",
     "@types/prompts": "^2.4.9",
-    "esbuild": "^0.20.2",
     "knex": "^3.1.0",
     "koa": "^2.15.3",
     "koa-logger": "^3.2.1",
     "solid-js": "^1.8.16",
-    "typescript": "^5.4.5",
     "vite": "^5.2.9",
     "vite-plugin-solid": "^2.10.2"
   }

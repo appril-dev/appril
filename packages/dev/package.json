@@ -8,10 +8,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "engines": {
-    "node": ">=20.12",
-    "pnpm": ">=8.15"
-  },
   "files": [
     "pkg/*"
   ],
@@ -41,22 +37,15 @@
     "@phenomnomnominal/tsquery": "^6.1.3",
     "crc": "^4.3.2",
     "dotenv": "^16.4.5",
-    "esbuild": "^0.20.2",
-    "fast-glob": "^3.3.2",
-    "fs-extra": "^11.2.0",
-    "handlebars": "^4.7.8",
     "qs": "^6.12.1",
     "smol-toml": "^1.1.4",
-    "ts-to-zod": "^3.8.3",
-    "typescript": "^5.4.5"
+    "ts-to-zod": "^3.8.3"
   },
   "devDependencies": {
     "@appril/configs": "workspace:^",
     "@appril/crud": "workspace:^",
     "@appril/pgts": "workspace:^",
     "@appril/router": "workspace:^",
-    "@types/fs-extra": "^11.0.4",
-    "@types/node": "^20.12.7",
     "vite": "^5.2.9"
   },
   "peerDependencies": {

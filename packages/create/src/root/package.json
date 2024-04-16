@@ -1,11 +1,8 @@
 {
   "version": "0.0.0",
-  "engines": {
-    "node": ">=20.12 =20",
-    "pnpm": ">=8.15 =8"
-  },
-  "distDir": "{{project.distDir}}",
+  "type": "module",
   "packageManager": "pnpm@8.15.7",
+  "distDir": "{{project.distDir}}",
   "dependencies": {
     "@appril/router": "^0.0.0",
     "@appril/fetch": "^0.0.0",

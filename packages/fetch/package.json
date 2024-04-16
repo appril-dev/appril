@@ -7,10 +7,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "engines": {
-    "node": ">=20.10",
-    "pnpm": ">=8.15"
-  },
   "files": [
     "pkg/*"
   ],
@@ -44,9 +40,6 @@
   "devDependencies": {
     "@appril/configs": "workspace:^",
     "@types/follow-redirects": "^1.14.4",
-    "@types/node": "^20.12.7",
-    "@types/qs": "^6.9.15",
-    "esbuild": "^0.20.2",
-    "typescript": "^5.4.5"
+    "@types/qs": "^6.9.15"
   }
 }
