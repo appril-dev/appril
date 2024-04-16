@@ -55,7 +55,6 @@
     "@appril/crud": "workspace:^",
     "@appril/pgts": "workspace:^",
     "@appril/router": "workspace:^",
-    "@biomejs/biome": "^1.7.0",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.12.7",
     "vite": "^5.2.9"

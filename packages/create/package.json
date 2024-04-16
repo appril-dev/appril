@@ -43,7 +43,6 @@
     "@appril/dev": "workspace:^",
     "@appril/fetch": "workspace:^",
     "@appril/router": "workspace:^",
-    "@biomejs/biome": "^1.7.0",
     "@solidjs/router": "^0.13.2",
     "@types/fs-extra": "^11.0.4",
     "@types/koa": "^2.15.0",
