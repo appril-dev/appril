@@ -43,10 +43,10 @@
   },
   "devDependencies": {
     "@appril/configs": "workspace:^",
-    "@biomejs/biome": "^1.6.4",
+    "@biomejs/biome": "^1.7.0",
     "@types/follow-redirects": "^1.14.4",
     "@types/node": "^20.12.7",
-    "@types/qs": "^6.9.14",
+    "@types/qs": "^6.9.15",
     "esbuild": "^0.20.2",
     "typescript": "^5.4.5"
   }

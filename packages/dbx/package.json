@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@appril/configs": "workspace:^",
-    "@biomejs/biome": "^1.6.4",
+    "@biomejs/biome": "^1.7.0",
     "@types/fs-extra": "^11.0.4",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^20.12.7",

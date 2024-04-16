@@ -42,7 +42,7 @@
     "@appril/configs": "workspace:^",
     "@appril/dbx": "workspace:^",
     "@appril/fetch": "workspace:^",
-    "@biomejs/biome": "^1.6.4",
+    "@biomejs/biome": "^1.7.0",
     "@types/koa": "^2.15.0",
     "@types/koa-bodyparser": "^4.3.12",
     "@types/koa__router": "^12.0.4",
@@ -53,7 +53,7 @@
     "koa": "^2.15.3",
     "pinia": "^2.1.7",
     "typescript": "^5.4.5",
-    "vue": "^3.4.21",
+    "vue": "^3.4.22",
     "vue-router": "^4.3.0"
   },
   "peerDependencies": {
