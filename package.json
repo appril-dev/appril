@@ -22,10 +22,11 @@
     "build": "pnpm -r run build",
     "prepub:000": "pnpm -w run build",
     "prepub:001": "changeset add",
-    "prepub:002": "git commit -am changeset",
-    "prepub:003": "changeset version",
-    "prepub:004": "git commit -am version\\ bump",
-    "prepub": "set -e; for i in 0 1 2 3 4; do pnpm run -w prepub:00$i; done",
+    "prepub:002": "git add --all .",
+    "prepub:003": "git commit -am changeset",
+    "prepub:004": "changeset version",
+    "prepub:005": "git commit -am version\\ bump",
+    "prepub": "set -e; for i in 0 1 2 3 4 5; do pnpm run -w prepub:00$i; done",
     "pub": "changeset publish"
   }
 }
