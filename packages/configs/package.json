@@ -11,8 +11,8 @@
     "biome*.json"
   ],
   "exports": {
-    "./tsconfig.json": "./tsconfig.json",
-    "./tsconfig.vite-solid.json": "./tsconfig.vite-solid.json",
+    "./tsconfig.app.json": "./tsconfig.app.json",
+    "./tsconfig.app.vite-solid.json": "./tsconfig.app.vite-solid.json",
     "./tsconfig.lib.json": "./tsconfig.lib.json",
     "./tsconfig.lib.vite-solid.json": "./tsconfig.lib.vite-solid.json",
     "./biome": "./biome.json"
