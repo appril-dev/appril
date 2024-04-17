@@ -11,6 +11,7 @@
     "typescript": "^5.4.5"
   },
   "scripts": {
+    "tsc": "set -e; for e in ./packages/*/tsconfig.json; do echo [ $e ]; tsc -p $e --noEmit; done",
     "build": "pnpm -r run build",
     "prepub:000": "pnpm -w run build",
     "prepub:001": "changeset add",
