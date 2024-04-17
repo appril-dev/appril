@@ -1,5 +1,13 @@
 # @appril/dbx
 
+## 0.0.42
+
+### Patch Changes
+
+- 35817b9: fixed runtime deps
+- Updated dependencies [35817b9]
+  - @appril/pgts@0.0.42
+
 ## 0.0.41
 
 ### Patch Changes

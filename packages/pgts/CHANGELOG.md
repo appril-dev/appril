@@ -1,5 +1,11 @@
 # @appril/pgts
 
+## 0.0.42
+
+### Patch Changes
+
+- 35817b9: fixed runtime deps
+
 ## 0.0.41
 
 ### Patch Changes
