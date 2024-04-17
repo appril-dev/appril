@@ -31,8 +31,7 @@
     "prebuild:002": "pnpm run tsc",
     "prebuild:003": "rsync -av --delete src/templates pkg",
     "prebuild": "set -e; for i in 0 1 2 3; do pnpm run prebuild:00${i}; done",
-    "build": "node ../../esbuild.mjs index templates",
-    "prepack": "pnpm run build"
+    "build": "node ../../esbuild.mjs index templates"
   },
   "prettier": "@appril/prettier-config",
   "devDependencies": {

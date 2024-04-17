@@ -24,8 +24,7 @@
     "prebuild:002": "pnpm run tsc",
     "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
     "postbuild": "chmod +x pkg/index.*",
-    "build": "node ../../esbuild.mjs index --outfile=pkg/index.mjs",
-    "prepack": "pnpm run build"
+    "build": "node ../../esbuild.mjs index --outfile=pkg/index.mjs"
   },
   "dependencies": {
     "merge": "^2.1.1",
