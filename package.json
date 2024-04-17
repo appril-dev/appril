@@ -25,7 +25,7 @@
     "prepub:002": "git commit -am changeset",
     "prepub:003": "changeset version",
     "prepub:004": "git commit -am version\\ bump",
-    "prepub": "set -e; for i in 0 1 2 3 4; do pnpm run -w prepub:00$1; done",
+    "prepub": "set -e; for i in 0 1 2 3 4; do pnpm run -w prepub:00$i; done",
     "pub": "changeset publish"
   }
 }
