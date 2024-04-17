@@ -1,6 +1,6 @@
 {
   "name": "@appril/dbx",
-  "version": "0.0.40",
+  "version": "0.0.41",
   "description": "Thin wrapper arounbd Knex, with type generators and migration handlers",
   "author": "Slee Woo",
   "license": "MIT",

@@ -1,5 +1,13 @@
 # @appril/dbx
 
+## 0.0.41
+
+### Patch Changes
+
+- 7a22804: shifting versions
+- Updated dependencies [7a22804]
+  - @appril/pgts@0.0.41
+
 ## 0.0.1
 
 ### Patch Changes

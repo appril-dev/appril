@@ -1,5 +1,11 @@
 # @appril/router
 
+## 0.0.41
+
+### Patch Changes
+
+- 7a22804: shifting versions
+
 ## 0.0.1
 
 ### Patch Changes
