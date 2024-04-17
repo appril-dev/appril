@@ -17,5 +17,15 @@
     "nopt": "^7.2.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.4.5"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "prepub:000": "pnpm -w run build",
+    "prepub:001": "changeset add",
+    "prepub:002": "git commit -am changeset",
+    "prepub:003": "changeset version",
+    "prepub:004": "git commit -am version\\ bump",
+    "prepub": "set -e; for i in 0 1 2 3 4; do pnpm run -w prepub:00$1; done",
+    "pub": "changeset publish"
   }
 }
