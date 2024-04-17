@@ -1,6 +1,6 @@
 {
   "name": "@appril/pgts",
-  "version": "0.0.1",
+  "version": "0.0.40",
   "description": "PostgreSQL Typed Schema",
   "author": "Slee Woo",
   "license": "MIT",
