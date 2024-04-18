@@ -1,5 +1,3 @@
-// supposed to be used in CommonJS environment only
-
 process.on("uncaughtException", (error) => {
   console.error("UncaughtException", error);
   process.exit(1);
