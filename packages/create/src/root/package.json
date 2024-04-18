@@ -1,7 +1,7 @@
 {
   "version": "0.0.0",
   "type": "module",
-  "packageManager": "pnpm@9.0.1",
+  "packageManager": "pnpm@9.0.2",
   "distDir": "{{project.distDir}}",
   "dependencies": {
     "@appril/router": "^0.0.0",
