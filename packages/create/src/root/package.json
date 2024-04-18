@@ -23,6 +23,7 @@
     "@types/koa-bodyparser": "^0.0.0",
     "@types/node": "^0.0.0",
     "@types/nopt": "^0.0.0",
+    "@types/qs": "^0.0.0",
     "esbuild": "^0.0.0",
     "tslib": "^0.0.0",
     "typescript": "^0.0.0",
