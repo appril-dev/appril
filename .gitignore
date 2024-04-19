@@ -1,2 +1,3 @@
 /packages/*/pkg/
 /packages/*/var/
+.tmuxinator.yml
