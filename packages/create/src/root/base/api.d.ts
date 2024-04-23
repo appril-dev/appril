@@ -1,3 +1,4 @@
+// mandatory export for declared modules to be treated as augmented (rather than ambient)
 export type {};
 
 declare module "koa" {
