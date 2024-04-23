@@ -4,5 +4,11 @@
     "indentStyle": "space",
     "indentWidth": 2,
     "ignore": ["**/tsconfig*.json", "**/package*.json"]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "complexity": { "noUselessTernary": "off" }
+    }
   }
 }
