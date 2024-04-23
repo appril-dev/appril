@@ -8,6 +8,10 @@ import {
 {{text}}
 {{/each}}
 
+function resolve(params: (string|number)[]) {
+  return pathMaker("{{originalPath}}", params)
+}
+
 function apiFactory(
   api: import("@appril/fetch").FetchMapper,
 ) {
@@ -30,7 +34,7 @@ function apiFactory(
     {{/if}}
   > {
     return api.{{method}}(
-      pathMaker("{{../originalPath}}", params),
+      resolve(params),
       payload || {},
     )
   }
@@ -70,4 +74,5 @@ export default {
   createApi,
   fetch,
   withLoader,
+  resolve,
 };
