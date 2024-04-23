@@ -9,7 +9,6 @@ for (const entryPoint of argv.remain) {
   await build({
     entryPoints: [`src/${entryPoint}.ts`],
     outfile: `pkg/${entryPoint}.mjs`,
-    loader: { ".hbs": "text" },
     ...config,
     ...Object.entries(opts).reduce((a, [k, v]) => {
       a[k.replace(/(\w)\-(\w)/g, (_m, a, b) => a + b.toUpperCase())] = v;

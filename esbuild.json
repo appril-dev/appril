@@ -5,5 +5,6 @@
   "format": "esm",
   "packages": "external",
   "sourcemap": "inline",
-  "logLevel": "info"
+  "logLevel": "info",
+  "loader": { ".hbs": "text" }
 }
