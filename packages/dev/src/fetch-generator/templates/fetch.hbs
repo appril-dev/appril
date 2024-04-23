@@ -8,7 +8,7 @@ import {
 {{text}}
 {{/each}}
 
-function resolve(params: (string|number)[]) {
+function resolve(params: [ {{fetchParamsType}} ]) {
   return pathMaker("{{originalPath}}", params)
 }
 
