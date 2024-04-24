@@ -16,7 +16,7 @@
       "types": "./pkg/fetch/index.d.ts"
     },
     "./node": {
-      "require": "./pkg/node/index.mjs",
+      "default": "./pkg/node/index.mjs",
       "types": "./pkg/node/index.d.ts"
     }
   },

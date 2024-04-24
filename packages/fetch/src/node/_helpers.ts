@@ -4,12 +4,14 @@ import { validateHeaderName, validateHeaderValue } from "node:http";
 import { stringify } from "qs";
 
 import type { RedirectableRequest } from "follow-redirects";
-import { http, https } from "follow-redirects";
+import request from "follow-redirects";
 
 import type { DataParams, BuildRequestOptions } from "./@types";
 
 type Request = RedirectableRequest<ClientRequest, unknown>;
 type ResponseHandler = (res: IncomingMessage) => void;
+
+const { http, https } = request;
 
 export function objToQs(obj: DataParams): string {
   return stringify(obj, {
