@@ -37,7 +37,7 @@ import { sourceFilesParsers } from "./parsers";
 ["users/:id.json"]
 # will generate {apiDir}/users/:id.json.ts
 
-## optional params (-o suffix)
+## optional params (+o suffix)
 
 ["users/:id+o"]
 # will generate {apiDir}/users/:id+o.ts
