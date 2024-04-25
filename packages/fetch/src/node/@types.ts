@@ -1,3 +1,5 @@
+export type HTTPMethod = "get" | "post" | "put" | "form" | "del";
+
 export type DataParams = Record<string, unknown>;
 
 export type BuildRequestOptions = {
