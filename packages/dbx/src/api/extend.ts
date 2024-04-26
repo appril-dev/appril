@@ -1,21 +1,6 @@
 import type { Knex } from "knex";
 import knex from "knex";
 
-// same as `first` but throws error if no record found
-export const find = async function (
-  this: Knex.QueryBuilder,
-  ...args: unknown[]
-) {
-  // @ts-ignore
-  const row = await this.first(...args);
-
-  if (row) {
-    return row;
-  }
-
-  throw new Error(`${this.table}: no record found by given params`);
-};
-
 export const selectRaw = function (this: Knex.QueryBuilder, raw: string) {
   return this.select(this.client.raw(raw));
 };
@@ -95,12 +80,6 @@ function countQueryBuilder(queryBuilder: Knex.QueryBuilder) {
   return builder;
 }
 
-export const satisfies = function (this: Knex.QueryBuilder) {
-  return this;
-};
-
-knex.QueryBuilder.extend("find", find);
-
 knex.QueryBuilder.extend("selectRaw", selectRaw);
 // @ts-ignore
 knex.QueryBuilder.extend("onConflictRaw", onConflictRaw);
@@ -121,5 +100,3 @@ knex.QueryBuilder.extend("avgValue", avgValue);
 knex.QueryBuilder.extend("countRows", countRows);
 // @ts-ignore
 knex.QueryBuilder.extend("countDistinctRows", countDistinctRows);
-
-knex.QueryBuilder.extend("satisfies", satisfies);

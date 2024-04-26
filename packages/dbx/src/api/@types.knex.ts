@@ -1,14 +1,6 @@
-// If T is an array, get the type of member, else retain original
-type UnwrapArrayMember<T> = T extends (infer M)[] ? M : T;
-
 declare module "knex" {
   namespace Knex {
     interface QueryBuilder<TRecord, TResult> {
-      find(): Promise<UnwrapArrayMember<TResult>>;
-      find(column: string): Promise<UnwrapArrayMember<TResult>>;
-      find(columns: string[]): Promise<UnwrapArrayMember<TResult>>;
-      find(...columns: string[]): Promise<UnwrapArrayMember<TResult>>;
-
       selectRaw(
         raw: string,
       ): import("knex").Knex.QueryBuilder<TRecord, TResult>;
@@ -37,8 +29,6 @@ declare module "knex" {
 
       countRows(): Promise<number>;
       countDistinctRows(...columns: string[]): Promise<number>;
-
-      satisfies<T>(): import("knex").Knex.QueryBuilder<TRecord, T>;
     }
   }
 }
