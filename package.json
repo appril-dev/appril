@@ -2,14 +2,6 @@
   "type": "module",
   "private": true,
   "packageManager": "pnpm@9.0.6",
-  "devDependencies": {
-    "@biomejs/biome": "^1.7.1",
-    "@changesets/cli": "^2.27.1",
-    "@types/node": "^20.12.7",
-    "esbuild": "^0.20.2",
-    "rimraf": "^5.0.5",
-    "typescript": "^5.4.5"
-  },
   "scripts": {
     "tsc": "set -e; for e in ./packages/*/tsconfig.json; do echo [ $e ]; tsc -p $e --noEmit; done",
     "build": "pnpm -r run build",
@@ -22,7 +14,13 @@
     "prepub": "set -e; for i in 0 1 2 3 4 5; do pnpm run -w prepub:00$i; done",
     "pub": "changeset publish"
   },
-  "dependencies": {
-    "nopt": "^7.2.0"
+  "devDependencies": {
+    "@biomejs/biome": "^1.7.1",
+    "@changesets/cli": "^2.27.1",
+    "@types/node": "^20.12.7",
+    "esbuild": "^0.20.2",
+    "nopt": "^7.2.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.4.5"
   }
 }
