@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "pnpm@9.0.6",
   "devDependencies": {
-    "@biomejs/biome": "^1.7.0",
+    "@biomejs/biome": "^1.7.1",
     "@changesets/cli": "^2.27.1",
     "@types/node": "^20.12.7",
     "esbuild": "^0.20.2",

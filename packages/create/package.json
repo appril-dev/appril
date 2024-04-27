@@ -31,27 +31,27 @@
     "handlebars": "^4.7.8",
     "merge": "^2.1.1",
     "nopt": "^7.2.0",
-    "npm-check-updates": "^16.14.18",
+    "npm-check-updates": "^16.14.20",
     "prompts": "^2.4.2"
   },
   "devDependencies": {
-    "@types/fs-extra": "^11.0.4",
-    "@types/nopt": "^3.0.32",
     "@appril/configs": "workspace:^",
     "@appril/dbx": "workspace:^",
     "@appril/dev": "workspace:^",
     "@appril/fetch": "workspace:^",
     "@appril/router": "workspace:^",
     "@solidjs/router": "^0.13.2",
+    "@types/fs-extra": "^11.0.4",
     "@types/koa": "^2.15.0",
     "@types/koa-logger": "^3.1.5",
     "@types/koa__router": "^12.0.4",
+    "@types/nopt": "^3.0.32",
     "@types/prompts": "^2.4.9",
     "knex": "^3.1.0",
     "koa": "^2.15.3",
     "koa-logger": "^3.2.1",
-    "solid-js": "^1.8.16",
-    "vite": "^5.2.9",
+    "solid-js": "^1.8.17",
+    "vite": "^5.2.10",
     "vite-plugin-solid": "^2.10.2"
   }
 }
