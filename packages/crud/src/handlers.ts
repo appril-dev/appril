@@ -323,7 +323,9 @@ export function handlersFactory<
 
       const item = await crud.queryBuilder
         .where(crud.primaryKey as string, ctx.params._id)
-        .find(crud.returningLiteral as []);
+        .first(crud.returningLiteral as []);
+
+      ctx.assert(item, 404);
 
       return item as ReturnT;
     };
