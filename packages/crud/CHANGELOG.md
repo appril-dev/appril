@@ -1,5 +1,15 @@
 # @appril/crud
 
+## 0.0.43
+
+### Patch Changes
+
+- 396f1ef: multiple updates
+- Updated dependencies [396f1ef]
+  - @appril/dbx@0.0.43
+  - @appril/fetch@0.0.43
+  - @appril/router@0.0.43
+
 ## 0.0.42
 
 ### Patch Changes
