@@ -4,7 +4,6 @@ import type {
   ResolvedConfig,
   TableDeclaration,
   EnumDeclaration,
-  OnTypeImport,
 } from "./@types";
 
 import { defaultTableNominator, defaultModelNominator } from "./nominators";
@@ -15,9 +14,6 @@ export function tablesMapper(
   config: ResolvedConfig,
   schema: string,
   enums: EnumDeclaration[],
-  callbacks: {
-    onTypeImport: OnTypeImport;
-  },
 ) {
   const {
     tableFilter,
@@ -39,14 +35,7 @@ export function tablesMapper(
       return [];
     }
 
-    const columns = columnsIterator(
-      config,
-      schema,
-      name,
-      table.columns,
-      enums,
-      callbacks,
-    );
+    const columns = columnsIterator(config, schema, name, table.columns, enums);
 
     const declaredName = tableNominator(name, {
       schema,

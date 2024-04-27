@@ -8,7 +8,6 @@ import type {
   ResolvedConfig,
   ViewDeclaration,
   EnumDeclaration,
-  OnTypeImport,
 } from "./@types";
 
 type ViewAssets = {
@@ -20,7 +19,6 @@ export function viewsMapper(
   config: ResolvedConfig,
   schema: string,
   enums: EnumDeclaration[],
-  callbacks: { onTypeImport: OnTypeImport },
 ) {
   const {
     viewFilter,
@@ -37,14 +35,7 @@ export function viewsMapper(
       [];
     }
 
-    const columns = columnsIterator(
-      config,
-      schema,
-      name,
-      view.columns,
-      enums,
-      callbacks,
-    );
+    const columns = columnsIterator(config, schema, name, view.columns, enums);
 
     const declaredName = viewNominator(name, {
       schema,

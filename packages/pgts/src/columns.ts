@@ -11,8 +11,7 @@ import type {
   EnumDeclaration,
   ColumnDeclaration,
   ZodColumn,
-  OnTypeImport,
-  TypeImportBase,
+  ImportedType,
 } from "./@types";
 
 import { defaultTypeMap, defaultZodTypeMap } from "./default-type-maps";
@@ -23,14 +22,11 @@ export function columnsIterator(
   name: string,
   columns: TableColumn[] | ViewColumn[] | MaterializedViewColumn[],
   enums: EnumDeclaration[],
-  callbacks: {
-    onTypeImport: OnTypeImport;
-  },
 ): ColumnDeclaration[] {
   const columnDeclarations: ColumnDeclaration[] = [];
 
   columnDeclarations.push(
-    ...columns.flatMap(columnsMapper(config, schema, name, enums, callbacks)),
+    ...columns.flatMap(columnsMapper(config, schema, name, enums)),
   );
 
   return columnDeclarations;
@@ -41,11 +37,6 @@ function columnsMapper(
   schema: string,
   name: string,
   enums: EnumDeclaration[],
-  {
-    onTypeImport,
-  }: {
-    onTypeImport: OnTypeImport;
-  },
 ) {
   const { customTypes, zod: zodConfig } = config;
   const fullName = [schema, name].join(".");
@@ -115,16 +106,15 @@ function columnsMapper(
 
       if (typeof customDef === "string") {
         declaredType = customDef as string;
-      } else if ((customDef as TypeImportBase).import) {
-        const typeImport = customDef as TypeImportBase;
-        declaredType = typeImport.as || typeImport.import;
-        if (typeImport.array) {
+      } else if ((customDef as ImportedType).import) {
+        const importedType = customDef as ImportedType;
+        declaredType = `import("${importedType.from}").${importedType.import}`;
+        if (importedType.isArray) {
           isArray = true;
         }
-        if (typeImport.nullable) {
+        if (importedType.isNullable) {
           isNullable = true;
         }
-        onTypeImport({ ...typeImport, declaredType }, schema);
       } else if ((customDef as ExplicitType).as) {
         declaredType = (customDef as ExplicitType).as;
         explicitType = true;

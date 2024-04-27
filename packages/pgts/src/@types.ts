@@ -5,24 +5,14 @@ export type { ConnectionConfig };
 
 export type ExplicitType = { as: string };
 
-export type TypeImportBase = {
+export type ImportedType = {
   import: string;
   from: string;
-  as?: string;
-  array?: boolean;
-  nullable?: boolean;
+  isArray?: boolean;
+  isNullable?: boolean;
 };
 
-export type TypeImportPartial = TypeImportBase & { declaredType: string };
-
-export type TypeImport = TypeImportPartial & {
-  text: string;
-  schemas: string[];
-};
-
-export type OnTypeImport = (t: TypeImportPartial, schema: string) => void;
-
-export type CustomType = string | ExplicitType | TypeImportBase;
+export type CustomType = string | ExplicitType | ImportedType;
 
 export type CustomTypes = {
   [key: string]: CustomType | Record<string, CustomType>;
