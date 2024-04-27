@@ -155,7 +155,7 @@ function columnsMapper(
 
     if (!explicitType) {
       if (isArray) {
-        declaredType = `${declaredType}[]`;
+        declaredType = `Array<${declaredType}>`;
       }
 
       if (isNullable) {
