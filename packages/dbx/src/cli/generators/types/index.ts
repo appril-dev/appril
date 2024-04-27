@@ -6,7 +6,6 @@ import type {
   TableDeclaration,
   ViewDeclaration,
   EnumDeclaration,
-  TypeImport,
 } from "../../@types";
 
 import { resolvePath } from "../../base";
@@ -31,13 +30,11 @@ export default async function typesGenerator(
     tables,
     views,
     enums,
-    typeImports,
   }: {
     schemas: string[];
     tables: TableDeclaration[];
     views: ViewDeclaration[];
     enums: EnumDeclaration[];
-    typeImports: TypeImport[];
   },
 ): Promise<void> {
   const { base, typesTemplates } = config;
@@ -55,9 +52,6 @@ export default async function typesGenerator(
     const schemaEnums = enums.filter((e) => e.schema === schema);
     const schemaTables = tables.filter((e) => e.schema === schema);
     const schemaViews = views.filter((e) => e.schema === schema);
-    const schemaTypeImports = typeImports.filter((e) =>
-      e.schemas.includes(schema),
-    );
 
     const context = {
       BANNER,
@@ -65,7 +59,6 @@ export default async function typesGenerator(
       enums: schemaEnums,
       tables: schemaTables,
       views: schemaViews,
-      typeImports: schemaTypeImports,
     };
 
     for (const [outFile, tplName] of [

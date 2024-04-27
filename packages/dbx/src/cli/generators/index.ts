@@ -49,7 +49,7 @@ run(async () => {
     }
   }
 
-  const { schemas, tables, views, enums, typeImports } = await pgts(
+  const { schemas, tables, views, enums } = await pgts(
     config.connection,
     config,
   );
@@ -64,7 +64,7 @@ run(async () => {
   }
 
   process.stdout.write(" 🡺 Generating types... ");
-  await typesGenerator(config, { schemas, tables, views, enums, typeImports });
+  await typesGenerator(config, { schemas, tables, views, enums });
   console.log("Done ✨");
 
   process.stdout.write(" 🡺 Generating tables... ");

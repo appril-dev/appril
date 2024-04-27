@@ -5,10 +5,9 @@ import type {
   TableDeclaration,
   ViewDeclaration,
   EnumDeclaration,
-  TypeImport,
 } from "@appril/pgts";
 
-export type { TableDeclaration, ViewDeclaration, EnumDeclaration, TypeImport };
+export type { TableDeclaration, ViewDeclaration, EnumDeclaration };
 
 export type Templates = {
   base?: string;
