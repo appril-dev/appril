@@ -2,7 +2,7 @@ import {
   baseurl, apiurl,
   fetchFactory, fetchOptions,
   join, withLoader, pathMaker,
-} from "{{defaults.generated.fetch}}/../base";
+} from "{{baseImportPath}}";
 
 {{#each typeDeclarations}}
 {{text}}
@@ -19,7 +19,7 @@ function apiFactory(
   {{#each fetchDefinitions}}
   function {{method}}(
     params: [ {{../fetchParamsType}} ],
-    payload{{#unless payloadType}}?{{/unless}}: import("{{../defaults.generated.fetch}}/../base").MaybeRef<
+    payload{{#unless payloadType}}?{{/unless}}: import("{{../baseImportPath}}").MaybeRef<
       {{#if payloadType}}
       {{payloadType}}
       {{else}}

@@ -94,7 +94,18 @@ async function generateRouteAssets({
     join(varDir, defaults.generated.fetch, apiDir, route.file),
     {
       template: fetchTpl,
-      context: { ...route, defaults, typeDeclarations, fetchDefinitions },
+      context: {
+        ...route,
+        baseImportPath: join(
+          sourceFolder,
+          varDir,
+          defaults.generated.fetch,
+          "base",
+        ),
+        defaults,
+        typeDeclarations,
+        fetchDefinitions,
+      },
     },
   );
 }
