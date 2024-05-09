@@ -85,8 +85,9 @@ async function generateRouteAssets({
   const { typeDeclarations, fetchDefinitions } = await extractApiAssets(
     route.fileFullpath,
     {
-      root: sourceFolder,
-      base: dirname(route.file),
+      relpathResolver(path) {
+        return join(sourceFolder, apiDir, dirname(route.file), path);
+      },
     },
   );
 

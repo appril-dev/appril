@@ -1,4 +1,4 @@
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 import { stringify } from "smol-toml";
 import type { ApiTypesLiteral, DefaultTemplates } from "@appril/crud";
@@ -152,8 +152,9 @@ async function generateVarFiles({
   });
 
   const apiTypes = await extractTypes(table.apiFileFullpath, {
-    root: sourceFolder,
-    base: apiDir,
+    relpathResolver(path) {
+      return join(sourceFolder, apiDir, dirname(table.apiFile), path);
+    },
   });
 
   const templates = { ...defaultTemplates.client, ...customTemplates.client };

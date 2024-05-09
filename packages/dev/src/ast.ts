@@ -1,5 +1,3 @@
-import { resolve, join } from "node:path";
-
 import * as tsquery from "@phenomnomnominal/tsquery";
 import fsx from "fs-extra";
 
@@ -27,14 +25,14 @@ import type {
   FetchDefinition,
 } from "./@types";
 
+export type RelpathResolver = (path: string) => string;
+
 export async function extractApiAssets(
   file: string,
   {
-    root,
-    base,
+    relpathResolver,
   }: {
-    root: string;
-    base: string;
+    relpathResolver: RelpathResolver;
   },
 ): Promise<{
   typeDeclarations: TypeDeclaration[];
@@ -47,7 +45,7 @@ export async function extractApiAssets(
 
   const ast = tsquery.ast(fileContent);
 
-  const typeDeclarations = extractTypeDeclarations(ast, { root, base });
+  const typeDeclarations = extractTypeDeclarations(ast, { relpathResolver });
 
   const callExpressions = tsquery
     .match(ast, "ExportAssignment ArrayLiteralExpression > CallExpression")
@@ -100,14 +98,12 @@ export async function extractApiAssets(
   };
 }
 
-function extractTypeDeclarations(
+export function extractTypeDeclarations(
   ast: ReturnType<(typeof tsquery)["ast"]>,
   {
-    root,
-    base,
+    relpathResolver,
   }: {
-    root: string;
-    base: string;
+    relpathResolver: RelpathResolver;
   },
 ): TypeDeclaration[] {
   const importDeclarations: ImportDeclaration[] = tsquery.match(
@@ -131,7 +127,7 @@ function extractTypeDeclarations(
     let path = JSON.parse(node.moduleSpecifier.getText());
 
     if (/^\.\.?\/?/.test(path)) {
-      path = join(root, resolve(base, path));
+      path = relpathResolver(path);
     }
 
     for (const spec of tsquery.match(

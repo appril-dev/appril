@@ -1,17 +1,11 @@
-import { resolve, join } from "node:path";
-
 import * as tsquery from "@phenomnomnominal/tsquery";
 import fsx from "fs-extra";
 
-import type {
-  CallExpression,
-  ImportSpecifier,
-  ImportDeclaration,
-  Expression,
-  Node,
-} from "typescript";
+import type { CallExpression, Expression, Node } from "typescript";
 
 import type { ApiTypes } from "@appril/crud";
+import type { TypeDeclaration } from "../@types";
+import { extractTypeDeclarations, type RelpathResolver } from "../ast";
 
 const METHODS = ["env", "list", "retrieve"] as const;
 
@@ -27,13 +21,14 @@ const TYPENAME_BY_METHOD: Record<Method, keyof ApiTypes> = {
 
 export async function extractTypes(
   file: string,
-  opts: {
-    root: string;
-    base: string;
+  {
+    relpathResolver,
+  }: {
+    relpathResolver: RelpathResolver;
   },
 ): Promise<
   {
-    typeDeclarations: string[];
+    typeDeclarations: TypeDeclaration[];
   } & ApiTypes
 > {
   const fileContent = (await fsx.exists(file))
@@ -47,44 +42,8 @@ export async function extractTypes(
     "ExportAssignment ArrayLiteralExpression > CallExpression",
   );
 
-  const importDeclarations: ImportDeclaration[] = tsquery.match(
-    ast,
-    "ImportDeclaration",
-  );
-
-  const interfaceDeclarations = tsquery.match(ast, "InterfaceDeclaration");
-
-  const typeAliasDeclarations = tsquery.match(ast, "TypeAliasDeclaration");
-
-  const typeDeclarations = new Set();
+  const typeDeclarations = extractTypeDeclarations(ast, { relpathResolver });
   const typeDefinitions: ApiTypes = {};
-
-  for (const node of importDeclarations) {
-    let path = node.moduleSpecifier
-      .getText()
-      .replace(/^\W|\W$/g, "" /** removing quotes */);
-
-    if (/^\.\.?\/?/.test(path)) {
-      path = join(opts.root, resolve(opts.base, path));
-    }
-
-    for (const spec of tsquery.match(
-      node,
-      "ImportSpecifier",
-    ) as ImportSpecifier[]) {
-      if (node.importClause?.isTypeOnly) {
-        typeDeclarations.add(
-          `import type { ${spec.getText()} } from "${path}";`,
-        );
-      } else if (spec.isTypeOnly) {
-        typeDeclarations.add(`import { ${spec.getText()} } from "${path}";`);
-      }
-    }
-  }
-
-  for (const node of [...interfaceDeclarations, ...typeAliasDeclarations]) {
-    typeDeclarations.add(node.getText());
-  }
 
   for (const exp of callExpressions) {
     const [firstArg] = exp.arguments;
@@ -131,7 +90,7 @@ export async function extractTypes(
   }
 
   return {
-    typeDeclarations: [...typeDeclarations] as string[],
+    typeDeclarations,
     ...typeDefinitions,
   };
 }

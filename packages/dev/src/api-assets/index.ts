@@ -120,6 +120,7 @@ export async function apiAssets(
   const bootstrapPayload: BootstrapPayload<Workers> = {
     routes: Object.values(routeMap),
     sourceFolder,
+    apiDir,
     varDir,
     typeFiles: Object.values(typeFiles),
     importZodErrorHandlerFrom,
