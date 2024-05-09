@@ -93,8 +93,12 @@ export type RouteSection = {
 };
 
 export type ApiRouteConfig = {
+  // override default prefix
+  prefix?: string;
+
   // relative to apiDir
   file?: string;
+
   template?: string;
   templateContext?: Record<string, unknown>;
 
@@ -124,6 +128,7 @@ export type ApiRouteConfig = {
 };
 
 export type ApiRoute = {
+  prefix?: string;
   path: string;
   originalPath: string;
   paramsType: string;
@@ -144,7 +149,7 @@ export type ApiRoute = {
 
 export type ApiRouteAlias = Pick<
   ApiRoute,
-  "path" | "originalPath" | "importName"
+  "prefix" | "path" | "originalPath" | "importName"
 > & { aliasOf: string };
 
 export type ApiTemplates = {

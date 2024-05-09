@@ -33,7 +33,7 @@ type RouteSetup = {
 export const routeStack: RouteSetup[] = [
 {{#each routes}}
   {
-    path: join(baseurl, apiurl, "{{path}}"),
+    path: join(baseurl, {{#if prefix}}"{{prefix}}"{{else}}apiurl{{/if}}, "{{path}}"),
     originalPath: "{{originalPath}}",
     file: "{{file}}",
     {{#if meta}}

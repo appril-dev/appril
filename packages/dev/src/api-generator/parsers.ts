@@ -75,6 +75,8 @@ export async function sourceFilesParsers(
 
           const importName = importNameFromPath(importPath);
 
+          const prefix = cfg?.prefix;
+
           const suffix = cfg?.file
             ? sanitizePath(cfg.file).replace(/.+(\.[^.]+)$/, "$1")
             : /\/$/.test(_path) || !path.includes("/")
@@ -125,6 +127,7 @@ export async function sourceFilesParsers(
             .join(", ");
 
           const route: ApiRoute = {
+            prefix,
             path: path === "index" ? "/" : join("/", path),
             originalPath,
             paramsType: paramsType || "[key: string|number]: unknown",
@@ -148,6 +151,7 @@ export async function sourceFilesParsers(
               if (typeof e === "string") {
                 alias.push({
                   aliasOf,
+                  prefix,
                   path: e,
                   originalPath: e,
                   importName: importNameFromPath(importPath + e),
@@ -155,6 +159,7 @@ export async function sourceFilesParsers(
               } else if (typeof e === "object") {
                 alias.push({
                   aliasOf,
+                  prefix,
                   path: path.replace(e.find, e.replace),
                   originalPath: originalPath.replace(e.find, e.replace),
                   importName: importNameFromPath(
@@ -166,6 +171,7 @@ export async function sourceFilesParsers(
           } else if (typeof cfg?.alias === "object") {
             alias.push({
               aliasOf,
+              prefix,
               path: path.replace(cfg.alias.find, cfg.alias.replace),
               originalPath: originalPath.replace(
                 cfg.alias.find,
@@ -178,6 +184,7 @@ export async function sourceFilesParsers(
           } else if (typeof cfg?.alias === "string") {
             alias.push({
               aliasOf,
+              prefix,
               path: cfg.alias,
               originalPath: cfg.alias,
               importName: importNameFromPath(importPath + cfg.alias),
