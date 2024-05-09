@@ -1,7 +1,7 @@
 {
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@9.0.6",
+  "packageManager": "pnpm@9.1.0",
   "scripts": {
     "tsc": "set -e; for e in ./packages/*/tsconfig.json; do echo [ $e ]; tsc -p $e --noEmit; done",
     "build": "pnpm -r run build",
