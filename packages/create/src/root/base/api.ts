@@ -47,7 +47,7 @@ export const useRawBodyparser = (opts: RawOptions = {}) => {
   return use("bodyparser", bodyparser.raw(opts)).before("post", "put", "patch");
 };
 
-export const errorHandler: Middleware = async function errorHandler(ctx, next) {
+export const errorHandler: Middleware = async (ctx, next) => {
   try {
     await next();
   } catch (error) {
