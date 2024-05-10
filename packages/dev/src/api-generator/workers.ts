@@ -92,6 +92,7 @@ async function generateRouteFiles({
       {
         template: baseTpl,
         context: {
+          sourceFolder,
           apiMethods: Object.keys(APIMethods),
           route,
         },
