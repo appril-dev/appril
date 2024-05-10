@@ -54,7 +54,12 @@ export const routeStack: RouteSetup[] = [
 for (const { path, originalPath, exports } of routeStack) {
   if ("endpoints" in exports) {
     for (const { method, middleware } of exports.endpoints) {
-      router.register(path, [method], middleware, { name: originalPath });
+      router.register(
+        path,
+        [method],
+        middleware as unknown as Array<import("koa__router").Middleware>,
+        { name: originalPath },
+      );
     }
   } else if ("router" in exports) {
     router.use(path, exports.router.routes())
