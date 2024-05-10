@@ -1,15 +1,10 @@
-/// <reference path="./api.d.ts" />
+/// <reference path="./env.d.ts" />
 
 import type { Middleware } from "koa";
 
-import { useGlobal, use } from "@appril/router";
+import { useGlobal } from "@appril/router";
 
-import {
-  type JsonOptions,
-  type FormOptions,
-  type RawOptions,
-  bodyparser,
-} from "@appril/router/bodyparser";
+import { bodyparser } from "@appril/router/bodyparser";
 
 import { DEV } from "~/config";
 
@@ -24,28 +19,6 @@ useGlobal("payload", (ctx, next) => {
   });
   return next();
 });
-
-export const passthrough: Middleware = (_ctx, next) => next();
-
-export const useJsonBodyparser = (opts: JsonOptions = {}) => {
-  return use("bodyparser", bodyparser.json(opts)).before(
-    "post",
-    "put",
-    "patch",
-  );
-};
-
-export const useFormBodyparser = (opts: FormOptions = {}) => {
-  return use("bodyparser", bodyparser.form(opts)).before(
-    "post",
-    "put",
-    "patch",
-  );
-};
-
-export const useRawBodyparser = (opts: RawOptions = {}) => {
-  return use("bodyparser", bodyparser.raw(opts)).before("post", "put", "patch");
-};
 
 export const errorHandler: Middleware = async (ctx, next) => {
   try {

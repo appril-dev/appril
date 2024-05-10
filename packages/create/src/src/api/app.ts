@@ -4,7 +4,7 @@ import logger from "koa-logger";
 import withQueryparser from "@appril/router/queryparser";
 import { routePrinter } from "@appril/router";
 
-import { errorHandler } from "~/base/api";
+import { errorHandler } from "~/base/api/app";
 import routes, { routeStack } from "./routes";
 
 export const app = withQueryparser(new Koa());
