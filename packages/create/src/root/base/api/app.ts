@@ -1,21 +1,21 @@
 /// <reference path="./env.d.ts" />
 
-import type { Middleware } from "koa";
-
-import { useGlobal } from "@appril/router";
+import {
+  type Middleware,
+  type DefaultContext,
+  useGlobal,
+} from "@appril/router";
 
 import { bodyparser } from "@appril/router/bodyparser";
-
-import { DEV } from "~/config";
+import { defineProperty } from "./@util";
 
 useGlobal("bodyparser", bodyparser.json()).before("post", "put", "patch");
 
 useGlobal("payload", (ctx, next) => {
-  Object.defineProperty(ctx, "payload", {
-    get() {
-      return "body" in ctx.request ? ctx.request.body || {} : ctx.query;
-    },
-    configurable: DEV, // should be swapable for hmr to work
+  defineProperty(ctx, "payload", () => {
+    return (
+      "body" in ctx.request ? ctx.request.body || {} : ctx.query
+    ) as DefaultContext["payload"];
   });
   return next();
 });

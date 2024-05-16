@@ -2,12 +2,17 @@ import Koa from "koa";
 import logger from "koa-logger";
 
 import withQueryparser from "@appril/router/queryparser";
-import { routePrinter } from "@appril/router";
+
+import {
+  type DefaultContext,
+  type DefaultState,
+  routePrinter,
+} from "@appril/router";
 
 import { errorHandler } from "~/base/api/app";
 import routes, { routeStack } from "./routes";
 
-export const app = withQueryparser(new Koa());
+export const app = withQueryparser(new Koa<DefaultState, DefaultContext>());
 
 app.on("error", console.error);
 

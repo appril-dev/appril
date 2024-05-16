@@ -1,12 +1,6 @@
-// mandatory export for declared modules to be treated as augmented (rather than ambient)
-export type {};
-
-declare module "koa" {
+export declare module "@appril/router" {
   // interface DefaultState {}
   // interface DefaultContext {}
-}
-
-declare module "@appril/router" {
   interface UseIdentities {
     bodyparser: string;
     payload: string;

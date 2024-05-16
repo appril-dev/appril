@@ -1,8 +1,6 @@
 /// <reference path="./env.d.ts" />
 
-import type { Middleware } from "koa";
-
-import { use } from "@appril/router";
+import { type Middleware, use } from "@appril/router";
 
 import {
   type JsonOptions,
