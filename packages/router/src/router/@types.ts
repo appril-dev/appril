@@ -1,15 +1,4 @@
-import type {
-  DefaultState,
-  DefaultContext,
-  Middleware,
-  ParameterizedContext,
-} from "koa";
-
 declare module "koa" {
-  interface DefaultContext {
-    payload: Record<string, unknown>;
-  }
-
   interface Request {
     body?: unknown;
     rawBody: string;
@@ -45,27 +34,30 @@ export enum APIMethods {
 }
 
 // biome-ignore lint:
+export interface DefaultState {}
+
+export interface DefaultContext {
+  payload: Record<string, unknown>;
+}
+
+// biome-ignore lint:
 export interface UseIdentities {}
 
 // biome-ignore lint:
 export interface Meta {}
+
+export type Middleware<
+  StateT = DefaultState,
+  ContextT = DefaultContext,
+  ResponseBodyT = unknown,
+> = import("koa__router").Middleware<StateT, ContextT, ResponseBodyT>;
 
 export type MiddlewareDefinition<
   StateT = DefaultState,
   ContextT = DefaultContext,
 > = {
   method: APIMethod;
-  middleware: Middleware<StateT, ContextT>[];
-  payloadValidation?: Middleware[];
-};
-
-export type MiddleworkerDefinition<
-  StateT = DefaultState,
-  ContextT = DefaultContext,
-> = {
-  method: APIMethod;
-  middleworker: Middleworker<StateT, ContextT>;
-  payloadValidation?: Middleware[];
+  middleware: Array<Middleware<StateT, ContextT>>;
 };
 
 // use throw inside handler when needed to say NotFound (or another error):
@@ -75,27 +67,19 @@ export type MiddleworkerDefinition<
 /** biome-ignore lint: */
 type MiddleworkerReturn = any | Promise<any>;
 
-export type Middleworker<StateT = DefaultState, ContextT = DefaultContext> = (
-  ctx: ParameterizedContext<StateT, ContextT>,
+type Middleworker<StateT = DefaultState, ContextT = DefaultContext> = (
+  ctx: import("koa").ParameterizedContext<StateT, ContextT>,
   payload: never,
 ) => MiddleworkerReturn;
 
-export interface DefinitionI<StateE = object, ContextE = object> {
-  // biome-ignore lint:
-  <StateT = DefaultState, ContextT = DefaultContext>(
-    arg:
-      | Middleworker<StateT & StateE, ContextT & ContextE>
-      | Middleware<StateT & StateE, ContextT & ContextE>[],
-  ):
-    | MiddleworkerDefinition<StateT & StateE, ContextT & ContextE>
-    | MiddlewareDefinition<StateT & StateE, ContextT & ContextE>;
-}
-
-export type UseScope = APIMethod | APIMethod[];
+export type UseScope = APIMethod | Array<APIMethod>;
 export type UseScopeGlobal = APIMethod;
 
-export type UseDefinitionBase = {
-  use: Middleware[];
+export type UseDefinitionBase<
+  StateT = DefaultState,
+  ContextT = DefaultContext,
+> = {
+  use: Array<Middleware<StateT, ContextT>>;
   name?: keyof UseIdentities;
 };
 
@@ -111,12 +95,45 @@ export type UseDefinition<TScope = UseScope> = UseDefinitionBase & UseFactory<
   TScope
 >;
 
-export type RouteDefinition =
-  | UseDefinition
-  | MiddleworkerDefinition
-  | MiddlewareDefinition;
+type UseMiddleware<StateT, ContextT> =
+  | Middleware<StateT, ContextT>
+  | Array<Middleware<StateT, ContextT>>;
+
+export interface DefinitionI<StateE = object, ContextE = object> {
+  <StateT = DefaultState, ContextT = DefaultContext>(
+    arg: Middleworker<StateT & StateE, ContextT & ContextE>,
+  ): MiddlewareDefinition<StateT & StateE, ContextT & ContextE>;
+
+  <StateT = DefaultState, ContextT = DefaultContext>(
+    arg: Array<Middleware<StateT & StateE, ContextT & ContextE>>,
+  ): MiddlewareDefinition<StateT & StateE, ContextT & ContextE>;
+}
+
+export interface UseDefinitionI<StateE = object, ContextE = object> {
+  <StateT = DefaultState, ContextT = DefaultContext>(
+    functions: UseMiddleware<StateT & StateE, ContextT & ContextE>,
+  ): UseDefinition;
+
+  <StateT = DefaultState, ContextT = DefaultContext>(
+    namespace: keyof UseIdentities,
+    functions: UseMiddleware<StateT & StateE, ContextT & ContextE>,
+  ): UseDefinition;
+}
+
+export interface UseDefinitionGlobalI {
+  (
+    functions: UseMiddleware<DefaultState, DefaultContext>,
+  ): UseDefinition<UseScopeGlobal>;
+
+  (
+    namespace: keyof UseIdentities,
+    functions: UseMiddleware<DefaultState, DefaultContext>,
+  ): UseDefinition<UseScopeGlobal>;
+}
+
+export type RouteDefinition = UseDefinition | MiddlewareDefinition;
 
 export type RouteEndpoint = {
   method: HTTPMethod;
-  middleware: Middleware[];
+  middleware: Array<Middleware>;
 };

@@ -1,19 +1,18 @@
-import type { Middleware } from "koa";
-
 import type {
+  Middleware,
   APIMethod,
   UseDefinition,
   UseDefinitionBase,
   UseIdentities,
   UseScope,
   UseScopeGlobal,
-  Middleworker,
+  MiddlewareDefinition,
   DefinitionI,
+  UseDefinitionI,
+  UseDefinitionGlobalI,
 } from "./@types";
 
 import store from "./store";
-
-export { use, useGlobal };
 
 export const head: DefinitionI = (arg) => definitionFactory("head", arg);
 export const options: DefinitionI = (arg) => definitionFactory("options", arg);
@@ -23,60 +22,37 @@ export const patch: DefinitionI = (arg) => definitionFactory("patch", arg);
 export const post: DefinitionI = (arg) => definitionFactory("post", arg);
 export const del: DefinitionI = (arg) => definitionFactory("del", arg);
 
-// use
-function use(middleware: Middleware): UseDefinition;
-function use(middleware: Middleware[]): UseDefinition;
-
-function use(
-  namespace: keyof UseIdentities,
-  middleware: Middleware,
-): UseDefinition;
-
-function use(
-  namespace: keyof UseIdentities,
-  middleware: Middleware[],
-): UseDefinition;
-
-function use(...args: unknown[]) {
+export const use: UseDefinitionI = (...args: unknown[]) => {
   return useDefinitionFactory<UseScope>(args);
-}
+};
 
-// useGlobal
-function useGlobal(middleware: Middleware): UseDefinition<UseScopeGlobal>;
-function useGlobal(middleware: Middleware[]): UseDefinition<UseScopeGlobal>;
-
-function useGlobal(
-  namespace: keyof UseIdentities,
-  middleware: Middleware,
-): UseDefinition<UseScopeGlobal>;
-
-function useGlobal(
-  namespace: keyof UseIdentities,
-  middleware: Middleware[],
-): UseDefinition<UseScopeGlobal>;
-
-function useGlobal(...args: unknown[]) {
-  return useDefinitionFactory<UseScopeGlobal>(args, (e) =>
-    store.useGlobal.push(e),
-  );
-}
+export const useGlobal: UseDefinitionGlobalI = (...args: unknown[]) => {
+  return useDefinitionFactory<UseScopeGlobal>(args, (e) => {
+    return store.useGlobal.push(e);
+  });
+};
 
 // factories / builders
-export function definitionFactory<StateT, ContextT>(
+export function definitionFactory(
   method: APIMethod,
   arg: unknown,
-) {
+): MiddlewareDefinition {
   if (typeof arg === "function") {
     return {
       method,
-      middleworker: arg as Middleworker<StateT, ContextT>,
+      middleware: [
+        async (ctx, next) => {
+          ctx.body = await arg(ctx, ctx.payload as never);
+          return next();
+        },
+      ],
     };
   }
 
   if (Array.isArray(arg)) {
     return {
       method,
-      middleware: arg as Middleware<StateT, ContextT>[],
+      middleware: arg,
     };
   }
 

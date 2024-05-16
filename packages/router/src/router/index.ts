@@ -1,12 +1,10 @@
 import { randomUUID } from "node:crypto";
 
-import type { Middleware } from "koa";
-
 import type {
+  Middleware,
+  MiddlewareDefinition,
   APIMethod,
   HTTPMethod,
-  MiddlewareDefinition,
-  MiddleworkerDefinition,
   UseDefinition,
   RouteEndpoint,
   RouteDefinition,
@@ -20,29 +18,28 @@ export * as default from "./definitions";
 export * from "./debug";
 
 export function routeMapper(
-  definitions: RouteDefinition[],
+  definitions: Array<RouteDefinition>,
   assets?: {
-    payloadValidation?: Record<number, Middleware[]>;
+    payloadValidation?: Record<number, Array<Middleware>>;
   },
-): RouteEndpoint[] {
+): Array<RouteEndpoint> {
   const { payloadValidation } = assets || {};
 
-  const endpoints: RouteEndpoint[] = [];
+  const endpoints: Array<RouteEndpoint> = [];
 
-  const useDefinitions: UseDefinition[] = [];
-  const middlewareDefinitions: MiddlewareDefinition[] = [];
-  const middleworkerDefinitions: MiddleworkerDefinition[] = [];
+  const useDefinitions: Array<UseDefinition> = [];
+
+  const middlewareDefinitions: Array<
+    MiddlewareDefinition & {
+      payloadValidation?: Array<Middleware>;
+    }
+  > = [];
 
   for (const [i, definition] of definitions.entries()) {
     if ("use" in definition) {
       useDefinitions.push(definition);
     } else if ("middleware" in definition) {
       middlewareDefinitions.push({
-        ...definition,
-        payloadValidation: payloadValidation?.[i],
-      });
-    } else if ("middleworker" in definition) {
-      middleworkerDefinitions.push({
         ...definition,
         payloadValidation: payloadValidation?.[i],
       });
@@ -55,32 +52,6 @@ export function routeMapper(
     payloadValidation,
   } of middlewareDefinitions) {
     const [before, after] = usePartitioner(useDefinitions, method);
-    endpoints.push({
-      method: httpMethodByApi(method),
-      middleware: [
-        ...before,
-        ...(payloadValidation || []),
-        ...middleware,
-        ...after,
-        () => true,
-      ],
-    });
-  }
-
-  for (const {
-    method,
-    middleworker,
-    payloadValidation,
-  } of middleworkerDefinitions) {
-    const [before, after] = usePartitioner(useDefinitions, method);
-
-    const middleware: Middleware[] = [
-      async (ctx, next) => {
-        ctx.body = await middleworker(ctx, ctx.payload as never);
-        return next();
-      },
-    ];
-
     endpoints.push({
       method: httpMethodByApi(method),
       middleware: [

@@ -1,11 +1,10 @@
 import type Koa from "koa";
+import type { DefaultState, DefaultContext } from "../router/@types";
 import type { IParseOptions, IStringifyOptions } from "qs";
 import { parse, stringify } from "qs";
 
 export default function withQueryparser<
-  T extends InstanceType<
-    typeof Koa<Koa.DefaultState, Koa.DefaultContext>
-  > = never,
+  T extends InstanceType<typeof Koa<DefaultState, DefaultContext>> = never,
 >(
   app: T,
   _parseOptions: IParseOptions = {},
