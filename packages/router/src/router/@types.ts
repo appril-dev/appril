@@ -99,24 +99,44 @@ type UseMiddleware<StateT, ContextT> =
   | Middleware<StateT, ContextT>
   | Array<Middleware<StateT, ContextT>>;
 
-export interface DefinitionI<StateE = object, ContextE = object> {
-  <StateT = DefaultState, ContextT = DefaultContext>(
-    arg: Middleworker<StateT & StateE, ContextT & ContextE>,
-  ): MiddlewareDefinition<StateT & StateE, ContextT & ContextE>;
+export interface DefinitionI<StateA = object, ContextA = object> {
+  <StateB = object, ContextB = object>(
+    a: Middleworker<
+      DefaultState & StateA & StateB,
+      DefaultContext & ContextA & ContextB
+    >,
+  ): MiddlewareDefinition<
+    DefaultState & StateA & StateB,
+    DefaultContext & ContextA & ContextB
+  >;
 
-  <StateT = DefaultState, ContextT = DefaultContext>(
-    arg: Array<Middleware<StateT & StateE, ContextT & ContextE>>,
-  ): MiddlewareDefinition<StateT & StateE, ContextT & ContextE>;
+  <StateB = object, ContextB = object>(
+    a: Array<
+      Middleware<
+        DefaultState & StateA & StateB,
+        DefaultContext & ContextA & ContextB
+      >
+    >,
+  ): MiddlewareDefinition<
+    DefaultState & StateA & StateB,
+    DefaultContext & ContextA & ContextB
+  >;
 }
 
-export interface UseDefinitionI<StateE = object, ContextE = object> {
-  <StateT = DefaultState, ContextT = DefaultContext>(
-    functions: UseMiddleware<StateT & StateE, ContextT & ContextE>,
+export interface UseDefinitionI<StateA = object, ContextA = object> {
+  <StateB = object, ContextB = object>(
+    a: UseMiddleware<
+      DefaultState & StateA & StateB,
+      DefaultContext & ContextA & ContextB
+    >,
   ): UseDefinition;
 
-  <StateT = DefaultState, ContextT = DefaultContext>(
-    namespace: keyof UseIdentities,
-    functions: UseMiddleware<StateT & StateE, ContextT & ContextE>,
+  <StateB = object, ContextB = object>(
+    a: keyof UseIdentities,
+    b: UseMiddleware<
+      DefaultState & StateA & StateB,
+      DefaultContext & ContextA & ContextB
+    >,
   ): UseDefinition;
 }
 
