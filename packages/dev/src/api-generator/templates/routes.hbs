@@ -12,7 +12,7 @@ import router from "./router";
 {{#each routes}}
 import {{importName}} from "{{../sourceFolder}}/{{../apiDir}}/{{importPath}}";
 {{#unless optedFile}}
-import {{importName}}$assets from "{{../defaults.generated.api}}/{{importPath}}/assets";
+import {{importName}}$assets from "{{../defaults.generated.api}}/{{importPath}}/@assets";
 {{/unless}}
 
 {{/each}}

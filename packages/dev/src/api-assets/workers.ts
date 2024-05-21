@@ -142,7 +142,7 @@ async function generateRouteAssets({
   });
 
   await generateFile(
-    join(varDir, defaults.generated.api, route.importPath, "assets.ts"),
+    join(varDir, defaults.generated.api, route.importPath, "@assets.ts"),
     {
       template: assetsTpl,
       context: {
