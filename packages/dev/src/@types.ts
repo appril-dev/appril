@@ -87,8 +87,8 @@ export type RouteSection = {
     // :id+o -> id
     // :id+o.json -> id
     name: string;
-    isOpt: boolean;
-    isAny: boolean;
+    isOpt?: boolean;
+    isRest?: boolean;
   };
 };
 

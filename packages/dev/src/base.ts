@@ -24,20 +24,28 @@ export function normalizeRoutePath(path: string): string {
 
 export function routeSections(path: string): RouteSection[] {
   // use only normalized paths here
+
+  const requiredParamRegex = /^\[([\w\d-]+)\]$/;
+  const optionalParamRegex = /^\[\[([\w\d-]+)\]\]$/;
+  const restParamRegex = /^\[\.\.\.([\w\d-]+)]$/;
+
   return path.split("/").map((e, i) => {
-    const [base, ext] = e.split(/(\..+)$/);
+    const [base, ext] = e.split(/(\.([\w\d-]+)$)/);
 
-    let param: RouteSection["param"];
+    let param: RouteSection["param"] | undefined;
 
-    if (base.startsWith(":")) {
-      if (i === 0) {
-        throw new Error(`Path should not start with a param - ${path}`);
+    if (base.startsWith("[")) {
+      if (requiredParamRegex.test(base)) {
+        param = { name: base.replace(requiredParamRegex, "$1") };
+      } else if (optionalParamRegex.test(base)) {
+        param = { name: base.replace(optionalParamRegex, "$1"), isOpt: true };
+      } else if (restParamRegex.test(base)) {
+        param = { name: base.replace(restParamRegex, "$1"), isRest: true };
       }
-      param = {
-        name: base.replace(":", "").replace(/\+[oa]$/, ""),
-        isOpt: base.endsWith("+o"),
-        isAny: base.endsWith("+a"),
-      };
+    }
+
+    if (param && i === 0) {
+      throw new Error(`Path should not start with a param - ${path}`);
     }
 
     return {

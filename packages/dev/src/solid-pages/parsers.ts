@@ -50,15 +50,15 @@ export async function sourceFilesParsers(
           const sections = routeSections(originalPath);
 
           const path = sections
-            .map((e) => {
-              if (e.param) {
-                if (e.param.isAny) {
-                  return `*${e.param.name + e.ext}`;
+            .map(({ param, orig, ext }) => {
+              if (param) {
+                if (param.isRest) {
+                  return `*${param.name + ext}`;
                 }
-                const suffix = e.param.isOpt ? "?" : "";
-                return `:${e.param.name + e.ext + suffix}`;
+                const suffix = param.isOpt ? "?" : "";
+                return `:${param.name + ext + suffix}`;
               }
-              return e.orig;
+              return orig;
             })
             .join("/");
 
@@ -100,13 +100,13 @@ export async function sourceFilesParsers(
 
           const linkProps = sections
             .slice(1)
-            .flatMap((e) => {
-              if (e.param) {
-                if (e.param.isAny) {
-                  return [`...${e.param.name}: (string | number)[]`];
+            .flatMap(({ param }) => {
+              if (param) {
+                if (param.isRest) {
+                  return [`...${param.name}: Array<string | number>`];
                 }
-                const suffix = e.param.isOpt ? "?" : "";
-                return [`${e.param.name + suffix}: string | number`];
+                const suffix = param.isOpt ? "?" : "";
+                return [`${param.name + suffix}: string | number`];
               }
               return [];
             })
