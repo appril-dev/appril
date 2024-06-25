@@ -16,6 +16,7 @@ function zodErrorHandler(error: any) {
 
 export default {
   payloadValidation: {
+    {{#if zodSchemas}}
     {{#each payloadTypes}}
     {{index}}: [
       (ctx, next) => {
@@ -28,16 +29,13 @@ export default {
       }
     ] satisfies Middleware[],
     {{/each}}
+    {{/if}}
   },
 }
 
-const errors: string[] = [
+{{#if errors.length}}
+console.error("\n[ \x1b[31m{{file}}\x1b[0m ]: failed building zod schema(s)")
 {{#each errors}}
-`{{this}}`,
+console.error(`{{this}}`)
 {{/each}}
-]
-
-if (errors.length) {
-  console.error("\n[ \x1b[31m{{file}}\x1b[0m ]: failed building zod schema(s)")
-  errors.forEach(console.error)
-}
+{{/if}}

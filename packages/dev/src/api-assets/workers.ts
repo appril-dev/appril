@@ -135,26 +135,47 @@ async function generateRouteAssets({
     payloadTypes,
   });
 
-  const { getZodSchemasFile, errors } = generate({
-    sourceText,
-    nameFilter: (id) => payloadTypes.some((e) => e.id === id || e.text === id),
-    getSchemaName: (e) => e,
-  });
-
-  await generateFile(
-    join(varDir, defaults.generated.api, route.importPath, "@assets.ts"),
-    {
-      template: assetsTpl,
-      context: {
-        ...route,
-        typeDeclarations,
-        zodSchemas: errors.length ? "" : getZodSchemasFile("index.ts"),
-        payloadTypes: errors.length ? [] : payloadTypes,
-        errors,
-        importZodErrorHandlerFrom,
+  const generateAssetsFile = (data?: {
+    zodSchemas?: string | undefined;
+    errors?: Array<string>;
+  }) => {
+    return generateFile(
+      join(varDir, defaults.generated.api, route.importPath, "@assets.ts"),
+      {
+        template: assetsTpl,
+        context: {
+          ...route,
+          ...data,
+          typeDeclarations,
+          payloadTypes,
+          importZodErrorHandlerFrom,
+        },
       },
-    },
-  );
+    );
+  };
+
+  // generating zod schemas may take some time
+  // so generating a generic assets file
+  // then re-generating it when zod schemas ready
+  await generateAssetsFile();
+
+  try {
+    const { getZodSchemasFile, errors } = generate({
+      sourceText,
+      nameFilter: (id) =>
+        payloadTypes.some((e) => e.id === id || e.text === id),
+      getSchemaName: (e) => e,
+    });
+    await generateAssetsFile({
+      zodSchemas: errors.length ? "" : getZodSchemasFile("index.ts"),
+      errors,
+    });
+  } catch (error) {
+    console.error(
+      `\n[ \x1b[31m${route.file}\x1b[0m ]: failed building zod schema(s)`,
+    );
+    console.log(error);
+  }
 }
 
 function padStart(

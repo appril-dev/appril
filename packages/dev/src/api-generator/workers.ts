@@ -80,14 +80,6 @@ async function generateRouteFiles({
 }: { route: ApiRoute; customTemplates: ApiTemplates }) {
   if (!route.optedFile) {
     await generateFile(
-      join(varDir, defaults.generated.api, route.importPath, "@assets.ts"),
-      "export {}",
-      {
-        overwrite: false,
-      },
-    );
-
-    await generateFile(
       join(varDir, defaults.generated.api, route.importPath, "index.ts"),
       {
         template: baseTpl,
