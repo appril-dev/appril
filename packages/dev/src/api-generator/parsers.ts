@@ -4,6 +4,7 @@ import type { ResolvedConfig } from "vite";
 import { parse } from "smol-toml";
 import glob from "fast-glob";
 import fsx from "fs-extra";
+import crc32 from "crc/crc32";
 
 import { normalizeRoutePath, routeSections, sanitizePath } from "../base";
 import { defaults } from "../defaults";
@@ -202,6 +203,6 @@ export async function sourceFilesParsers(
   return parsers;
 }
 
-function importNameFromPath(path: string) {
-  return path.replace(/\W/g, "_");
+function importNameFromPath(path: string): string {
+  return [path.replace(/\W/g, "_"), crc32(path)].join("$");
 }
