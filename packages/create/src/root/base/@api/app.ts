@@ -7,7 +7,7 @@ import {
 } from "@appril/router";
 
 import { bodyparser } from "@appril/router/bodyparser";
-import { defineProperty } from "./@util";
+import { DEV } from "~/config";
 
 useGlobal("bodyparser", bodyparser.json()).before("post", "put", "patch");
 
@@ -54,3 +54,14 @@ function extractCodeWithMessage(error: unknown): [number, string] {
 
   return [500, "Unknown Error Occurred"];
 }
+
+const defineProperty = <K extends keyof DefaultContext>(
+  ctx: import("koa").Context,
+  key: keyof DefaultContext,
+  get: () => DefaultContext[K],
+): void => {
+  Object.defineProperty(ctx, key, {
+    get,
+    configurable: DEV, // should be swapable for hmr to work
+  });
+};

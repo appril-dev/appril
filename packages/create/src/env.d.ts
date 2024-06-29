@@ -11,7 +11,7 @@ declare module "~/config/knex" {
   export const client = "";
 }
 
-declare module "~/base/api/app" {
+declare module "~/base/@api/app" {
   export const errorHandler = () => {};
 }
 
