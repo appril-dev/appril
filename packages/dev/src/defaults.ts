@@ -1,26 +1,23 @@
-export const customizableDefaults = {
+export const defaults = {
+  basePrefix: "~",
+  srcPrefix: "@",
+  varPrefix: "_",
+
+  baseDir: "base",
+
   apiDir: "api",
+  apiDataDir: "_data",
+  apiRoutesFile: "routes.ts",
+  apiSourceFile: "_routes.toml",
+
   routerDir: "router",
+  routerRoutesFile: "routes.ts",
+  routerSourceFile: "_routes.toml",
+  routerAssetsFile: "assets.ts",
+
+  configDir: "config",
   pagesDir: "pages",
   storesDir: "stores",
+  fetchDir: "fetch",
   varDir: "var",
-  useWorkers: true,
-  usePolling: true,
-};
-
-export const defaults = {
-  api: {
-    routesFile: "routes.ts",
-    sourceFile: "_routes.toml",
-  },
-  solidPages: {
-    routesFile: "routes.ts",
-    sourceFile: "_routes.toml",
-    assetsFile: "assets.ts",
-  },
-  generated: {
-    api: "$api",
-    data: "$data",
-    fetch: "$fetch",
-  },
 };
