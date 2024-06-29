@@ -184,9 +184,6 @@ export type SolidPage = {
     importDatafile: string;
     // the name of function to be imported from datafile
     importDatafunc: string;
-    // where from to import file with typed fetch functions.
-    // no not generated when custom loader provided
-    importFetchfile?: string;
     // inject useData when generating page. false when custom loader provided
     useData?: boolean;
   };
