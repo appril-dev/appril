@@ -1,12 +1,5 @@
 export type PluginOptions = {
   apiurl: string;
-  apiDir?: string;
-  routerDir?: string;
-  pagesDir?: string;
-  storesDir?: string;
-  varDir?: string;
-  useWorkers?: boolean;
-  usePolling?: boolean;
   apiAssets?: {
     filter?: (route: ApiRoute) => boolean;
     typeMap?: Record<string, string | string[]>;
@@ -22,6 +15,8 @@ export type PluginOptions = {
     templates?: SolidTemplates;
   };
   crudGenerator?: import("./crud-generator/@types").Options;
+  useWorkers?: boolean;
+  usePolling?: boolean;
 };
 
 export type ResolvedPluginOptions = Required<

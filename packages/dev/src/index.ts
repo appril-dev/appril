@@ -30,6 +30,8 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
     fetchGenerator: {},
     solidPages: undefined,
     crudGenerator: undefined,
+    useWorkers: true,
+    usePolling: true,
     ...options,
     // not overridable by options
     sourceFolder: basename(sourceFolderPath),
