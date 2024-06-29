@@ -4,7 +4,7 @@ import type { Plugin } from "vite";
 
 import type { PluginOptions, ResolvedPluginOptions } from "./@types";
 import { resolvePath } from "./base";
-import { customizableDefaults } from "./defaults";
+import { defaults } from "./defaults";
 
 import { workerFactory } from "./worker-pool";
 
@@ -24,7 +24,6 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
   const sourceFolderPath = resolvePath();
 
   const resolvedOptions: ResolvedPluginOptions = {
-    ...customizableDefaults,
     apiAssets: {},
     apiGenerator: {},
     fetchGenerator: {},
@@ -57,6 +56,13 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
       return {
         build: {
           outDir: join(config.build.outDir, outDirSuffix),
+        },
+        resolve: {
+          alias: {
+            [defaults.basePrefix]: "..",
+            [defaults.srcPrefix]: ".",
+            [defaults.varPrefix]: defaults.varDir,
+          },
         },
       };
     },
