@@ -141,7 +141,13 @@ async function generateVarFiles({
 
   const apiTypes = await extractTypes(table.apiFileFullpath, {
     relpathResolver(path) {
-      return join(sourceFolder, defaults.apiDir, dirname(table.apiFile), path);
+      return join(
+        defaults.basePrefix,
+        sourceFolder,
+        defaults.apiDir,
+        dirname(table.apiFile),
+        path,
+      );
     },
   });
 

@@ -73,7 +73,13 @@ async function generateRouteAssets({
     route.fileFullpath,
     {
       relpathResolver(path) {
-        return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
+        return join(
+          defaults.basePrefix,
+          sourceFolder,
+          defaults.apiDir,
+          dirname(route.file),
+          path,
+        );
       },
     },
   );
