@@ -25,9 +25,9 @@ type ParsedEntry = {
 export async function sourceFilesParsers(
   _config: ResolvedConfig,
   options: ResolvedPluginOptions,
-  pattern = `**/*${defaults.api.sourceFile}`,
+  pattern = `**/*${defaults.apiSourceFile}`,
 ) {
-  const { sourceFolderPath, apiDir } = options;
+  const { sourceFolderPath } = options;
 
   const parsers: {
     file: string;
@@ -35,7 +35,7 @@ export async function sourceFilesParsers(
   }[] = [];
 
   const srcFiles = await glob(pattern, {
-    cwd: resolve(sourceFolderPath, apiDir),
+    cwd: resolve(sourceFolderPath, defaults.apiDir),
     onlyFiles: true,
     absolute: true,
     unique: true,
@@ -137,7 +137,7 @@ export async function sourceFilesParsers(
             importPath,
             srcFile,
             file,
-            fileFullpath: resolve(sourceFolderPath, apiDir, file),
+            fileFullpath: resolve(sourceFolderPath, defaults.apiDir, file),
             optedFile: cfg?.file,
             meta: cfg?.meta,
             template,

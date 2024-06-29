@@ -1,6 +1,6 @@
 
 {{#each routes}}
-import {{importName}} from "./{{../apiDir}}/{{importPath}}";
+import {{importName}} from "{{../defaults.varPrefix}}/{{../defaults.fetchDir}}/{{../defaults.apiDir}}/{{importPath}}";
 {{/each}}
 
 export default {

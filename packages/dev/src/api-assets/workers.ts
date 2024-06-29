@@ -15,23 +15,17 @@ import assetsTpl from "./templates/assets.hbs";
 const { generateFile } = fileGenerator();
 
 let sourceFolder: string;
-let apiDir: string;
-let varDir: string;
 let importZodErrorHandlerFrom: string | undefined;
 
 export async function bootstrap(data: {
   routes: ApiRoute[];
   sourceFolder: string;
-  apiDir: string;
-  varDir: string;
   typeFiles: TypeFile[];
   importZodErrorHandlerFrom?: string;
 }) {
   const { routes, typeFiles } = data;
 
   sourceFolder = data.sourceFolder;
-  apiDir = data.apiDir;
-  varDir = data.varDir;
   importZodErrorHandlerFrom = data.importZodErrorHandlerFrom;
 
   for (const route of routes) {
@@ -79,7 +73,7 @@ async function generateRouteAssets({
     route.fileFullpath,
     {
       relpathResolver(path) {
-        return join(sourceFolder, apiDir, dirname(route.file), path);
+        return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
       },
     },
   );
@@ -140,7 +134,7 @@ async function generateRouteAssets({
     errors?: Array<string>;
   }) => {
     return generateFile(
-      join(varDir, defaults.generated.api, route.importPath, "@assets.ts"),
+      join(defaults.varDir, defaults.apiDir, route.importPath, "@assets.ts"),
       {
         template: assetsTpl,
         context: {

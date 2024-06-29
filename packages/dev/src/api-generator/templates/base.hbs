@@ -2,7 +2,7 @@ import { type DefinitionI, definitionFactory, use } from "@appril/router";
 
 export type ParamsT = { {{route.paramsType}} }
 export { use };
-export * from "{{sourceFolder}}/../base/api/use";
+export * from "{{defaults.basePrefix}}/{{defaults.baseDir}}/@api/use";
 {{#each apiMethods}}
 
 export const {{this}}: DefinitionI<

@@ -86,7 +86,7 @@ export async function apiGenerator(
   options: ResolvedPluginOptions,
   { workerPool }: { workerPool: Workers },
 ) {
-  const { sourceFolder, sourceFolderPath, apiDir, varDir } = options;
+  const { sourceFolder, sourceFolderPath } = options;
 
   const routeMap: Record<string, ApiRoute> = {};
 
@@ -159,8 +159,6 @@ export async function apiGenerator(
 
   const bootstrapPayload: BootstrapPayload<Workers> = {
     routes: Object.values(routeMap),
-    apiDir,
-    varDir,
     sourceFolder,
     sourceFolderPath,
     customTemplates,

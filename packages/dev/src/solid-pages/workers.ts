@@ -4,7 +4,7 @@ import { stringify } from "smol-toml";
 
 import type { SolidPage, SolidTemplates } from "../@types";
 import { BANNER } from "../render";
-import { fileGenerator, upsertTsconfigPaths } from "../base";
+import { fileGenerator } from "../base";
 import { defaults } from "../defaults";
 
 import pageTpl from "./templates/page.hbs";
@@ -16,41 +16,17 @@ const { generateFile } = fileGenerator();
 
 let sourceFolder: string;
 let sourceFolderPath: string;
-let routerDir: string;
-let storesDir: string;
-let pagesDir: string;
-let apiDir: string;
-let varDir: string;
 
 export async function bootstrap(data: {
   pages: SolidPage[];
   sourceFolder: string;
   sourceFolderPath: string;
-  routerDir: string;
-  storesDir: string;
-  pagesDir: string;
-  apiDir: string;
-  varDir: string;
   customTemplates: SolidTemplates;
 }) {
   const { customTemplates } = data;
 
   sourceFolder = data.sourceFolder;
   sourceFolderPath = data.sourceFolderPath;
-  routerDir = data.routerDir;
-  storesDir = data.storesDir;
-  pagesDir = data.pagesDir;
-  apiDir = data.apiDir;
-  varDir = data.varDir;
-
-  await upsertTsconfigPaths(join(sourceFolderPath, "tsconfig.json"), {
-    [`${defaults.generated.data}/*`]: [
-      ".",
-      varDir,
-      defaults.generated.data,
-      "*",
-    ].join("/"),
-  });
 
   for (const page of data.pages) {
     await generatePageFiles({ page, customTemplates });
@@ -63,7 +39,7 @@ export async function handleSrcFileUpdate({
   file,
   pages,
   customTemplates,
-}: { file: string; pages: SolidPage[]; customTemplates: SolidTemplates }) {
+}: { file: string; pages: Array<SolidPage>; customTemplates: SolidTemplates }) {
   // making sure newly added pages have files generated
   for (const page of pages.filter((e) => e.srcFile === file)) {
     await generatePageFiles({ page, customTemplates });
@@ -77,7 +53,7 @@ async function generatePageFiles({
   customTemplates,
 }: { page: SolidPage; customTemplates: SolidTemplates }) {
   await generateFile(
-    join(pagesDir, page.file),
+    join(defaults.pagesDir, page.file),
     {
       template: customTemplates.page || pageTpl,
       context: page,
@@ -87,7 +63,7 @@ async function generatePageFiles({
 
   if (page.dataLoaderGenerator) {
     await generateFile(
-      join(varDir, `${page.dataLoaderGenerator.datafile}.ts`),
+      join(defaults.varDir, `${page.dataLoaderGenerator.datafile}.ts`),
       {
         template: dataTpl,
         context: { BANNER, defaults, ...page },
@@ -96,22 +72,20 @@ async function generatePageFiles({
   }
 }
 
-async function generateIndexFiles(data: { pages: SolidPage[] }) {
+async function generateIndexFiles(data: { pages: Array<SolidPage> }) {
   const pages = data.pages.sort((a, b) => a.path.localeCompare(b.path));
 
   for (const [outfile, template] of [
-    [defaults.solidPages.routesFile, routesTpl],
-    [defaults.solidPages.assetsFile, assetsTpl],
+    [defaults.routerRoutesFile, routesTpl],
+    [defaults.routerAssetsFile, assetsTpl],
   ]) {
-    await generateFile(join(routerDir, outfile), {
+    await generateFile(join(defaults.routerDir, outfile), {
       template,
       context: {
         BANNER,
-        defaults,
         sourceFolder,
         pages,
-        pagesDir,
-        storesDir,
+        defaults,
       },
     });
   }
@@ -130,7 +104,7 @@ async function generateIndexFiles(data: { pages: SolidPage[] }) {
     ].join("\n");
 
     await generateFile(
-      join(apiDir, defaults.generated.data, defaults.api.sourceFile),
+      join(defaults.apiDir, defaults.apiDataDir, defaults.apiSourceFile),
       content,
     );
   }

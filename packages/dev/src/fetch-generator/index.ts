@@ -8,6 +8,7 @@ import type {
   BootstrapPayload,
 } from "../@types";
 import { sourceFilesParsers } from "../api-generator/parsers";
+import { defaults } from "../defaults";
 
 type Workers = typeof import("./workers");
 
@@ -16,7 +17,7 @@ export async function fetchGenerator(
   options: ResolvedPluginOptions,
   { workerPool }: { workerPool: Workers },
 ) {
-  const { sourceFolder, sourceFolderPath, apiDir, varDir } = options;
+  const { sourceFolder, sourceFolderPath } = options;
 
   const { filter = (_r: ApiRoute) => true } = options.fetchGenerator;
 
@@ -63,9 +64,6 @@ export async function fetchGenerator(
 
   const bootstrapPayload: BootstrapPayload<Workers> = {
     routes: Object.values(routeMap),
-    // absolute path to folder containing generated files
-    apiDir,
-    varDir,
     sourceFolder,
     sourceFolderPath,
   };
@@ -77,7 +75,7 @@ export async function fetchGenerator(
       // watching source files for changes
       ...Object.keys(srcWatchers),
       // also watching files in apiDir for changes
-      ...[`${resolve(sourceFolderPath, apiDir)}/**/*.ts`],
+      ...[`${resolve(sourceFolderPath, defaults.apiDir)}/**/*.ts`],
     ],
   };
 }

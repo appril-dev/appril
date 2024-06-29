@@ -3,7 +3,7 @@ import { join, dirname } from "node:path";
 import type { ApiRoute } from "../@types";
 import { defaults } from "../defaults";
 import { extractApiAssets } from "../ast";
-import { fileGenerator, upsertTsconfigPaths } from "../base";
+import { fileGenerator } from "../base";
 
 import baseTpl from "./templates/base.hbs";
 import fetchTpl from "./templates/fetch.hbs";
@@ -13,28 +13,22 @@ const { generateFile } = fileGenerator();
 
 let sourceFolder: string;
 let sourceFolderPath: string;
-let apiDir: string;
-let varDir: string;
 
 export async function bootstrap(data: {
   routes: ApiRoute[];
   sourceFolder: string;
   sourceFolderPath: string;
-  apiDir: string;
-  varDir: string;
 }) {
   const { routes } = data;
 
   sourceFolder = data.sourceFolder;
   sourceFolderPath = data.sourceFolderPath;
-  apiDir = data.apiDir;
-  varDir = data.varDir;
 
-
-  await generateFile(join(varDir, defaults.generated.fetch, "base.ts"), {
+  await generateFile(join(defaults.varDir, defaults.fetchDir, "base.ts"), {
     template: baseTpl,
     context: {
       sourceFolder,
+      defaults,
     },
   });
 
@@ -77,26 +71,20 @@ async function generateRouteAssets({
     route.fileFullpath,
     {
       relpathResolver(path) {
-        return join(sourceFolder, apiDir, dirname(route.file), path);
+        return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
       },
     },
   );
 
   await generateFile(
-    join(varDir, defaults.generated.fetch, apiDir, route.file),
+    join(defaults.varDir, defaults.fetchDir, defaults.apiDir, route.file),
     {
       template: fetchTpl,
       context: {
-        ...route,
-        baseImportPath: join(
-          sourceFolder,
-          varDir,
-          defaults.generated.fetch,
-          "base",
-        ),
-        defaults,
+        route,
         typeDeclarations,
         fetchDefinitions,
+        defaults,
       },
     },
   );
@@ -107,11 +95,11 @@ async function generateIndexFiles({
 }: {
   routes: ApiRoute[];
 }) {
-  await generateFile(join(varDir, defaults.generated.fetch, "index.ts"), {
+  await generateFile(join(defaults.varDir, defaults.fetchDir, "index.ts"), {
     template: indexTpl,
     context: {
-      apiDir,
       routes,
+      defaults,
     },
   });
 }

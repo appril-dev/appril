@@ -11,13 +11,14 @@ import type {
   TableDeclaration,
 } from "./@types";
 import type { ResolvedPluginOptions } from "../@types";
+import { defaults } from "../defaults";
 
 export async function extractTables(
   config: ResolvedConfig,
   options: ResolvedPluginOptions,
   schema: string,
 ) {
-  const { sourceFolderPath, apiDir } = options;
+  const { sourceFolderPath } = options;
 
   const {
     base,
@@ -35,10 +36,10 @@ export async function extractTables(
 
     const partial: Omit<TableAssets, "meta"> = {
       basename,
-      fetchBase: join(config.base, apiDir, base, basename),
+      fetchBase: join(config.base, defaults.apiDir, base, basename),
       apiPath: join(base, basename),
       apiFile,
-      apiFileFullpath: resolve(sourceFolderPath, apiDir, apiFile),
+      apiFileFullpath: resolve(sourceFolderPath, defaults.apiDir, apiFile),
     };
 
     return {

@@ -1,15 +1,16 @@
 import {
+  type MaybeRef as $__maybe_ref__,{{!-- need unique name to avoid conflict with typeDeclarations --}}
   baseurl, apiurl,
   fetchFactory, fetchOptions,
   join, withLoader, pathMaker,
-} from "{{baseImportPath}}";
+} from "{{defaults.varPrefix}}/{{defaults.fetchDir}}/base";
 
 {{#each typeDeclarations}}
 {{text}}
 {{/each}}
 
-function resolve(params: [ {{fetchParamsType}} ]) {
-  return pathMaker("{{originalPath}}", params)
+function resolve(params: [ {{route.fetchParamsType}} ]) {
+  return pathMaker("{{route.originalPath}}", params)
 }
 
 function apiFactory(
@@ -18,8 +19,8 @@ function apiFactory(
 
   {{#each fetchDefinitions}}
   function {{method}}(
-    params: [ {{../fetchParamsType}} ],
-    payload{{#unless payloadType}}?{{/unless}}: import("{{../baseImportPath}}").MaybeRef<
+    params: [ {{../route.fetchParamsType}} ],
+    payload{{#unless payloadType}}?{{/unless}}: $__maybe_ref__<
       {{#if payloadType}}
       {{payloadType}}
       {{else}}

@@ -4,7 +4,7 @@ import { APIMethods } from "@appril/router";
 
 import type { ApiTemplates, ApiRoute } from "../@types";
 import { defaults } from "../defaults";
-import { fileGenerator, upsertTsconfigPaths } from "../base";
+import { fileGenerator } from "../base";
 import { BANNER } from "../render";
 
 import baseTpl from "./templates/base.hbs";
@@ -15,13 +15,9 @@ const { generateFile } = fileGenerator();
 
 let sourceFolder: string;
 let sourceFolderPath: string;
-let apiDir: string;
-let varDir: string;
 
 export async function bootstrap(data: {
   routes: ApiRoute[];
-  apiDir: string;
-  varDir: string;
   sourceFolder: string;
   sourceFolderPath: string;
   customTemplates: ApiTemplates;
@@ -30,12 +26,9 @@ export async function bootstrap(data: {
 
   sourceFolder = data.sourceFolder;
   sourceFolderPath = data.sourceFolderPath;
-  varDir = data.varDir;
-  apiDir = data.apiDir;
-
 
   await generateFile(
-    join(apiDir, defaults.generated.data, defaults.api.sourceFile),
+    join(defaults.apiDir, defaults.apiDataDir, defaults.apiSourceFile),
     "",
     {
       overwrite: false,
@@ -72,11 +65,11 @@ async function generateRouteFiles({
 }: { route: ApiRoute; customTemplates: ApiTemplates }) {
   if (!route.optedFile) {
     await generateFile(
-      join(varDir, defaults.generated.api, route.importPath, "index.ts"),
+      join(defaults.varDir, defaults.apiDir, route.importPath, "index.ts"),
       {
         template: baseTpl,
         context: {
-          sourceFolder,
+          defaults,
           apiMethods: Object.keys(APIMethods),
           route,
         },
@@ -85,10 +78,10 @@ async function generateRouteFiles({
   }
 
   await generateFile(
-    join(apiDir, route.file),
+    join(defaults.apiDir, route.file),
     {
       template: route.template || customTemplates.route || routeTpl,
-      context: { defaults, ...route },
+      context: { route, defaults },
     },
     { overwrite: false },
   );
@@ -96,12 +89,10 @@ async function generateRouteFiles({
 
 async function generateIndexFiles(_routes: ApiRoute[]) {
   const routes = _routes.map((e) => ({ ...e, meta: JSON.stringify(e.meta) }));
-  await generateFile(join(apiDir, defaults.api.routesFile), {
+  await generateFile(join(defaults.apiDir, defaults.apiRoutesFile), {
     template: routesTpl,
     context: {
       BANNER,
-      apiDir,
-      sourceFolder,
       routes,
       defaults,
     },

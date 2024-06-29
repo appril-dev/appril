@@ -6,13 +6,13 @@ import {
   routeMapper,
 } from "@appril/router";
 
-import { baseurl, apiurl } from "{{sourceFolder}}/config";
-import router from "./router";
+import { baseurl, apiurl } from "{{defaults.srcPrefix}}/{{defaults.configDir}}";
+import router from "{{defaults.srcPrefix}}/{{defaults.apiDir}}/router";
 
 {{#each routes}}
-import {{importName}} from "{{../sourceFolder}}/{{../apiDir}}/{{importPath}}";
+import {{importName}} from "{{../defaults.srcPrefix}}/{{../defaults.apiDir}}/{{importPath}}";
 {{#unless optedFile}}
-import {{importName}}$assets from "{{../defaults.generated.api}}/{{importPath}}/@assets";
+import {{importName}}$assets from "{{../defaults.varPrefix}}/{{../defaults.apiDir}}/{{importPath}}/@assets";
 {{/unless}}
 
 {{/each}}

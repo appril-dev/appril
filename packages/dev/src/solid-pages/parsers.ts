@@ -17,9 +17,9 @@ import { defaults } from "../defaults";
 export async function sourceFilesParsers(
   _config: ResolvedConfig,
   options: ResolvedPluginOptions,
-  pattern = `**/*${defaults.solidPages.sourceFile}`,
+  pattern = `**/*${defaults.routerSourceFile}`,
 ) {
-  const { sourceFolderPath, routerDir } = options;
+  const { sourceFolderPath } = options;
 
   const parsers: {
     file: string;
@@ -27,7 +27,7 @@ export async function sourceFilesParsers(
   }[] = [];
 
   const srcFiles = await glob(pattern, {
-    cwd: resolve(sourceFolderPath, routerDir),
+    cwd: resolve(sourceFolderPath, defaults.routerDir),
     onlyFiles: true,
     absolute: true,
     unique: true,
@@ -68,11 +68,9 @@ export async function sourceFilesParsers(
             cfg?.dataLoader === true
               ? {
                   // relative path, worker would prepend varDir
-                  datafile: join(defaults.generated.data, originalPath),
+                  datafile: join(defaults.apiDataDir, originalPath),
                   // relative path, api generator would prepend apiDir
-                  apiEndpoint: [defaults.generated.data, originalPath].join(
-                    "/",
-                  ),
+                  apiEndpoint: [defaults.apiDataDir, originalPath].join("/"),
                 }
               : undefined;
 
@@ -85,15 +83,11 @@ export async function sourceFilesParsers(
                   }
                 : {
                     importDatafile: [
-                      defaults.generated.data,
+                      defaults.varPrefix,
+                      defaults.apiDataDir,
                       originalPath,
                     ].join("/"),
                     importDatafunc: "dataCache",
-                    importFetchfile: [
-                      defaults.generated.fetch,
-                      defaults.generated.data,
-                      originalPath,
-                    ].join("/"),
                     useData: true,
                   }
               : undefined;

@@ -13,6 +13,7 @@ import type {
 } from "../@types";
 
 import { sourceFilesParsers } from "../api-generator/parsers";
+import { defaults } from "../defaults";
 
 type Workers = typeof import("./workers");
 
@@ -21,7 +22,7 @@ export async function apiAssets(
   options: ResolvedPluginOptions,
   { worker, workerPool }: { worker: Worker; workerPool: Workers },
 ) {
-  const { sourceFolder, sourceFolderPath, apiDir, varDir } = options;
+  const { sourceFolder, sourceFolderPath } = options;
 
   const {
     filter = (_r: ApiRoute) => true,
@@ -120,8 +121,6 @@ export async function apiAssets(
   const bootstrapPayload: BootstrapPayload<Workers> = {
     routes: Object.values(routeMap),
     sourceFolder,
-    apiDir,
-    varDir,
     typeFiles: Object.values(typeFiles),
     importZodErrorHandlerFrom,
   };
@@ -133,7 +132,7 @@ export async function apiAssets(
       // watching source files for changes
       ...Object.keys(srcWatchers),
       // also watching files in apiDir for changes
-      ...[`${resolve(sourceFolderPath, apiDir)}/**/*.ts`],
+      ...[`${resolve(sourceFolderPath, defaults.apiDir)}/**/*.ts`],
       // also watching type files
       ...Object.keys(typeFiles),
     ],

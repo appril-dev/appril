@@ -79,15 +79,7 @@ export async function solidPages(
   options: ResolvedPluginOptions,
   { workerPool }: { workerPool: Workers },
 ) {
-  const {
-    sourceFolder,
-    sourceFolderPath,
-    routerDir,
-    storesDir,
-    pagesDir,
-    apiDir,
-    varDir,
-  } = options;
+  const { sourceFolder, sourceFolderPath } = options;
 
   const pageMap: Record<string, SolidPage> = {};
 
@@ -150,11 +142,6 @@ export async function solidPages(
     pages: Object.values(pageMap),
     sourceFolder,
     sourceFolderPath,
-    routerDir,
-    storesDir,
-    pagesDir,
-    apiDir,
-    varDir,
     customTemplates,
   };
 

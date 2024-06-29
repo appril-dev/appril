@@ -5,13 +5,14 @@ import { type Plugin, context, build } from "esbuild";
 import type { ResolvedConfig } from "vite";
 
 import type { ResolvedPluginOptions } from "../@types";
+import { defaults } from "../defaults";
 
 export async function apiHandlerFactory(
   config: ResolvedConfig,
   options: ResolvedPluginOptions,
 ) {
-  const { sourceFolder, sourceFolderPath, apiurl, apiDir } = options;
-  const outDir = resolve(config.build.outDir, join("..", apiDir));
+  const { sourceFolder, sourceFolderPath, apiurl } = options;
+  const outDir = resolve(config.build.outDir, join("..", defaults.apiDir));
 
   const esbuildConfig = await import(
     resolve(sourceFolderPath, "../esbuild.json"),
@@ -38,14 +39,18 @@ export async function apiHandlerFactory(
   if (config.command === "serve") {
     const outfile = join(outDir, "dev.mjs");
 
-    const hmrHandler: Plugin = {
-      name: "hmrHandler",
+    const apiHandler: Plugin = {
+      name: "apiHandler",
       setup(build) {
         build.onEnd(async () => {
-          const exports = await import(
-            [outfile, new Date().getTime()].join("?")
-          );
-          app = exports.app;
+          try {
+            const exports = await import(
+              [outfile, new Date().getTime()].join("?")
+            );
+            app = exports.app;
+          } catch (e) {
+            console.error(e);
+          }
         });
       },
     };
@@ -54,8 +59,8 @@ export async function apiHandlerFactory(
       logLevel: "info",
       ...esbuildConfig,
       bundle: true,
-      entryPoints: [join(sourceFolder, apiDir, "app.ts")],
-      plugins: [...(esbuildConfig.plugins || []), hmrHandler],
+      entryPoints: [join(defaults.srcPrefix, defaults.apiDir, "app.ts")],
+      plugins: [...(esbuildConfig.plugins || []), apiHandler],
       outfile,
     });
 
@@ -68,7 +73,7 @@ export async function apiHandlerFactory(
       await build({
         ...esbuildConfig,
         bundle: true,
-        entryPoints: [join(sourceFolder, apiDir, "server.ts")],
+        entryPoints: [join(defaults.srcPrefix, defaults.apiDir, "server.ts")],
         plugins: [...(esbuildConfig.plugins || [])],
         outfile: join(
           outDir,

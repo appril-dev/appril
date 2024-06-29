@@ -7,6 +7,7 @@ import fsx from "fs-extra";
 import type { ResolvedPluginOptions, BootstrapPayload } from "../@types";
 import type { CustomTemplates, Options, Table } from "./@types";
 import { extractTables } from "./tables";
+import { defaults } from "../defaults";
 
 type Workers = typeof import("./workers");
 
@@ -17,7 +18,7 @@ export async function crudGenerator(
 ) {
   const { sortTemplates } = await import("@appril/crud/templates");
 
-  const { sourceFolder, sourceFolderPath, apiDir, varDir } = options;
+  const { sourceFolder, sourceFolderPath } = options;
 
   const {
     base,
@@ -139,8 +140,6 @@ export async function crudGenerator(
   }
 
   const bootstrapPayload: BootstrapPayload<Workers> = {
-    apiDir,
-    varDir,
     sourceFolder,
     sourceFolderPath,
     base,
@@ -160,7 +159,7 @@ export async function crudGenerator(
       ...Object.keys(schemaWatchers),
 
       // also watching api files
-      ...[`${resolve(sourceFolderPath, apiDir)}/**/*.ts`],
+      ...[`${resolve(sourceFolderPath, defaults.apiDir)}/**/*.ts`],
     ],
   };
 }

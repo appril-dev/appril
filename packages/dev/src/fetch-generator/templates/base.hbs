@@ -1,10 +1,11 @@
-import { type MaybeRef, serialize, stringify } from "{{sourceFolder}}/../base/fetch";
+import {
+  type MaybeRef,
+  serialize, stringify,
+} from "{{defaults.basePrefix}}/{{defaults.baseDir}}/@fetch";
 
 export type { MaybeRef };
-
 export { fetch as fetchFactory } from "@appril/fetch";
-
-export { baseurl, apiurl } from "{{sourceFolder}}/config";
+export { baseurl, apiurl } from "{{defaults.srcPrefix}}/{{defaults.configDir}}";
 
 export const fetchOptions = {
   ...serialize ? { serialize } : {},

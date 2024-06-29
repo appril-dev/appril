@@ -6,7 +6,7 @@ import type { ApiTypesLiteral, DefaultTemplates } from "@appril/crud";
 import type { ApiRouteConfig } from "../@types";
 import type { CustomTemplates, Table } from "./@types";
 
-import { fileGenerator, upsertTsconfigPaths } from "../base";
+import { fileGenerator } from "../base";
 import { BANNER, render } from "../render";
 import { defaults } from "../defaults";
 import { extractTypes } from "./ast";
@@ -18,16 +18,12 @@ let defaultTemplates: DefaultTemplates;
 // all these values are static so it's safe to store them at initialization;
 // tables and customTemplates instead are constantly updated
 // so should be provided to workers on every call
-let apiDir: string;
-let varDir: string;
 let sourceFolder: string;
 let sourceFolderPath: string;
 let base: string;
 let dbxBase: string;
 
 export async function bootstrap(data: {
-  apiDir: string;
-  varDir: string;
   sourceFolder: string;
   sourceFolderPath: string;
   base: string;
@@ -37,8 +33,6 @@ export async function bootstrap(data: {
 }) {
   const { tables, customTemplates } = data;
 
-  apiDir = data.apiDir;
-  varDir = data.varDir;
   sourceFolder = data.sourceFolder;
   sourceFolderPath = data.sourceFolderPath;
   base = data.base;
@@ -49,8 +43,7 @@ export async function bootstrap(data: {
   // should always go first
   defaultTemplates = await readTemplates();
 
-
-  await generateFile(join(varDir, "env.d.ts"), "");
+  await generateFile(join(defaults.varDir, "env.d.ts"), "");
 
   for (const table of tables) {
     await generateVarFiles({ table, customTemplates });
@@ -127,7 +120,7 @@ async function generateApiFiles(data: {
   // rather adding routes to a source file
   // and file will be created by api generator plugin
   await generateFile(
-    join(apiDir, base, defaults.api.sourceFile),
+    join(defaults.apiDir, base, defaults.apiSourceFile),
     [BANNER.trim().replace(/^/gm, "#"), stringify(routes)].join("\n"),
   );
 }
@@ -139,16 +132,16 @@ async function generateVarFiles({
   table: Table;
   customTemplates: CustomTemplates;
 }) {
-  await generateFile(join(varDir, base, "env.d.ts"), "");
+  await generateFile(join(defaults.varDir, base, "env.d.ts"), "");
 
-  await generateFile(join(varDir, base, table.basename, "api.ts"), {
+  await generateFile(join(defaults.varDir, base, table.basename, "api.ts"), {
     template: defaultTemplates.api["base.ts"].content,
     context: { ...table, dbxBase, sourceFolder },
   });
 
   const apiTypes = await extractTypes(table.apiFileFullpath, {
     relpathResolver(path) {
-      return join(sourceFolder, apiDir, dirname(table.apiFile), path);
+      return join(sourceFolder, defaults.apiDir, dirname(table.apiFile), path);
     },
   });
 
@@ -188,6 +181,9 @@ async function generateVarFiles({
       content = render(content, context);
     }
 
-    await generateFile(join(varDir, base, table.basename, file), content);
+    await generateFile(
+      join(defaults.varDir, base, table.basename, file),
+      content,
+    );
   }
 }
