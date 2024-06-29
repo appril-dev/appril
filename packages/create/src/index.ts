@@ -166,9 +166,6 @@ async function init() {
     excludedSourceFolders: sourceFoldersMapper((folder, suffix) => [
       `"${folder}"${suffix}`,
     ]),
-    aliases: sourceFoldersMapper((folder, suffix) => [
-      `"${folder}/*": [ "${folder}/*" ]${suffix}`,
-    ]),
   };
 
   for (const file of [".gitignore", "package.json", "tsconfig.json"].map((e) =>
@@ -210,11 +207,6 @@ async function init() {
       excludedSourceFolders: sourceFoldersMapper(
         (folder, suffix) => [`"../${folder}"${suffix}`],
         sourceFolders.filter((f) => f !== dir),
-      ),
-      aliases: sourceFoldersMapper((folder, suffix) =>
-        folder === dir
-          ? [`"${folder}/*": [ "./*" ]${suffix}`]
-          : [`"${folder}/*": [ "../${folder}/*" ]${suffix}`],
       ),
     };
 
