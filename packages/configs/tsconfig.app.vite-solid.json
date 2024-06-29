@@ -1,6 +1,11 @@
 {
   "extends": "./tsconfig.app.json",
   "compilerOptions": {
+    "paths": {
+      "~/*": ["${configDir}/../*"],
+      "@/*": ["${configDir}/*"],
+      "_/*": ["${configDir}/var/*"]
+    },
     "types": ["vite/client"],
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "jsx": "preserve",

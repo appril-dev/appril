@@ -1,6 +1,10 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "paths": {
+      "~/*": ["${configDir}/*"]
+    },
+    "types": ["node"],
     "noEmit": true,
     "moduleResolution": "bundler",
     "module": "ESNext"
