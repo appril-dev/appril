@@ -30,15 +30,6 @@ export async function bootstrap(data: {
   apiDir = data.apiDir;
   varDir = data.varDir;
 
-  await upsertTsconfigPaths(join(sourceFolderPath, "tsconfig.json"), {
-    [`${defaults.generated.fetch}/*`]: [
-      ".",
-      varDir,
-      defaults.generated.fetch,
-      apiDir,
-      "*",
-    ].join("/"),
-  });
 
   await generateFile(join(varDir, defaults.generated.fetch, "base.ts"), {
     template: baseTpl,

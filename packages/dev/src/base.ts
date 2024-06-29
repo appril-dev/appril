@@ -130,36 +130,3 @@ export function fileGenerator() {
     generatedFiles,
   };
 }
-
-export async function upsertTsconfigPaths(
-  file: string,
-  paths: Record<string, string>,
-) {
-  let tsconfig = JSON.parse(await fsx.readFile(file, "utf8"));
-  let updateFile = false;
-
-  for (const [key, val] of Object.entries(paths)) {
-    if (tsconfig.compilerOptions.paths?.[key]?.includes?.(val)) {
-      continue;
-    }
-
-    tsconfig = {
-      ...tsconfig,
-      compilerOptions: {
-        ...tsconfig.compilerOptions,
-        paths: {
-          ...tsconfig.compilerOptions.paths,
-          [key]: [val],
-        },
-      },
-    };
-
-    updateFile = true;
-  }
-
-  if (updateFile) {
-    await fsx.writeJson(file, tsconfig, {
-      spaces: 2,
-    });
-  }
-}

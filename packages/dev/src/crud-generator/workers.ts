@@ -49,11 +49,6 @@ export async function bootstrap(data: {
   // should always go first
   defaultTemplates = await readTemplates();
 
-  // next after templates
-  await upsertTsconfigPaths(join(sourceFolderPath, "tsconfig.json"), {
-    // join is inappropriate here, we need slashes in any environment
-    [`${base}/*`]: `./${varDir}/${base}/*`,
-  });
 
   await generateFile(join(varDir, "env.d.ts"), "");
 

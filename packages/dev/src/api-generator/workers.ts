@@ -33,14 +33,6 @@ export async function bootstrap(data: {
   varDir = data.varDir;
   apiDir = data.apiDir;
 
-  await upsertTsconfigPaths(join(sourceFolderPath, "tsconfig.json"), {
-    [`${defaults.generated.api}/*`]: [
-      ".",
-      varDir,
-      defaults.generated.api,
-      "*",
-    ].join("/"),
-  });
 
   await generateFile(
     join(apiDir, defaults.generated.data, defaults.api.sourceFile),
