@@ -5,7 +5,6 @@ import { defineConfig } from "vite";
 import { baseurl } from "./config";
 import { distDir } from "../package.json";
 import { devPort } from "./package.json";
-import { compilerOptions } from "./tsconfig.json";
 
 import plugins from "./vite.plugins";
 
@@ -29,16 +28,6 @@ export default defineConfig({
   },
 
   cacheDir: resolve(import.meta.dirname, "var/.cache"),
-
-  resolve: {
-    alias: Object.entries(compilerOptions.paths).reduce(
-      (map: Record<string, string>, [k, v]) => {
-        map[k.replace("/*", "")] = resolve(import.meta.dirname, v[0].replace("/*", ""));
-        return map;
-      },
-      {},
-    ),
-  },
 
   plugins,
 
