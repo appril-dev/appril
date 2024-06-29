@@ -7,7 +7,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "complexity": { "noUselessTernary": "off" }
+      "complexity": { "noUselessTernary": "off", "useLiteralKeys": "off" }
     }
   }
 }
