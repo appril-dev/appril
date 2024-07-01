@@ -76,7 +76,7 @@ export function handlersFactory<
 
   const router = new Router();
 
-  router.use(...bodyparser.json());
+  router.use(...(bodyparser.json() as Array<Middleware>));
 
   const returningLiteral = function (this: CrudContext) {
     if (this.returning) {
