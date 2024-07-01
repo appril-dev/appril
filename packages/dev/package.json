@@ -8,9 +8,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "directories": {
     "bin": "pkg/bin"
   },
@@ -32,7 +30,6 @@
     "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
     "build": "node ../../esbuild.mjs index worker"
   },
-  "prettier": "@appril/prettier-config",
   "dependencies": {
     "@phenomnomnominal/tsquery": "^6.1.3",
     "crc": "^4.3.2",

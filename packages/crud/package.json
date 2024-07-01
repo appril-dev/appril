@@ -7,9 +7,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "exports": {
     ".": {
       "default": "./pkg/index.mjs",
@@ -33,7 +31,6 @@
     "prebuild": "set -e; for i in 0 1 2 3; do pnpm run prebuild:00${i}; done",
     "build": "node ../../esbuild.mjs index templates"
   },
-  "prettier": "@appril/prettier-config",
   "devDependencies": {
     "@appril/configs": "workspace:^",
     "@appril/dbx": "workspace:^",
