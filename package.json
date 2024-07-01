@@ -15,12 +15,12 @@
     "pub": "changeset publish"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.1",
-    "@types/node": "^20.12.7",
-    "esbuild": "^0.20.2",
-    "nopt": "^7.2.0",
-    "rimraf": "^5.0.5",
-    "typescript": "^5.4.5"
-    "@biomejs/biome": "^1.8.2",
+    "@biomejs/biome": "^1.8.3",
+    "@changesets/cli": "^2.27.6",
+    "@types/node": "^20.14.9",
+    "esbuild": "^0.22.0",
+    "nopt": "^7.2.1",
+    "rimraf": "^5.0.7",
+    "typescript": "^5.5.2"
   }
 }

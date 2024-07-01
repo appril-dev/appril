@@ -29,15 +29,15 @@
     "build": "node ../../esbuild.mjs index"
   },
   "dependencies": {
-    "extract-pg-schema": "^5.1.1",
+    "extract-pg-schema": "^5.1.2",
     "lodash-es": "^4.17.21",
     "pluralize": "^8.0.0",
-    "zod": "^3.23.4"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@appril/configs": "workspace:^",
     "@types/lodash-es": "^4.17.12",
-    "@types/pg": "^8.11.5",
+    "@types/pg": "^8.11.6",
     "@types/pluralize": "^0.0.33"
   }
 }
