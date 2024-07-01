@@ -1,5 +1,11 @@
 # @appril/fetch
 
+## 0.0.44
+
+### Patch Changes
+
+- aae2f03: multiple updates
+
 ## 0.0.43
 
 ### Patch Changes

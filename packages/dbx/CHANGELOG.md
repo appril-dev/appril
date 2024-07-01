@@ -1,5 +1,13 @@
 # @appril/dbx
 
+## 0.0.44
+
+### Patch Changes
+
+- aae2f03: multiple updates
+- Updated dependencies [aae2f03]
+  - @appril/pgts@0.0.44
+
 ## 0.0.43
 
 ### Patch Changes
