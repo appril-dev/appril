@@ -21,7 +21,7 @@ export { config };
 export const bodyparser = { json, form, raw };
 export * from "./@types";
 
-export function json(opts: JsonOptions = {}): Middleware[] {
+export function json(opts: JsonOptions = {}): Array<Middleware> {
   return [
     async (ctx, next) => {
       const form = IncomingForm({
@@ -46,7 +46,7 @@ export function json(opts: JsonOptions = {}): Middleware[] {
   ];
 }
 
-export function form(opts: FormOptions = {}): Middleware[] {
+export function form(opts: FormOptions = {}): Array<Middleware> {
   return [
     async (ctx, next) => {
       const form = IncomingForm({
@@ -79,7 +79,7 @@ export function form(opts: FormOptions = {}): Middleware[] {
   ];
 }
 
-export function raw(opts: RawOptions = {}): Middleware[] {
+export function raw(opts: RawOptions = {}): Array<Middleware> {
   return [
     async (ctx, next) => {
       const { chunkSize, ...rawParserOptions } = { ...config.raw, ...opts };
