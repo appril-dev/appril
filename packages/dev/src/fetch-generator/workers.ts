@@ -27,8 +27,14 @@ export async function bootstrap(data: {
   await generateFile(join(defaults.varDir, defaults.fetchDir, "base.ts"), {
     template: baseTpl,
     context: {
-      sourceFolder,
-      defaults,
+      importPathFetch: [defaults.basePrefix, defaults.baseDir, "@fetch"].join(
+        "/",
+      ),
+      importPathConfig: [
+        defaults.basePrefix,
+        sourceFolder,
+        defaults.configDir,
+      ].join("/"),
     },
   });
 
@@ -88,9 +94,16 @@ async function generateRouteAssets({
       template: fetchTpl,
       context: {
         route,
+        sourceFolder,
         typeDeclarations,
         fetchDefinitions,
-        defaults,
+        importPathBase: [
+          defaults.basePrefix,
+          sourceFolder,
+          defaults.varDir,
+          defaults.fetchDir,
+          "base",
+        ].join("/"),
       },
     },
   );
@@ -104,8 +117,16 @@ async function generateIndexFiles({
   await generateFile(join(defaults.varDir, defaults.fetchDir, "index.ts"), {
     template: indexTpl,
     context: {
-      routes,
-      defaults,
+      routes: routes.map((route) => ({
+        ...route,
+        importPrefix: [
+          defaults.basePrefix,
+          sourceFolder,
+          defaults.varDir,
+          defaults.fetchDir,
+          defaults.apiDir,
+        ].join("/"),
+      })),
     },
   });
 }

@@ -93,8 +93,34 @@ async function generateIndexFiles(_routes: ApiRoute[]) {
     template: routesTpl,
     context: {
       BANNER,
-      routes,
-      defaults,
+      routes: routes.map((route) => ({
+        ...route,
+        importPathApi: [
+          defaults.basePrefix,
+          sourceFolder,
+          defaults.apiDir,
+          route.importPath,
+        ].join("/"),
+        importPathVar: [
+          defaults.basePrefix,
+          sourceFolder,
+          defaults.varDir,
+          defaults.apiDir,
+          route.importPath,
+          "@assets",
+        ].join("/"),
+      })),
+      importPathConfig: [
+        defaults.basePrefix,
+        sourceFolder,
+        defaults.configDir,
+      ].join("/"),
+      importPathRouter: [
+        defaults.basePrefix,
+        sourceFolder,
+        defaults.apiDir,
+        "router",
+      ].join("/"),
     },
   });
 }

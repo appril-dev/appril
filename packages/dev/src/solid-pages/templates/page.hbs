@@ -1,14 +1,14 @@
-{{#if dataLoaderConsumer.useData}}
-import { useData } from "{{dataLoaderConsumer.importDatafile}}";
+{{#if page.dataLoaderConsumer.useData}}
+import { useData } from "{{page.dataLoaderConsumer.importDatafile}}";
 {{/if}}
 
 export default () => {
-  {{#if dataLoaderConsumer.useData}}
+  {{#if page.dataLoaderConsumer.useData}}
   const data = useData()
   {{/if}}
   return (
     <div>
-      Automatically generated Solid Page: [ {{originalPath}} ]
+      Automatically generated Solid Page: [ {{page.originalPath}} ]
     </div>
   )
 }

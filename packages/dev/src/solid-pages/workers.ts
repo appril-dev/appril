@@ -56,7 +56,7 @@ async function generatePageFiles({
     join(defaults.pagesDir, page.file),
     {
       template: customTemplates.page || pageTpl,
-      context: page,
+      context: { page },
     },
     { overwrite: false },
   );
@@ -66,7 +66,18 @@ async function generatePageFiles({
       join(defaults.varDir, `${page.dataLoaderGenerator.datafile}.ts`),
       {
         template: dataTpl,
-        context: { BANNER, defaults, ...page },
+        context: {
+          page,
+          importFetch: [
+            defaults.basePrefix,
+            sourceFolder,
+            defaults.varDir,
+            defaults.fetchDir,
+            defaults.apiDir,
+            defaults.apiDataDir,
+            page.importPath,
+          ].join("/"),
+        },
       },
     );
   }
@@ -83,9 +94,15 @@ async function generateIndexFiles(data: { pages: Array<SolidPage> }) {
       template,
       context: {
         BANNER,
-        sourceFolder,
-        pages,
-        defaults,
+        pages: pages.map((page) => ({
+          ...page,
+          importPathComponent: [
+            defaults.basePrefix,
+            sourceFolder,
+            defaults.pagesDir,
+            page.importPath,
+          ].join("/"),
+        })),
       },
     });
   }

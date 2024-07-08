@@ -1,9 +1,8 @@
 import {
-  type MaybeRef as $__maybe_ref__,{{!-- need unique name to avoid conflict with typeDeclarations --}}
   baseurl, apiurl,
   fetchFactory, fetchOptions,
   join, withLoader, pathMaker,
-} from "{{defaults.varPrefix}}/{{defaults.fetchDir}}/base";
+} from "{{importPathBase}}";
 
 {{#each typeDeclarations}}
 {{text}}
@@ -20,7 +19,7 @@ function apiFactory(
   {{#each fetchDefinitions}}
   function {{method}}(
     params: [ {{../route.fetchParamsType}} ],
-    payload{{#unless payloadType}}?{{/unless}}: $__maybe_ref__<
+    payload{{#unless payloadType}}?{{/unless}}: import("{{../importPathBase}}").MaybeRef<
       {{#if payloadType}}
       {{payloadType}}
       {{else}}
