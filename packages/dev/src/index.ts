@@ -59,9 +59,9 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
         },
         resolve: {
           alias: {
-            [defaults.basePrefix]: "..",
-            [defaults.srcPrefix]: ".",
-            [defaults.varPrefix]: defaults.varDir,
+            [defaults.basePrefix]: resolvePath(".."),
+            [defaults.srcPrefix]: resolvePath("."),
+            [defaults.varPrefix]: resolvePath(defaults.varDir),
           },
         },
       };
