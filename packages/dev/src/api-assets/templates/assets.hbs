@@ -27,7 +27,7 @@ export default {
         }
         return next()
       }
-    ] satisfies Middleware[],
+    ] satisfies Array<Middleware>,
     {{/each}}
     {{/if}}
   },

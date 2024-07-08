@@ -21,4 +21,4 @@ export default [
       },
     },
   ]),
-] satisfies import("vite").Plugin[];
+] satisfies Array<import("vite").Plugin>;
