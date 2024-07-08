@@ -7,9 +7,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "exports": {
     ".": {
       "default": "./pkg/fetch/index.mjs",
@@ -35,11 +33,11 @@
   "dependencies": {
     "follow-redirects": "^1.15.6",
     "form-data": "^4.0.0",
-    "qs": "^6.12.1"
+    "qs": "catalog:"
   },
   "devDependencies": {
     "@appril/configs": "workspace:^",
     "@types/follow-redirects": "^1.14.4",
-    "@types/qs": "^6.9.15"
+    "@types/qs": "catalog:"
   }
 }

@@ -36,27 +36,26 @@
     "@appril/dbx": "workspace:^",
     "@appril/fetch": "workspace:^",
     "@appril/router": "workspace:^",
-    "@types/koa": "^2.15.0",
-    "@types/koa-bodyparser": "^4.3.12",
-    "@types/koa__router": "^12.0.4",
-    "@types/pg": "^8.11.6",
-    "knex": "^3.1.0",
-    "koa": "^2.15.3",
+    "@types/koa": "catalog:koa",
+    "@types/koa__router": "catalog:koa",
+    "@types/pg": "catalog:db",
+    "knex": "catalog:db",
+    "koa": "catalog:koa",
     "pinia": "^2.1.7",
     "vue": "^3.4.31",
     "vue-router": "^4.4.0",
-    "zod": "^3.23.8",
-    "zod-validation-error": "^3.3.0"
+    "zod": "catalog:zod",
+    "zod-validation-error": "catalog:zod"
   },
   "peerDependencies": {
     "@appril/dbx": "workspace:^",
     "@appril/fetch": "workspace:^",
     "@appril/router": "workspace:^",
-    "@koa/router": "^12.0.1",
-    "zod": "^3.22.4",
-    "zod-validation-error": "^3.0.3"
+    "@koa/router": "catalog:koa",
+    "zod": "catalog:zod",
+    "zod-validation-error": "catalog:zod"
   },
   "dependencies": {
-    "pg": "^8.12.0"
+    "pg": "catalog:db"
   }
 }

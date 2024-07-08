@@ -7,9 +7,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "bin": {
     "create": "pkg/index.mjs"
   },
@@ -27,12 +25,12 @@
     "build": "node ../../esbuild.mjs index --outfile=pkg/index.mjs"
   },
   "dependencies": {
-    "fs-extra": "^11.2.0",
-    "handlebars": "^4.7.8",
+    "fs-extra": "catalog:",
+    "handlebars": "catalog:",
     "merge": "^2.1.1",
-    "nopt": "^7.2.1",
+    "nopt": "catalog:",
     "npm-check-updates": "^16.14.20",
-    "prompts": "^2.4.2"
+    "prompts": "catalog:"
   },
   "devDependencies": {
     "@appril/configs": "workspace:^",
@@ -40,18 +38,18 @@
     "@appril/dev": "workspace:^",
     "@appril/fetch": "workspace:^",
     "@appril/router": "workspace:^",
-    "@solidjs/router": "^0.13.6",
-    "@types/fs-extra": "^11.0.4",
-    "@types/koa": "^2.15.0",
-    "@types/koa-logger": "^3.1.5",
-    "@types/koa__router": "^12.0.4",
-    "@types/nopt": "^3.0.32",
-    "@types/prompts": "^2.4.9",
-    "knex": "^3.1.0",
-    "koa": "^2.15.3",
-    "koa-logger": "^3.2.1",
-    "solid-js": "^1.8.18",
-    "vite": "^5.3.2",
-    "vite-plugin-solid": "^2.10.2"
+    "@solidjs/router": "catalog:solid",
+    "@types/fs-extra": "catalog:",
+    "@types/koa": "catalog:koa",
+    "@types/koa-logger": "catalog:koa",
+    "@types/koa__router": "catalog:koa",
+    "@types/nopt": "catalog:",
+    "@types/prompts": "catalog:",
+    "knex": "catalog:db",
+    "koa": "catalog:koa",
+    "koa-logger": "catalog:koa",
+    "solid-js": "catalog:solid",
+    "vite": "catalog:vite",
+    "vite-plugin-solid": "catalog:vite"
   }
 }

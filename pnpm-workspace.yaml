@@ -1,3 +1,55 @@
 
 packages:
   - "packages/*"
+
+catalog:
+
+  "esbuild": ^0.23.0
+  "typescript": ^5.5.3
+  "handlebars": ^4.7.8
+  "fast-glob": ^3.3.2
+
+  "fs-extra": ^11.2.0
+  "@types/fs-extra": ^11.0.4
+
+  "qs": ^6.12.2
+  "@types/qs": ^6.9.15
+
+  "lodash-es": ^4.17.21
+  "@types/lodash-es": ^4.17.12
+
+  "nopt": ^7.2.1
+  "@types/nopt": ^3.0.32
+
+  "prompts": ^2.4.2
+  "@types/prompts": ^2.4.9
+
+catalogs:
+  koa:
+    "koa": ^2.15.3
+    "@types/koa": ^2.15.0
+
+    "@koa/router": ^12.0.1
+    "@types/koa__router": ^12.0.4
+
+    "koa-logger": ^3.2.1
+    "@types/koa-logger": ^3.1.5
+
+  solid:
+    "solid-js": ^1.8.18
+    "@solidjs/router": ^0.13.6
+
+  vite:
+    "vite": ^5.3.3
+    "vite-plugin-solid": ^2.10.2
+
+  zod:
+    "zod": ^3.22.4
+    "zod-validation-error": ^3.0.3
+    "ts-to-zod": ^3.8.7
+
+  db:
+    "knex": ^3.1.0
+    "pg": ^8.12.0
+    "@types/pg": ^8.11.6
+    "extract-pg-schema": ^5.1.2
