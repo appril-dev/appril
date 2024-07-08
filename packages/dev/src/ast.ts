@@ -17,7 +17,7 @@ import type {
 
 import ts from "typescript";
 
-import { APIMethods } from "@appril/router";
+import { APIMethods } from "@appril/api/router";
 
 import type {
   TypeDeclaration,

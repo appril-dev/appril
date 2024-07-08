@@ -1,6 +1,6 @@
 import { join } from "node:path";
 
-import { APIMethods } from "@appril/router";
+import { APIMethods } from "@appril/api/router";
 
 import type { ApiTemplates, ApiRoute } from "../@types";
 import { defaults } from "../defaults";

@@ -37,7 +37,7 @@
     "@appril/dbx": "workspace:^",
     "@appril/dev": "workspace:^",
     "@appril/fetch": "workspace:^",
-    "@appril/router": "workspace:^",
+    "@appril/api": "workspace:^",
     "@solidjs/router": "catalog:solid",
     "@types/fs-extra": "catalog:",
     "@types/koa": "catalog:koa",

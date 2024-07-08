@@ -1,7 +1,7 @@
 {
-  "name": "@appril/router",
+  "name": "@appril/api",
   "version": "0.0.44",
-  "description": "Appril Router",
+  "description": "Appril API",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
@@ -9,7 +9,7 @@
   },
   "files": ["pkg/*"],
   "exports": {
-    ".": {
+    "./router": {
       "default": "./pkg/router/index.mjs",
       "types": "./pkg/router/index.d.ts"
     },

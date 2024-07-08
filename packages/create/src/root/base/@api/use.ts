@@ -1,13 +1,13 @@
 /// <reference path="./env.d.ts" />
 
-import { type Middleware, use } from "@appril/router";
+import { type Middleware, use } from "@appril/api/router";
 
 import {
   type JsonOptions,
   type FormOptions,
   type RawOptions,
   bodyparser,
-} from "@appril/router/bodyparser";
+} from "@appril/api/bodyparser";
 
 export const passthrough: Middleware = (_ctx, next) => next();
 

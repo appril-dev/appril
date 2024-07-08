@@ -1,13 +1,13 @@
 import Koa from "koa";
 import logger from "koa-logger";
 
-import withQueryparser from "@appril/router/queryparser";
+import withQueryparser from "@appril/api/queryparser";
 
 import {
   type DefaultContext,
   type DefaultState,
   routePrinter,
-} from "@appril/router";
+} from "@appril/api/router";
 
 import { errorHandler } from "~/base/@api/app";
 import routes, { routeStack } from "./routes";

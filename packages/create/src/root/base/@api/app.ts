@@ -4,9 +4,9 @@ import {
   type Middleware,
   type DefaultContext,
   useGlobal,
-} from "@appril/router";
+} from "@appril/api/router";
 
-import { bodyparser } from "@appril/router/bodyparser";
+import { bodyparser } from "@appril/api/bodyparser";
 import { DEV } from "~/config";
 
 useGlobal("bodyparser", bodyparser.json()).before("post", "put", "patch");

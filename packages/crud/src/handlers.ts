@@ -6,7 +6,7 @@ import type {
 } from "koa";
 
 import Router from "@koa/router";
-import { bodyparser } from "@appril/router/bodyparser";
+import { bodyparser } from "@appril/api/bodyparser";
 import type { Knex } from "knex";
 import type { Instance, QueryBuilder } from "@appril/dbx";
 

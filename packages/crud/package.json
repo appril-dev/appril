@@ -35,7 +35,7 @@
     "@appril/configs": "workspace:^",
     "@appril/dbx": "workspace:^",
     "@appril/fetch": "workspace:^",
-    "@appril/router": "workspace:^",
+    "@appril/api": "workspace:^",
     "@types/koa": "catalog:koa",
     "@types/koa__router": "catalog:koa",
     "@types/pg": "catalog:db",
@@ -50,7 +50,7 @@
   "peerDependencies": {
     "@appril/dbx": "workspace:^",
     "@appril/fetch": "workspace:^",
-    "@appril/router": "workspace:^",
+    "@appril/api": "workspace:^",
     "@koa/router": "catalog:koa",
     "zod": "catalog:zod",
     "zod-validation-error": "catalog:zod"

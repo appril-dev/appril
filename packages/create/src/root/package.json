@@ -4,7 +4,7 @@
   "packageManager": "pnpm@9.0.6",
   "distDir": "{{project.distDir}}",
   "dependencies": {
-    "@appril/router": "^0.0.0",
+    "@appril/api": "^0.0.0",
     "@appril/fetch": "^0.0.0",
     "@koa/router": "^0.0.0",
     "nopt": "^0.0.0",

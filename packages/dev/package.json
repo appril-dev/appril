@@ -47,7 +47,7 @@
     "@appril/configs": "workspace:^",
     "@appril/crud": "workspace:^",
     "@appril/pgts": "workspace:^",
-    "@appril/router": "workspace:^",
+    "@appril/api": "workspace:^",
     "@types/fs-extra": "catalog:",
     "@types/qs": "catalog:",
     "vite": "catalog:vite"

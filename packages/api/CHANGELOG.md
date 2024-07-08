@@ -1,4 +1,4 @@
-# @appril/router
+# @appril/api
 
 ## 0.0.44
 
