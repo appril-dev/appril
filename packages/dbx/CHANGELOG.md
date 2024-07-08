@@ -1,5 +1,16 @@
 # @appril/dbx
 
+## 0.0.45
+
+### Patch Changes
+
+- c7e0c0d: - Adopting pnpm catalogs for shared deps
+  - Renaming @appril/router to @appril/api
+  - [dev] - revamping templates import paths
+  - [dev] - fixing vite config resolve.alias
+- Updated dependencies [c7e0c0d]
+  - @appril/pgts@0.0.45
+
 ## 0.0.44
 
 ### Patch Changes

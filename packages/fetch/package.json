@@ -1,13 +1,15 @@
 {
   "name": "@appril/fetch",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "description": "Appril Fetch",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "exports": {
     ".": {
       "default": "./pkg/fetch/index.mjs",

@@ -1,13 +1,15 @@
 {
   "name": "@appril/pgts",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "description": "PostgreSQL Typed Schema",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "exports": {
     ".": {
       "default": "./pkg/index.mjs",

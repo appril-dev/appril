@@ -1,13 +1,15 @@
 {
   "name": "@appril/dbx",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "description": "Thin wrapper around Knex, with type generators and migration handlers",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "bin": {
     "dbx": "pkg/cli.sh"
   },

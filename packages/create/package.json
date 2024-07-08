@@ -1,13 +1,15 @@
 {
   "name": "@appril/create",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "description": "Easily bootstrap Appril projects",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "bin": {
     "create": "pkg/index.mjs"
   },

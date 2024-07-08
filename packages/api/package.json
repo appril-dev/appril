@@ -1,13 +1,15 @@
 {
   "name": "@appril/api",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "description": "Appril API",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "exports": {
     "./router": {
       "default": "./pkg/router/index.mjs",
