@@ -6,7 +6,7 @@ export const defaults = {
   baseDir: "base",
 
   apiDir: "api",
-  apiDataDir: "_data",
+  apiDataDir: "@data",
   apiRoutesFile: "routes.ts",
   apiSourceFile: "_routes.toml",
 
