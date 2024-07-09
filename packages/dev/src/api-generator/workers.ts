@@ -87,29 +87,31 @@ async function generateRouteFiles({
   );
 }
 
-async function generateIndexFiles(_routes: ApiRoute[]) {
-  const routes = _routes.map((e) => ({ ...e, meta: JSON.stringify(e.meta) }));
+async function generateIndexFiles(routes: ApiRoute[]) {
   await generateFile(join(defaults.apiDir, defaults.apiRoutesFile), {
     template: routesTpl,
     context: {
       BANNER,
-      routes: routes.map((route) => ({
-        ...route,
-        importPathApi: [
-          defaults.basePrefix,
-          sourceFolder,
-          defaults.apiDir,
-          route.importPath,
-        ].join("/"),
-        importPathVar: [
-          defaults.basePrefix,
-          sourceFolder,
-          defaults.varDir,
-          defaults.apiDir,
-          route.importPath,
-          "@assets",
-        ].join("/"),
-      })),
+      routes: routes
+        .map((route) => ({
+          ...route,
+          meta: JSON.stringify(route.meta),
+          importPathApi: [
+            defaults.basePrefix,
+            sourceFolder,
+            defaults.apiDir,
+            route.importPath,
+          ].join("/"),
+          importPathVar: [
+            defaults.basePrefix,
+            sourceFolder,
+            defaults.varDir,
+            defaults.apiDir,
+            route.importPath,
+            "@assets",
+          ].join("/"),
+        }))
+        .sort((a, b) => a.path.localeCompare(b.path)),
       importPathConfig: [
         defaults.basePrefix,
         sourceFolder,

@@ -117,16 +117,18 @@ async function generateIndexFiles({
   await generateFile(join(defaults.varDir, defaults.fetchDir, "index.ts"), {
     template: indexTpl,
     context: {
-      routes: routes.map((route) => ({
-        ...route,
-        importPrefix: [
-          defaults.basePrefix,
-          sourceFolder,
-          defaults.varDir,
-          defaults.fetchDir,
-          defaults.apiDir,
-        ].join("/"),
-      })),
+      routes: routes
+        .map((route) => ({
+          ...route,
+          importPrefix: [
+            defaults.basePrefix,
+            sourceFolder,
+            defaults.varDir,
+            defaults.fetchDir,
+            defaults.apiDir,
+          ].join("/"),
+        }))
+        .sort((a, b) => a.path.localeCompare(b.path)),
     },
   });
 }
