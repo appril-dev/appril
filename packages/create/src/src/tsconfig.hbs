@@ -16,6 +16,14 @@
     {{#each excludedSourceFolders}}
     {{this}}
     {{/each}}
-  ]
+  ],
+
+  "compilerOptions": {
+    "paths": {
+      "~/*": ["./../*"],
+      "@/*": ["./*"],
+      "_/*": ["./var/*"]
+    }
+  }
 
 }
