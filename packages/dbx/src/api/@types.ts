@@ -22,9 +22,9 @@ export type ConfigWithoutPrimaryKey = Omit<Config, "primaryKey">;
 
 export type Instance<
   TTable extends Knex.TableNames = never,
-  TRecord = Knex.ResolveTableType<Knex.TableType<TTable>>,
-  TInsert = Knex.ResolveTableType<Knex.TableType<TTable>, "insert">,
-  TUpdate = Knex.ResolveTableType<Knex.TableType<TTable>, "update">,
+  TRecord extends {} = Knex.ResolveTableType<Knex.TableType<TTable>>,
+  TInsert extends {} = Knex.ResolveTableType<Knex.TableType<TTable>, "insert">,
+  TUpdate extends {} = Knex.ResolveTableType<Knex.TableType<TTable>, "update">,
 > = {
   connection: Knex;
 
@@ -54,7 +54,7 @@ export type Instance<
   batchInsert(
     rows: TInsert[],
     chunkSize?: number,
-  ): Knex.BatchInsertBuilder<QueryBuilder<TTable>>;
+  ): Knex.BatchInsertBuilder<TRecord>;
 
   truncateCascade(opts: TruncateOpts): Knex.Raw;
 
