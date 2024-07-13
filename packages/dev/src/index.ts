@@ -1,10 +1,9 @@
-import { basename, join } from "node:path";
+import { basename, join, resolve } from "node:path";
 
 import type { Plugin } from "vite";
 
 import type { PluginOptions, ResolvedPluginOptions } from "./@types";
 import { resolvePath } from "./base";
-import { defaults } from "./defaults";
 
 import { workerFactory } from "./worker-pool";
 
@@ -51,18 +50,22 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
 
     config(config) {
       if (!config.build?.outDir) {
-        throw new Error("Config is missing build.outDir");
+        throw new Error("config is missing build.outDir");
       }
       return {
         build: {
           outDir: join(config.build.outDir, outDirSuffix),
         },
         resolve: {
-          alias: {
-            [defaults.basePrefix]: resolvePath(".."),
-            [defaults.srcPrefix]: resolvePath("."),
-            [defaults.varPrefix]: resolvePath(defaults.varDir),
-          },
+          alias: Object.entries(
+            options.tsconfig?.compilerOptions?.paths || {},
+          ).reduce((map: Record<string, string>, [k, v]) => {
+            map[k.replace("/*", "")] = resolve(
+              sourceFolderPath,
+              v[0].replace("/*", ""),
+            );
+            return map;
+          }, {}),
         },
       };
     },

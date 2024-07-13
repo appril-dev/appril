@@ -1,5 +1,9 @@
 export type PluginOptions = {
   apiurl: string;
+  tsconfig: {
+    [key: string]: unknown;
+    compilerOptions: { paths: Record<string, Array<string>> };
+  };
   apiAssets?: {
     filter?: (route: ApiRoute) => boolean;
     typeMap?: Record<string, string | string[]>;

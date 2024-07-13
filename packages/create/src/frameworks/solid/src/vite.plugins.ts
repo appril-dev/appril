@@ -2,11 +2,12 @@ import solidPlugin from "vite-plugin-solid";
 import apprilDevPlugin, { definePlugin } from "@appril/dev";
 
 import { apiurl } from "./config";
+import tsconfig from "./tsconfig.json";
 
 export default [
   solidPlugin(),
 
-  apprilDevPlugin({ apiurl, solidPages: {} }),
+  apprilDevPlugin({ apiurl, tsconfig, solidPages: {} }),
 
   definePlugin([
     {
