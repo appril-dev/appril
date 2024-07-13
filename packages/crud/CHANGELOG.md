@@ -1,5 +1,15 @@
 # @appril/crud
 
+## 0.0.46
+
+### Patch Changes
+
+- 44fcebe: version bump
+- Updated dependencies [44fcebe]
+  - @appril/api@0.0.46
+  - @appril/dbx@0.0.46
+  - @appril/fetch@0.0.46
+
 ## 0.0.45
 
 ### Patch Changes

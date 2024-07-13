@@ -1,5 +1,11 @@
 # @appril/configs
 
+## 0.0.46
+
+### Patch Changes
+
+- 44fcebe: version bump
+
 ## 0.0.45
 
 ### Patch Changes
