@@ -21,7 +21,7 @@
     "@types/nopt": "catalog:",
     "esbuild": "catalog:",
     "nopt": "catalog:",
-    "rimraf": "^5.0.8",
+    "rimraf": "^6.0.1",
     "typescript": "catalog:"
   }
 }
