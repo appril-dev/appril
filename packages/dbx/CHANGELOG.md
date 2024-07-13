@@ -1,5 +1,11 @@
 # @appril/dbx
 
+## 0.0.47
+
+### Patch Changes
+
+- 1d09ed4: version bump
+
 ## 0.0.46
 
 ### Patch Changes
