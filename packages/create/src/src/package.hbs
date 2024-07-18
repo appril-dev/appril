@@ -2,8 +2,7 @@
   "type": "module",
   "devPort": {{devPort}},
   "scripts": {
-    "dev": "node --enable-source-maps $(which pnpm) exec vite dev",
-    "build": "vite build",
-    "//✨ trailing entry": ""
+    "dev": "node --env-file=../.env --trace-deprecation --trace-warnings --enable-source-maps $(which pnpm) exec vite dev",
+    "build": "vite build"
   }
 }
