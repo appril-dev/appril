@@ -1,7 +1,6 @@
 import { defineConfig } from "@appril/dbx/cli";
 
-import "./init";
-import { connection, client } from "~/config/knex";
+import { connection, client } from "./config/knex";
 
 export default defineConfig({
   connection,
