@@ -1,5 +1,11 @@
 # @appril/pgts
 
+## 0.0.47
+
+### Patch Changes
+
+- a7b7219: version bump
+
 ## 0.0.46
 
 ### Patch Changes

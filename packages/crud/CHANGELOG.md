@@ -1,5 +1,15 @@
 # @appril/crud
 
+## 0.0.48
+
+### Patch Changes
+
+- a7b7219: version bump
+- Updated dependencies [a7b7219]
+  - @appril/api@0.0.47
+  - @appril/dbx@0.0.48
+  - @appril/fetch@0.0.47
+
 ## 0.0.47
 
 ### Patch Changes

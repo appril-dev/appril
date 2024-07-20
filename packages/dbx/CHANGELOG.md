@@ -1,5 +1,13 @@
 # @appril/dbx
 
+## 0.0.48
+
+### Patch Changes
+
+- a7b7219: version bump
+- Updated dependencies [a7b7219]
+  - @appril/pgts@0.0.47
+
 ## 0.0.47
 
 ### Patch Changes
