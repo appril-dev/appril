@@ -1,5 +1,11 @@
 # @appril/create
 
+## 0.0.48
+
+### Patch Changes
+
+- 0ed9def: version bump
+
 ## 0.0.47
 
 ### Patch Changes
