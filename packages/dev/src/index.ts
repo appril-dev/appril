@@ -47,6 +47,7 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
 
   return {
     name: "@appril:dev",
+    apply: "serve",
 
     config(config) {
       if (!config.build?.outDir) {
