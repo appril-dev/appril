@@ -3,8 +3,8 @@
 {{this}}
 {{/each}}
 
-export type EnvT = {{apiTypes.EnvT}}{{unless apiTypes.EnvT}}unknown{{/unless}};
+export type EnvT = {{apiTypes.EnvT}}{{#unless apiTypes.EnvT}}unknown{{/unless}};
 
-export type ListAssetsT = {{apiTypes.ListAssetsT}}{{unless apiTypes.ListAssetsT}}unknown{{/unless}};
+export type ListAssetsT = {{apiTypes.ListAssetsT}}{{#unless apiTypes.ListAssetsT}}unknown{{/unless}};
 
-export type ItemAssetsT = {{apiTypes.ItemAssetsT}}{{unless apiTypes.ItemAssetsT}}unknown{{/unless}};
+export type ItemAssetsT = {{apiTypes.ItemAssetsT}}{{#unless apiTypes.ItemAssetsT}}unknown{{/unless}};
