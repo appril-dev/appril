@@ -193,7 +193,6 @@ async function init() {
     for (const [a, b] of [
       ["package.hbs", "package.json"],
       ["tsconfig.hbs", "tsconfig.json"],
-      ["vite.config.hbs", "vite.config.ts"],
     ]) {
       await fsx.move(dstdir(dir, a), dstdir(dir, b));
     }
@@ -210,12 +209,9 @@ async function init() {
       ),
     };
 
-    for (const file of [
-      "vite.config.ts",
-      "config/index.ts",
-      "package.json",
-      "tsconfig.json",
-    ].map((e) => dstdir(dir, e))) {
+    for (const file of ["config/index.ts", "package.json", "tsconfig.json"].map(
+      (e) => dstdir(dir, e),
+    )) {
       const template = await readFile(file, "utf8");
 
       // biome-ignore format:

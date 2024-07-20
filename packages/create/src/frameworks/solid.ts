@@ -16,6 +16,6 @@ export default async function solidPreset(
   await mergePackageJson(join(src, "root"), dst);
 
   await copyFiles(join(src, "src"), join(dst, sourceFolder), {
-    exclude: ["config.ts", "tsconfig.json"],
+    exclude: ["config.ts"],
   });
 }
