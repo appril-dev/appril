@@ -57,17 +57,6 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
         build: {
           outDir: join(config.build.outDir, outDirSuffix),
         },
-        resolve: {
-          alias: Object.entries(
-            options.tsconfig?.compilerOptions?.paths || {},
-          ).reduce((map: Record<string, string>, [k, v]) => {
-            map[k.replace("/*", "")] = resolve(
-              sourceFolderPath,
-              v[0].replace("/*", ""),
-            );
-            return map;
-          }, {}),
-        },
       };
     },
 
