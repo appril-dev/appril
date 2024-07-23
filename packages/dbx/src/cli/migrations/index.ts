@@ -1,11 +1,11 @@
 import nopt from "nopt";
 import fsx from "fs-extra";
 
-import { resolvePath, run } from "../base";
+import { type MigrationsConfig, run } from "@cli";
+import { resolveCwd } from "@shared";
+
 import createMigration from "./create";
 import generateKnexfile from "./knexfile";
-
-import type { MigrationsConfig } from "../@types";
 
 const { config: configFile, action } = nopt(
   {
@@ -24,7 +24,7 @@ run(async () => {
   }
 
   const { default: config }: { default: MigrationsConfig } = await import(
-    resolvePath(configFile)
+    resolveCwd(configFile)
   );
 
   for (const requiredParam of [

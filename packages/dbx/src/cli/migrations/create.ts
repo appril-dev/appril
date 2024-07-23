@@ -4,9 +4,8 @@ import prompts from "prompts";
 import pg from "pg";
 import { format as datetimeFormat } from "date-fns";
 
-import type { MigrationsConfig, MigrationsTemplates } from "../@types";
-import { resolvePath } from "../base";
-import { renderToFile } from "../render";
+import type { MigrationsConfig, MigrationsTemplates } from "@cli";
+import { resolveCwd, renderToFile } from "@shared";
 
 import createTableTpl from "./templates/createTable.hbs";
 import alterTableTpl from "./templates/alterTable.hbs";
@@ -141,7 +140,7 @@ export default async function createMigration(
 
     const table = input.table.replace("@none", "");
 
-    await renderToFile(resolvePath(outfile), template, { table });
+    await renderToFile(resolveCwd(outfile), template, { table });
 
     console.log(`\x1b[32m√\x1b[0m ${outfile} ✨`);
   } finally {

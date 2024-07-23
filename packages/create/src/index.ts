@@ -9,7 +9,7 @@ import { run as depsBump } from "npm-check-updates";
 import type { PromptObject } from "prompts";
 import prompts from "prompts";
 
-import { render } from "./render";
+import { render } from "@shared";
 
 import frameworks from "./frameworks";
 import presets from "./presets";

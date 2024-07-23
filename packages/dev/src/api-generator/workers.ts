@@ -2,10 +2,8 @@ import { join } from "node:path";
 
 import { APIMethods } from "@appril/api/router";
 
-import type { ApiTemplates, ApiRoute } from "../@types";
-import { defaults } from "../defaults";
-import { fileGenerator } from "../base";
-import { BANNER } from "../render";
+import { type ApiTemplates, type ApiRoute, BANNER, defaults } from "@base";
+import { fileGenerator } from "@shared";
 
 import baseTpl from "./templates/base.hbs";
 import routeTpl from "./templates/route.hbs";

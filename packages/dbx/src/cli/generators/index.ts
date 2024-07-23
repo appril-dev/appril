@@ -2,12 +2,12 @@ import nopt from "nopt";
 import fsx from "fs-extra";
 import pgts from "@appril/pgts";
 
-import { resolvePath, run } from "../base";
+import { BANNER, resolvePath, run } from "../base";
 
 import typesGenerator from "./types";
 
 import type { GeneratorConfig, Templates } from "../@types";
-import { BANNER, renderToFile } from "../render";
+import { renderToFile } from "@shared/render";
 
 import baseTpl from "./templates/base.hbs";
 import indexTpl from "./templates/index.hbs";

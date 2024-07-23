@@ -7,7 +7,7 @@ function _dbx() {
   COMPREPLY=()
 
   cur="${COMP_WORDS[COMP_CWORD]}"
-  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  prev="${COMP_WORDS[COMP_CWORD - 1]}"
   opts="-c -g -m"
 
   case "${prev}" in
@@ -20,8 +20,7 @@ function _dbx() {
     rollback)
       opts="--all"
       ;;
-    *)
-      ;;
+    *) ;;
   esac
 
   COMPREPLY=($(compgen -W "$opts" -- $cur))
@@ -30,4 +29,3 @@ function _dbx() {
 }
 
 complete -F _dbx dbx
-

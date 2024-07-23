@@ -101,14 +101,14 @@ fi
 
 while getopts ":hc:g:m:" opt; do
   case ${opt} in
-    c )
+    c)
       dbxfile=$OPTARG
       ;;
-    g )
+    g)
       no_action="false"
       generate="true"
       ;;
-    m )
+    m)
       no_action="false"
       # somehow if eval-ing directly into migrate_args it eats next opt
       eval "next=\${$OPTIND}"
@@ -117,54 +117,53 @@ while getopts ":hc:g:m:" opt; do
         shift
       }
       case ${OPTARG} in
-        create )
+        create)
           migrate="create"
           ;;
-        up )
+        up)
           migrate="up"
           ;;
-        down )
+        down)
           migrate="down"
           ;;
-        latest )
+        latest)
           migrate="latest"
           ;;
-        rollback )
+        rollback)
           migrate="rollback"
           ;;
-        unlock )
+        unlock)
           migrate="unlock"
           ;;
-        list )
+        list)
           migrate="list"
           ;;
-        compile )
+        compile)
           migrate="compile"
           ;;
-        * )
+        *)
           print_error "Invalid migration task: $OPTARG"
           exit 1
           ;;
       esac
       ;;
-    h )
+    h)
       print_usage
       exit 0
       ;;
-    : )
+    :)
       print_error "Invalid option: -$OPTARG requires an argument"
       exit 1
       ;;
-    \? )
+    \?)
       print_error "Invalid option: -$OPTARG"
       exit 1
       ;;
-    * )
-      ;;
+    *) ;;
   esac
 done
 
-shift "$((OPTIND -1))"
+shift "$((OPTIND - 1))"
 
 if [[ $no_action == "true" ]]; then
   migrate="latest"

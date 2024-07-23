@@ -8,8 +8,8 @@ import type {
   EnumDeclaration,
 } from "../../@types";
 
-import { resolvePath } from "../../base";
-import { BANNER, renderToFile } from "../../render";
+import { BANNER, resolvePath } from "../../base";
+import { renderToFile } from "@shared/render";
 
 import knexDtsTpl from "./templates/knex.d.hbs";
 import moduleDtsTpl from "./templates/module.d.hbs";

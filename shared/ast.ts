@@ -17,15 +17,32 @@ import type {
 
 import ts from "typescript";
 
-import { APIMethods } from "@appril/api/router";
-
-import type {
-  TypeDeclaration,
-  MiddleworkerPayloadTypes,
-  FetchDefinition,
-} from "./@types";
+export type MiddleworkerPayloadTypes = Record<number, string>;
 
 export type RelpathResolver = (path: string) => string;
+
+export type FetchDefinition = {
+  method: string;
+  httpMethod: string;
+  payloadType?: string;
+  bodyType?: string;
+};
+
+export type TypeDeclaration = {
+  text: string;
+  importDeclaration?: {
+    name: string;
+    path: string;
+  };
+  typeAliasDeclaration?: {
+    name: string;
+    text: string;
+  };
+  interfaceDeclaration?: {
+    name: string;
+    text: string;
+  };
+};
 
 export async function extractApiAssets(
   file: string,
@@ -58,7 +75,11 @@ export async function extractApiAssets(
     const method = node.expression.getText();
     const httpMethod = httpMethodByApi(method);
 
-    if (!Object.keys(APIMethods).includes(method)) {
+    if (
+      !["head", "options", "get", "put", "patch", "post", "del"].includes(
+        method,
+      )
+    ) {
       continue;
     }
 

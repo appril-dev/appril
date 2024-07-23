@@ -2,8 +2,8 @@ import fsx from "fs-extra";
 import glob from "fast-glob";
 import type { Plugin } from "vite";
 
-import { BANNER } from "../render";
-import { resolvePath, fileGenerator } from "../base";
+import { BANNER } from "@base";
+import { resolveCwd, fileGenerator } from "@shared";
 
 type ContextFolder = {
   folder: string;
@@ -53,11 +53,11 @@ export function fileBundlerPlugin(entries: Entry[]): Plugin {
 
     const patternMapper = (p: string) => {
       return folders.length
-        ? folders.map((f) => resolvePath(entry.base, f, p))
-        : [resolvePath(entry.base, p)];
+        ? folders.map((f) => resolveCwd(entry.base, f, p))
+        : [resolveCwd(entry.base, p)];
     };
 
-    const cwd = resolvePath(entry.base);
+    const cwd = resolveCwd(entry.base);
 
     const matches = await glob(patterns.flatMap(patternMapper), {
       cwd,
@@ -78,7 +78,7 @@ export function fileBundlerPlugin(entries: Entry[]): Plugin {
     });
 
     for (const match of matches) {
-      if (match.path === resolvePath(entry.outfile)) {
+      if (match.path === resolveCwd(entry.outfile)) {
         continue;
       }
 
@@ -123,7 +123,7 @@ export function fileBundlerPlugin(entries: Entry[]): Plugin {
 
       const files = await resolveFiles(entry);
 
-      const template = await fsx.readFile(resolvePath(entry.template), "utf8");
+      const template = await fsx.readFile(resolveCwd(entry.template), "utf8");
 
       const folderMapper = (folder: string) => ({
         folder,

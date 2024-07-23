@@ -6,8 +6,8 @@ import glob from "fast-glob";
 import fsx from "fs-extra";
 import crc32 from "crc/crc32";
 
-import { normalizeRoutePath, routeSections, sanitizePath } from "../base";
-import { defaults } from "../defaults";
+import { sanitizePath } from "@shared";
+import { normalizeRoutePath, routeSections, defaults } from "@base";
 
 import type {
   ResolvedPluginOptions,

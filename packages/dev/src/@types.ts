@@ -14,50 +14,23 @@ export type PluginOptions = {
   solidPages?: {
     templates?: SolidTemplates;
   };
-  crudGenerator?: import("./crud-generator/@types").Options;
   useWorkers?: boolean;
   usePolling?: boolean;
 };
 
 export type ResolvedPluginOptions = Required<
-  Omit<PluginOptions, "solidPages" | "crudGenerator">
+  Omit<PluginOptions, "solidPages">
 > & {
   sourceFolder: string;
   sourceFolderPath: string;
   solidPages?: PluginOptions["solidPages"];
-  crudGenerator?: import("./crud-generator/@types").Options;
 };
-
-export type MiddleworkerPayloadTypes = Record<number, string>;
 
 export type TypeFile = {
   file: string;
   importPath: string;
   content: string;
   routes: Set<string>;
-};
-
-export type TypeDeclaration = {
-  text: string;
-  importDeclaration?: {
-    name: string;
-    path: string;
-  };
-  typeAliasDeclaration?: {
-    name: string;
-    text: string;
-  };
-  interfaceDeclaration?: {
-    name: string;
-    text: string;
-  };
-};
-
-export type FetchDefinition = {
-  method: string;
-  httpMethod: string;
-  payloadType?: string;
-  bodyType?: string;
 };
 
 export type RouteSection = {

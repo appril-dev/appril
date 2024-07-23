@@ -1,9 +1,7 @@
 import { join, dirname } from "node:path";
 
-import type { ApiRoute } from "../@types";
-import { defaults } from "../defaults";
-import { extractApiAssets } from "../ast";
-import { fileGenerator } from "../base";
+import { type ApiRoute, defaults } from "@base";
+import { fileGenerator, extractApiAssets } from "@shared";
 
 import baseTpl from "./templates/base.hbs";
 import fetchTpl from "./templates/fetch.hbs";

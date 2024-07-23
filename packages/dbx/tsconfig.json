@@ -2,6 +2,10 @@
   "extends": "@appril/configs/tsconfig.lib.json",
   "include": ["src"],
   "compilerOptions": {
+    "paths": {
+      "@cli": ["./src/cli/base.ts"],
+      "@shared": ["../../shared/index.ts"]
+    },
     "outDir": "pkg"
   }
 }

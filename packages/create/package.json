@@ -7,9 +7,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "bin": {
     "create": "pkg/index.mjs"
   },
@@ -24,11 +22,10 @@
     "prebuild:002": "pnpm run tsc",
     "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
     "postbuild": "chmod +x pkg/index.*",
-    "build": "node ../../esbuild.mjs index --outfile=pkg/index.mjs"
+    "build": "node ../../esbuild.mjs index"
   },
   "dependencies": {
     "fs-extra": "catalog:",
-    "handlebars": "catalog:",
     "merge": "^2.1.1",
     "nopt": "catalog:",
     "npm-check-updates": "^16.14.20",

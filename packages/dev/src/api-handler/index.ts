@@ -11,7 +11,7 @@ export async function apiHandlerFactory(
   config: ResolvedConfig,
   options: ResolvedPluginOptions,
 ) {
-  const { sourceFolder, sourceFolderPath, apiurl } = options;
+  const { sourceFolderPath, apiurl } = options;
   const outDir = resolve(config.build.outDir, join("..", defaults.apiDir));
 
   const esbuildConfig = await import(

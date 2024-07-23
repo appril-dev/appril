@@ -4,10 +4,8 @@ import * as apiGenerator from "./api-generator/workers";
 import * as apiAssets from "./api-assets/workers";
 import * as fetchGenerator from "./fetch-generator/workers";
 import * as solidPages from "./solid-pages/workers";
-import * as crudGenerator from "./crud-generator/workers";
 
 export const workerMap = {
-  crudGenerator,
   fetchGenerator,
   solidPages,
   apiAssets,
@@ -20,6 +18,11 @@ export type WorkerTasks = {
   [K in keyof WorkerMap]: WorkerMap[K];
 }[keyof WorkerMap];
 
+// biome-ignore format:
+export type BootstrapPayload<
+  T extends { bootstrap: (_p: never) => void }
+> = Parameters<T["bootstrap"]>[0]
+
 export async function bootstrapWorker(
   payload: Record<string, never>,
   workerPool: WorkerMap,
@@ -27,7 +30,6 @@ export async function bootstrapWorker(
   const generators = [
     /** order is highly important!
      * thus using array rather than iterating over workerMap */
-    "crudGenerator",
     "solidPages",
     "fetchGenerator",
     "apiGenerator",

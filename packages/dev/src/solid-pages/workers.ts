@@ -2,10 +2,8 @@ import { join } from "node:path";
 
 import { stringify } from "smol-toml";
 
-import type { SolidPage, SolidTemplates } from "../@types";
-import { BANNER } from "../render";
-import { fileGenerator } from "../base";
-import { defaults } from "../defaults";
+import { type SolidPage, type SolidTemplates, BANNER, defaults } from "@base";
+import { fileGenerator } from "@shared";
 
 import pageTpl from "./templates/page.hbs";
 import routesTpl from "./templates/routes.hbs";

@@ -7,20 +7,18 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "bin": {
     "dbx": "pkg/cli.sh"
   },
   "exports": {
     ".": {
       "default": "./pkg/api/index.mjs",
-      "types": "./pkg/api/index.d.ts"
+      "types": "./pkg/packages/dbx/src/api/index.d.ts"
     },
     "./cli": {
       "default": "./pkg/cli/index.mjs",
-      "types": "./pkg/cli/index.d.ts"
+      "types": "./pkg/packages/dbx/src/cli/index.d.ts"
     }
   },
   "scripts": {
@@ -45,7 +43,6 @@
     "date-fns": "^3.6.0",
     "fast-glob": "catalog:",
     "fs-extra": "catalog:",
-    "handlebars": "catalog:",
     "lodash-es": "catalog:",
     "nopt": "catalog:",
     "pg": "catalog:db",

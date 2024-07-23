@@ -1,10 +1,14 @@
-import { basename, join, resolve } from "node:path";
+import { basename, join } from "node:path";
 
 import type { Plugin } from "vite";
 
-import type { PluginOptions, ResolvedPluginOptions } from "./@types";
-import { resolvePath } from "./base";
+import type {
+  ApiRouteConfig,
+  PluginOptions,
+  ResolvedPluginOptions,
+} from "@base";
 
+import { resolveCwd } from "@shared";
 import { workerFactory } from "./worker-pool";
 
 import { apiHandlerFactory } from "./api-handler";
@@ -12,22 +16,21 @@ import { apiGenerator } from "./api-generator";
 import { apiAssets } from "./api-assets";
 import { solidPages } from "./solid-pages";
 import { fetchGenerator } from "./fetch-generator";
-import { crudGenerator } from "./crud-generator";
 
-export type { PluginOptions, ResolvedPluginOptions };
+export type { ApiRouteConfig, PluginOptions, ResolvedPluginOptions };
 
+export * from "./defaults";
 export * from "./define";
 export * from "./file-bundler";
 
 export default function apprilDevPlugin(options: PluginOptions): Plugin {
-  const sourceFolderPath = resolvePath();
+  const sourceFolderPath = resolveCwd();
 
   const resolvedOptions: ResolvedPluginOptions = {
     apiAssets: {},
     apiGenerator: {},
     fetchGenerator: {},
     solidPages: undefined,
-    crudGenerator: undefined,
     useWorkers: true,
     usePolling: true,
     ...options,
@@ -47,7 +50,6 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
 
   return {
     name: "@appril:dev",
-    apply: "serve",
 
     config(config) {
       if (!config.build?.outDir) {
@@ -72,7 +74,6 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
         apiAssets,
         apiGenerator,
         ...(resolvedOptions.solidPages ? [solidPages] : []),
-        ...(resolvedOptions.crudGenerator ? [crudGenerator] : []),
       ];
 
       for (const plugin of plugins) {

@@ -2,12 +2,10 @@ import nopt from "nopt";
 import glob from "fast-glob";
 import { sortBy } from "lodash-es";
 
-import { resolvePath } from "../base";
-import { BANNER, renderToFile } from "../render";
+import { type MigrationsConfig, BANNER } from "@cli";
+import { resolveCwd, renderToFile } from "@shared";
 
 import defaultTemplate from "./templates/knexfile.hbs";
-
-import type { MigrationsConfig } from "../@types";
 
 type MigrationsSourceFile = {
   path: string;
@@ -38,7 +36,7 @@ export default async function generateKnexfile(
   const { base, migrationDir, migrationTemplates } = config;
 
   const matches = await glob("**/*.ts", {
-    cwd: resolvePath(base, migrationDir),
+    cwd: resolveCwd(base, migrationDir),
     onlyFiles: true,
     absolute: false,
   });
@@ -55,7 +53,7 @@ export default async function generateKnexfile(
   const template = migrationTemplates?.knexfile || defaultTemplate;
 
   await renderToFile<MigrationsSourceRenderContext>(
-    resolvePath(outfile),
+    resolveCwd(outfile),
     BANNER + template,
     {
       ...config,

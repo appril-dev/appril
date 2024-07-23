@@ -15,11 +15,16 @@
     "pub": "changeset publish"
   },
   "devDependencies": {
+    "@phenomnomnominal/tsquery": "catalog:",
     "@biomejs/biome": "^1.8.3",
     "@changesets/cli": "^2.27.7",
+    "@types/fs-extra": "catalog:",
     "@types/node": "^20.14.10",
     "@types/nopt": "catalog:",
+    "crc": "catalog:",
     "esbuild": "catalog:",
+    "fs-extra": "catalog:",
+    "handlebars": "^4.7.8",
     "nopt": "catalog:",
     "rimraf": "^6.0.1",
     "typescript": "catalog:"
