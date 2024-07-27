@@ -44,9 +44,21 @@ export type Config = PgtsConfig & {
   migrationSchema?: string;
   migrationTable?: string;
   disableTransactions?: boolean;
+
+  plugins?: Array<GeneratorPlugin>;
 };
 
 export type DefaultConfig = Required<Pick<Config, "schemas">>;
 
 export type GeneratorConfig = Config & DefaultConfig;
 export type MigrationsConfig = Config & DefaultConfig;
+
+export type GeneratorPlugin = (
+  config: GeneratorConfig,
+  data: {
+    schemas: Array<string>;
+    tables: Array<TableDeclaration>;
+    views: Array<ViewDeclaration>;
+    enums: Array<EnumDeclaration>;
+  },
+) => void | Promise<void>;
