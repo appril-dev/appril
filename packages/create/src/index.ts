@@ -6,10 +6,8 @@ import { readFile } from "node:fs/promises";
 import fsx from "fs-extra";
 import { run as depsBump } from "npm-check-updates";
 
-import type { PromptObject } from "prompts";
-import prompts from "prompts";
-
-import { render } from "@shared";
+import prompts, { type PromptObject } from "prompts";
+import { render } from "@appril/utils";
 
 import frameworks from "./frameworks";
 import presets from "./presets";

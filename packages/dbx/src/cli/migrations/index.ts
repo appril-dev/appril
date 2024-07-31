@@ -1,8 +1,8 @@
 import nopt from "nopt";
 import fsx from "fs-extra";
+import { resolveCwd } from "@appril/utils";
 
-import { type MigrationsConfig, run } from "@cli";
-import { resolveCwd } from "@shared";
+import { type MigrationsConfig, run } from "../base";
 
 import createMigration from "./create";
 import generateKnexfile from "./knexfile";

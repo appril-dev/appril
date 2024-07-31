@@ -1,9 +1,9 @@
 import nopt from "nopt";
 import glob from "fast-glob";
 import { sortBy } from "lodash-es";
+import { resolveCwd, renderToFile } from "@appril/utils";
 
-import { type MigrationsConfig, BANNER } from "@cli";
-import { resolveCwd, renderToFile } from "@shared";
+import { type MigrationsConfig, BANNER } from "../base";
 
 import defaultTemplate from "./templates/knexfile.hbs";
 

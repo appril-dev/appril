@@ -1,6 +1,5 @@
 import { join, resolve } from "node:path";
 
-export * from "./ast";
 export * from "./file-generator";
 export * from "./render";
 

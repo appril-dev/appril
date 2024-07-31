@@ -1,12 +1,12 @@
 import nopt from "nopt";
 import fsx from "fs-extra";
 import pgts from "@appril/pgts";
+import { resolveCwd } from "@appril/utils";
 
 import typesPlugin from "./plugins/types";
 import tablesPlugin from "./plugins/tables";
 
-import { resolveCwd } from "@shared";
-import { type GeneratorConfig, run } from "@cli";
+import { type GeneratorConfig, run } from "../base";
 
 const { config: configFile } = nopt(
   {

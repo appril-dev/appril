@@ -1,4 +1,5 @@
-import { sanitizePath } from "@shared";
+import { sanitizePath } from "@appril/utils";
+
 import type { RouteSection } from "./@types";
 
 export * from "./@types";

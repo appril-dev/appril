@@ -3,9 +3,9 @@ import { join } from "node:path";
 import prompts from "prompts";
 import pg from "pg";
 import { format as datetimeFormat } from "date-fns";
+import { resolveCwd, renderToFile } from "@appril/utils";
 
-import type { MigrationsConfig, MigrationsTemplates } from "@cli";
-import { resolveCwd, renderToFile } from "@shared";
+import type { MigrationsConfig, MigrationsTemplates } from "../base";
 
 import createTableTpl from "./templates/createTable.hbs";
 import alterTableTpl from "./templates/alterTable.hbs";

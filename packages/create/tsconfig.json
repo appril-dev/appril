@@ -2,9 +2,6 @@
   "extends": "@appril/configs/tsconfig.lib.json",
   "include": ["src"],
   "compilerOptions": {
-    "paths": {
-      "@shared": ["../../shared/index.ts"]
-    },
     "noEmit": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js"

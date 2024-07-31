@@ -1,7 +1,11 @@
 import fsx from "fs-extra";
+import { resolveCwd, renderToFile } from "@appril/utils";
 
-import { resolveCwd, renderToFile } from "@shared";
-import { type GeneratorPlugin, type TypesTemplates, BANNER } from "@cli";
+import {
+  type GeneratorPlugin,
+  type TypesTemplates,
+  BANNER,
+} from "../../../base";
 
 import knexDtsTpl from "./templates/knex.d.hbs";
 import moduleDtsTpl from "./templates/module.d.hbs";

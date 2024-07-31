@@ -1,14 +1,14 @@
 import { basename, join } from "node:path";
 
 import type { Plugin } from "vite";
+import { resolveCwd } from "@appril/utils";
 
 import type {
   ApiRouteConfig,
   PluginOptions,
   ResolvedPluginOptions,
-} from "@base";
+} from "./base";
 
-import { resolveCwd } from "@shared";
 import { workerFactory } from "./worker-pool";
 
 import { apiHandlerFactory } from "./api-handler";

@@ -14,11 +14,11 @@
   "exports": {
     ".": {
       "default": "./pkg/api/index.mjs",
-      "types": "./pkg/packages/dbx/src/api/index.d.ts"
+      "types": "./pkg/api/index.d.ts"
     },
     "./cli": {
       "default": "./pkg/cli/index.mjs",
-      "types": "./pkg/packages/dbx/src/cli/index.d.ts"
+      "types": "./pkg/cli/index.d.ts"
     }
   },
   "scripts": {
@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@appril/pgts": "workspace:^",
+    "@appril/utils": "workspace:^",
     "date-fns": "^3.6.0",
     "fast-glob": "catalog:",
     "fs-extra": "catalog:",
@@ -50,6 +51,7 @@
   },
   "devDependencies": {
     "@appril/configs": "workspace:^",
+    "@appril/shared": "workspace:^",
     "@types/fs-extra": "catalog:",
     "@types/lodash-es": "catalog:",
     "@types/nopt": "catalog:",

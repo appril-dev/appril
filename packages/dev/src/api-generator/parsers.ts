@@ -1,13 +1,12 @@
 import { join, resolve } from "node:path";
 
-import type { ResolvedConfig } from "vite";
-import { parse } from "smol-toml";
 import glob from "fast-glob";
 import fsx from "fs-extra";
 import crc32 from "crc/crc32";
+import { parse } from "smol-toml";
+import { sanitizePath } from "@appril/utils";
 
-import { sanitizePath } from "@shared";
-import { normalizeRoutePath, routeSections, defaults } from "@base";
+import { normalizeRoutePath, routeSections, defaults } from "../base";
 
 import type {
   ResolvedPluginOptions,
@@ -23,7 +22,7 @@ type ParsedEntry = {
 };
 
 export async function sourceFilesParsers(
-  _config: ResolvedConfig,
+  _config: import("vite").ResolvedConfig,
   options: ResolvedPluginOptions,
   pattern = `**/*${defaults.apiSourceFile}`,
 ) {

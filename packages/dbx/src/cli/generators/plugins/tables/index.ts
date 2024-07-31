@@ -1,7 +1,7 @@
 import fsx from "fs-extra";
+import { resolveCwd, renderToFile } from "@appril/utils";
 
-import { resolveCwd, renderToFile } from "@shared";
-import { type GeneratorPlugin, type Templates, BANNER } from "@cli";
+import { type GeneratorPlugin, type Templates, BANNER } from "../../../base";
 
 import baseTpl from "./templates/base.hbs";
 import indexTpl from "./templates/index.hbs";

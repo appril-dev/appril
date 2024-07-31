@@ -5,6 +5,7 @@ import defaultConfig from "./config";
 import type { Config } from "./@types";
 
 export * from "./@types";
+export { BANNER } from "./base";
 
 export function defineConfig(config: Config): Required<Config> {
   return merge({}, defaultConfig, pgtsConfig, config) as Required<Config>;

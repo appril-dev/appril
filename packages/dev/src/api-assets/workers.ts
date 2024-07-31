@@ -2,9 +2,10 @@ import { dirname, join } from "node:path";
 import { parentPort } from "node:worker_threads";
 
 import { generate } from "ts-to-zod";
+import { fileGenerator, render } from "@appril/utils";
 
-import { type ApiRoute, type TypeFile, defaults } from "@base";
-import { fileGenerator, render, extractApiAssets } from "@shared";
+import { type ApiRoute, type TypeFile, defaults } from "../base";
+import { extractApiAssets } from "../ast";
 
 import schemaSourceTpl from "./templates/schema-source.hbs";
 import assetsTpl from "./templates/assets.hbs";

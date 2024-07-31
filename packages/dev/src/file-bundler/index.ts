@@ -1,9 +1,8 @@
 import fsx from "fs-extra";
 import glob from "fast-glob";
-import type { Plugin } from "vite";
+import { resolveCwd, fileGenerator } from "@appril/utils";
 
-import { BANNER } from "@base";
-import { resolveCwd, fileGenerator } from "@shared";
+import { BANNER } from "../base";
 
 type ContextFolder = {
   folder: string;
@@ -41,7 +40,9 @@ type ResolvedFile = {
 
 const PLUGIN_NAME = "@appril:fileBundlerPlugin";
 
-export function fileBundlerPlugin(entries: Entry[]): Plugin {
+export function fileBundlerPlugin(
+  entries: Array<Entry>,
+): import("vite").Plugin {
   async function resolveFiles(entry: Required<Entry>): Promise<ResolvedFile[]> {
     const files: ResolvedFile[] = [];
 
