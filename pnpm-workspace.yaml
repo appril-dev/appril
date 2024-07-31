@@ -6,15 +6,16 @@ catalog:
 
   "esbuild": ^0.23.0
   "crc": ^4.3.2
-  "typescript": ^5.5.3
+  "typescript": ^5.5.4
   "fast-glob": ^3.3.2
-  "smol-toml": ^1.2.2
+  "smol-toml": ^1.3.0
   "@phenomnomnominal/tsquery": ^6.1.3
+  "handlebars": ^4.7.8
 
   "fs-extra": ^11.2.0
   "@types/fs-extra": ^11.0.4
 
-  "qs": ^6.12.2
+  "qs": ^6.12.3
   "@types/qs": ^6.9.15
 
   "lodash-es": ^4.17.21
@@ -38,19 +39,19 @@ catalogs:
     "@types/koa-logger": ^3.1.5
 
   solid:
-    "solid-js": ^1.8.18
+    "solid-js": ^1.8.19
     "@solidjs/router": ^0.14.1
 
   vite:
-    "vite": ^5.3.3
+    "vite": ^5.3.5
     "vite-plugin-solid": ^2.10.2
 
   zod:
     "zod": ^3.22.4
     "zod-validation-error": ^3.0.3
-    "ts-to-zod": ^3.8.7
+    "ts-to-zod": ^3.10.0
 
-  db:
+  dbx:
     "knex": ^3.1.0
     "pg": ^8.12.0
     "@types/pg": ^8.11.6

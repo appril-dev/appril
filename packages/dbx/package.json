@@ -45,7 +45,7 @@
     "fs-extra": "catalog:",
     "lodash-es": "catalog:",
     "nopt": "catalog:",
-    "pg": "catalog:db",
+    "pg": "catalog:dbx",
     "prompts": "catalog:"
   },
   "devDependencies": {
@@ -53,11 +53,11 @@
     "@types/fs-extra": "catalog:",
     "@types/lodash-es": "catalog:",
     "@types/nopt": "catalog:",
-    "@types/pg": "catalog:db",
+    "@types/pg": "catalog:dbx",
     "@types/prompts": "catalog:",
-    "knex": "catalog:db"
+    "knex": "catalog:dbx"
   },
   "peerDependencies": {
-    "knex": "catalog:db"
+    "knex": "catalog:dbx"
   }
 }

@@ -7,9 +7,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "exports": {
     ".": {
       "default": "./pkg/index.mjs",
@@ -29,7 +27,7 @@
     "build": "node ../../esbuild.mjs index"
   },
   "dependencies": {
-    "extract-pg-schema": "catalog:db",
+    "extract-pg-schema": "catalog:dbx",
     "lodash-es": "catalog:",
     "pluralize": "^8.0.0",
     "zod": "catalog:zod"
@@ -37,7 +35,7 @@
   "devDependencies": {
     "@appril/configs": "workspace:^",
     "@types/lodash-es": "catalog:",
-    "@types/pg": "catalog:db",
+    "@types/pg": "catalog:dbx",
     "@types/pluralize": "^0.0.33"
   }
 }
