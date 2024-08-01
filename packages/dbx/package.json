@@ -25,7 +25,7 @@
     "// ✨ linters": "",
     "lint": "biome lint ./src",
     "// ✨ types": "",
-    "tsc": "tsc --emitDeclarationOnly",
+    "tsc": "tsc",
     "// ✨ build api": "",
     "build:api": "node ../../esbuild.mjs api/index",
     "// ✨ build cli": "",
@@ -51,7 +51,6 @@
   },
   "devDependencies": {
     "@appril/configs": "workspace:^",
-    "@appril/shared": "workspace:^",
     "@types/fs-extra": "catalog:",
     "@types/lodash-es": "catalog:",
     "@types/nopt": "catalog:",

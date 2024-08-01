@@ -2,9 +2,7 @@
   "extends": "@appril/configs/tsconfig.lib.json",
   "include": ["src"],
   "compilerOptions": {
-    "paths": {
-      "@base": ["./src/base.ts"]
-    },
-    "outDir": "pkg"
+    "outDir": "pkg",
+    "emitDeclarationOnly": true
   }
 }

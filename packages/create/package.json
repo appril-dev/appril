@@ -15,7 +15,7 @@
     "// ✨ linters": "",
     "lint": "biome lint ./src",
     "// ✨ types": "",
-    "tsc": "tsc --noEmit",
+    "tsc": "tsc",
     "// ✨ build": "",
     "prebuild:000": "rsync -av --delete --exclude '/*.ts' --exclude '/frameworks/*.ts' --exclude '/presets/*.ts' src/ pkg",
     "prebuild:001": "pnpm run lint",
@@ -35,7 +35,6 @@
   "devDependencies": {
     "@appril/api": "workspace:^",
     "@appril/configs": "workspace:^",
-    "@appril/shared": "workspace:^",
     "@appril/dbx": "workspace:^",
     "@appril/dev": "workspace:^",
     "@appril/fetch": "workspace:^",

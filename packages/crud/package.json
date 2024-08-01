@@ -7,9 +7,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "exports": {
     ".": {
       "default": "./pkg/index.mjs",
@@ -24,7 +22,7 @@
     "// ✨ linters": "",
     "lint": "biome lint ./src",
     "// ✨ types": "",
-    "tsc": "tsc --emitDeclarationOnly",
+    "tsc": "tsc",
     "// ✨ build": "",
     "prebuild:000": "rimraf pkg",
     "prebuild:001": "pnpm run lint",
@@ -40,8 +38,8 @@
     "@appril/api": "workspace:^",
     "@types/koa": "catalog:koa",
     "@types/koa__router": "catalog:koa",
-    "@types/pg": "catalog:db",
-    "knex": "catalog:db",
+    "@types/pg": "catalog:dbx",
+    "knex": "catalog:dbx",
     "koa": "catalog:koa",
     "pinia": "^2.1.7",
     "vue": "^3.4.31",
@@ -58,6 +56,6 @@
     "zod-validation-error": "catalog:zod"
   },
   "dependencies": {
-    "pg": "catalog:db"
+    "pg": "catalog:dbx"
   }
 }
