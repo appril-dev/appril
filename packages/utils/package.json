@@ -1,6 +1,11 @@
 {
   "name": "@appril/utils",
   "version": "0.0.0",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": ["pkg/*"],
   "exports": {
     ".": {
