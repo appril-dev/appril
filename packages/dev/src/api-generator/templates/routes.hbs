@@ -1,4 +1,3 @@
-{{BANNER}}
 import { join } from "node:path";
 
 import {
@@ -6,19 +5,19 @@ import {
   routeMapper,
 } from "@appril/api/router";
 
-import { baseurl, apiurl } from "{{importPathConfig}}";
-import router from "{{importPathRouter}}";
+import { baseurl, apiurl } from "{{importPathCfg}}";
+import router from "{{importPathApi}}/router";
 
 {{#each routes}}
-import {{importName}} from "{{importPathApi}}";
+import {{importName}} from "{{../importPathApi}}/{{importPath}}";
 {{#unless optedFile}}
-import {{importName}}$assets from "{{importPathVar}}";
+import {{importName}}$assets from "{{../importPathVar}}/{{importPath}}/@assets";
 {{/unless}}
 
 {{/each}}
 
 type Exports = {
-  endpoints: { endpoints: RouteEndpoint[] };
+  endpoints: { endpoints: Array<RouteEndpoint> };
   router: { router: InstanceType<typeof import("@koa/router")> };
 }
 
@@ -30,10 +29,10 @@ type RouteSetup = {
   meta?: Meta;
 }
 
-export const routeStack: RouteSetup[] = [
+export const routeStack: Array<RouteSetup> = [
 {{#each routes}}
   {
-    path: join(baseurl, {{#if prefix}}"{{prefix}}"{{else}}apiurl{{/if}}, "{{path}}"),
+    path: join(baseurl, {{#if base}}"{{base}}"{{else}}apiurl{{/if}}, "{{path}}"),
     originalPath: "{{originalPath}}",
     file: "{{file}}",
     {{#if meta}}

@@ -1,0 +1,46 @@
+import {
+  type DefaultState,
+  type Middleware,
+  type UseScope,
+  useDefinitionFactory,
+} from "@appril/api/router";
+
+import dbx from "{{dbxImportPath}}";
+
+import handlersFactory, {
+  type Context,
+  type Handler,
+  type Wrapper,
+  type UseWrapper,
+} from "..";
+
+export type ContextT = Context<"{{table.moduleName}}">;
+export type HandlerT = Handler<DefaultState, ContextT>;
+export type WrapperT = Wrapper<DefaultState, ContextT>;
+export type UseWrapperT = UseWrapper<DefaultState, ContextT>;
+
+export const handlers = handlersFactory<"{{table.moduleName}}">(
+  dbx,
+  {
+    primaryKey: "{{table.primaryKey}}",
+  },
+)
+
+export const use: UseWrapperT = (...a: Array<unknown>) => useDefinitionFactory<UseScope>(a);
+
+export const middlewareFactory = (
+  handler: HandlerT,
+  handlerName: keyof typeof handlers,
+): Array<Middleware<DefaultState, ContextT>> => {
+  return [
+    handlers.initHandler,
+    async (ctx, next) => {
+      ctx.body = await handler(
+        ctx,
+        ctx.payload as never,
+        (payload) => handlers[handlerName](ctx, payload as never),
+      )
+      return next()
+    },
+  ]
+}

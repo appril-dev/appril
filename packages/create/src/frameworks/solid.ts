@@ -1,21 +1,45 @@
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 
-import { mergePackageJson, copyFiles } from "../helpers";
+import { renderToFile } from "@appril/dev-utils";
 
-export default async function solidPreset(
+import { mergePackageJson, copyFiles } from "../base";
+
+import viteConfigTpl from "./solid/src/vite.config.hbs";
+
+export default async (
   root: string,
-  dst: string,
-  sourceFolder: string,
-): Promise<void> {
-  const src = resolve(root);
+  {
+    devPort,
+    sourceFolder,
+  }: {
+    sourceFolder: string;
+    devPort: number;
+  },
+): Promise<void> => {
+  {
+    const src = join(import.meta.dirname, "frameworks/solid/root");
+    const dst = root;
 
-  await copyFiles(join(src, "root"), dst, {
-    exclude: ["package.json"],
-  });
+    await copyFiles(src, dst, {
+      exclude: ["package.json"],
+    });
 
-  await mergePackageJson(join(src, "root"), dst);
+    await mergePackageJson(src, dst);
+  }
 
-  await copyFiles(join(src, "src"), join(dst, sourceFolder), {
-    exclude: ["config.ts"],
-  });
-}
+  {
+    const src = join(import.meta.dirname, "frameworks/solid/src");
+    const dst = join(root, sourceFolder);
+
+    await copyFiles(src, dst, {
+      exclude: [/.+\.hbs/],
+    });
+
+    await renderToFile(
+      join(dst, "vite.config.ts"),
+      viteConfigTpl,
+      { devPort },
+      { format: true },
+    );
+  }
+};

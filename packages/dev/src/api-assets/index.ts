@@ -1,15 +1,10 @@
-import { resolve } from "node:path";
-import type { Worker } from "node:worker_threads";
-
-import type { ResolvedConfig } from "vite";
-import glob from "fast-glob";
-import fsx from "fs-extra";
+import { join } from "node:path";
 
 import type {
   ResolvedPluginOptions,
   ApiRoute,
-  TypeFile,
   BootstrapPayload,
+  WatchHandler,
 } from "../@types";
 
 import { sourceFilesParsers } from "../api-generator/parsers";
@@ -18,92 +13,61 @@ import { defaults } from "../defaults";
 type Workers = typeof import("./workers");
 
 export async function apiAssets(
-  config: ResolvedConfig,
+  config: import("vite").ResolvedConfig,
   options: ResolvedPluginOptions,
-  { worker, workerPool }: { worker: Worker; workerPool: Workers },
+  { workerPool }: { workerPool: Workers },
 ) {
-  const { sourceFolder, sourceFolderPath } = options;
+  const { root, sourceFolder } = options;
 
+  // biome-ignore format:
   const {
     filter = (_r: ApiRoute) => true,
-    typeMap,
     importZodErrorHandlerFrom,
   } = options.apiAssets;
 
   const srcWatchers: Record<string, () => Promise<void>> = {};
 
-  const typeFiles: Record<string, TypeFile> = {};
-
   const routeMap: Record<string, ApiRoute> = {};
 
-  for (const [importPath, patterns] of Object.entries(typeMap || {})) {
-    const files = await glob(patterns, {
-      cwd: sourceFolderPath,
-      onlyFiles: true,
-      absolute: true,
-      unique: true,
-    });
+  const parsers = await sourceFilesParsers(config, options);
 
-    for (const file of files) {
-      typeFiles[file] = {
-        file,
-        importPath,
-        content: await fsx.readFile(file, "utf8"),
-        routes: new Set(),
-      };
-    }
-  }
-
-  const watchHandler = async (file: string) => {
-    if (srcWatchers[file]) {
-      // updating routeMap
-      await srcWatchers[file]();
-
-      // then feeding routeMap to worker
-      await workerPool.handleSrcFileUpdate({
-        file,
-        routes: Object.values(routeMap),
-        typeFiles: Object.values(typeFiles),
-      });
-
-      return;
+  const watchHandler: WatchHandler = async (watcher) => {
+    for (const pattern of [
+      // watching source files for changes
+      ...Object.keys(srcWatchers),
+      // also watching files in apiDir for changes
+      `${join(root, sourceFolder, defaults.apiDir)}/**/*.ts`,
+    ]) {
+      watcher.add(pattern);
     }
 
-    if (routeMap[file]) {
-      // some route updated, rebuilding assets
-      if (filter(routeMap[file])) {
-        await workerPool.handleRouteFileUpdate({
-          route: routeMap[file],
-          typeFiles: Object.values(typeFiles),
+    watcher.on("change", async (file) => {
+      if (srcWatchers[file]) {
+        // updating routeMap
+        await srcWatchers[file]();
+
+        // then feeding routeMap to worker
+        await workerPool.handleSrcFileUpdate({
+          file,
+          routes: Object.values(routeMap),
         });
-      }
-      return;
-    }
 
-    if (typeFiles[file]) {
-      typeFiles[file].content = await fsx.readFile(file, "utf8");
-      for (const routeFile of typeFiles[file].routes) {
-        await watchHandler(routeFile);
+        return;
       }
-      return;
-    }
+
+      if (routeMap[file]) {
+        // some route updated, rebuilding assets
+        if (filter(routeMap[file])) {
+          await workerPool.handleRouteFileUpdate({
+            route: routeMap[file],
+          });
+        }
+        return;
+      }
+    });
   };
 
-  worker?.on("message", ({ pool, task, data }) => {
-    if (pool !== "apiAssets" || task !== "updateTypeFiles") {
-      return;
-    }
-
-    const { typeFile, addRoute, removeRoute } = data;
-
-    if (addRoute) {
-      typeFiles[typeFile]?.routes.add(addRoute);
-    } else if (removeRoute) {
-      typeFiles[typeFile]?.routes.delete(removeRoute);
-    }
-  });
-
-  for (const { file, parser } of await sourceFilesParsers(config, options)) {
+  for (const { file, parser } of parsers) {
     srcWatchers[file] = async () => {
       for (const { route } of await parser()) {
         if (filter(route)) {
@@ -119,22 +83,17 @@ export async function apiAssets(
   }
 
   const bootstrapPayload: BootstrapPayload<Workers> = {
-    routes: Object.values(routeMap),
+    root,
     sourceFolder,
-    typeFiles: Object.values(typeFiles),
+    outDir: config.build.outDir,
+    command: config.command,
+    watchOptions: options.watchOptions,
+    routes: Object.values(routeMap),
     importZodErrorHandlerFrom,
   };
 
   return {
     bootstrapPayload,
     watchHandler,
-    watchPatterns: [
-      // watching source files for changes
-      ...Object.keys(srcWatchers),
-      // also watching files in apiDir for changes
-      ...[`${resolve(sourceFolderPath, defaults.apiDir)}/**/*.ts`],
-      // also watching type files
-      ...Object.keys(typeFiles),
-    ],
   };
 }

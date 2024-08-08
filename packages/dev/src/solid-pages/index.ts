@@ -7,13 +7,17 @@ import type { ResolvedConfig } from "vite";
 import type {
   ResolvedPluginOptions,
   SolidPage,
-  SolidTemplates,
   BootstrapPayload,
+  WatchHandler,
 } from "../@types";
 
 import { sourceFilesParsers } from "./parsers";
 
-/** {routerDir}/_pages.toml schema:
+/** *_routes.toml schema - page options:
+
+# set page to false to exclude route from client's route stack
+[some-route]
+page = false
 
 ["some-page"]
 # will generate {pagesDir}/some-page.tsx
@@ -30,26 +34,34 @@ import { sourceFilesParsers } from "./parsers";
 ["users/"]
 # will generate {pagesDir}/users.tsx
 
-["users/:id"]
-# will generate {pagesDir}/users/:id.tsx
+# with params
 
-["users/:id/"]
-# will generate {pagesDir}/users/:id/index.tsx
+["users/[id]"]
+# will generate {pagesDir}/users/[id].tsx
 
-["users/:id+o"]
-# will generate {pagesDir}/users/:id+o.tsx
+["users/[id]/"]
+# will generate {pagesDir}/users/[id]/index.tsx
 
-["users/:id/account"]
-# will generate {pagesDir}/users/:id/account.tsx
+["users/[id]/account"]
+# will generate {pagesDir}/users/[id]/account.tsx
 
-["pages/:path+a"]
-# will generate {pagesDir}/pages/:path+a.tsx
+# with optional params
+
+["users/[[id]]"]
+# will generate {pagesDir}/users/[[id]].tsx
+
+# with rest params
+
+["pages/[...path]"]
+# will generate {pagesDir}/pages/[...path].tsx
 
 ## data loader
 
 ["orders"]
 dataLoader = true
-# will automatically create api endpoint, create loader and provide it to route
+# will automatically create api endpoint, generate loader and provide it to route
+
+# custom dataLoader
 
 ["orders"]
 dataLoader = "@/pages/orders.data"
@@ -57,20 +69,18 @@ dataLoader = "@/pages/orders.data"
 # file should export loader as default function.
 # loader will receive params as first argument.
 
+# aliased dataLoader
+
+["admins/[id]"]
+dataLoader = { alias = "admins" }
+# will use admins default dataLoader rather than generate own.
+# unexpected errors if admin has no dataLoader or has custom dataLoader.
+
 ## provide meta
 ["some-page"]
 meta = { restricted = true, privileges = { role = "manager" } }
 
 */
-
-/**
- * Generates various files based on {pagesDir}/_pages.toml
- *
- * Generated files:
- *    - {pagesDir}/{page}.tsx (or {pagesDir}/{page}/index.tsx if path ends in a slash)
- *    - {routerDir}/routes.ts
- *    - {routerDir}/index.ts
- */
 
 type Workers = typeof import("./workers");
 
@@ -79,46 +89,40 @@ export async function solidPages(
   options: ResolvedPluginOptions,
   { workerPool }: { workerPool: Workers },
 ) {
-  const { sourceFolder, sourceFolderPath } = options;
+  const { root, sourceFolder } = options;
 
   const pageMap: Record<string, SolidPage> = {};
 
-  const tplWatchers: Record<string, () => Promise<void>> = {};
   const srcWatchers: Record<string, () => Promise<void>> = {};
 
-  const customTemplates: SolidTemplates = {};
+  // intentionally not watching template, keep things simple.
+  // when custom template updated, dev server should be restarted manually
+  // for new pages to use custom template.
+  const template = options.solidPages?.template
+    ? await fsx.readFile(resolve(root, options.solidPages.template), "utf8")
+    : undefined;
 
-  const watchHandler = async (file: string) => {
-    if (tplWatchers[file]) {
-      // updating templates; to be used on newly added pages only
-      // so no need to update anything here
-      await tplWatchers[file]();
-      return;
+  const watchHandler: WatchHandler = (watcher) => {
+    for (const pattern of [...Object.keys(srcWatchers)]) {
+      watcher.add(pattern);
     }
 
-    if (srcWatchers[file]) {
-      // updating pageMap
-      await srcWatchers[file]();
+    watcher.on("change", async (file) => {
+      if (srcWatchers[file]) {
+        // updating pageMap
+        await srcWatchers[file]();
 
-      // then feeding it to worker
-      await workerPool.handleSrcFileUpdate({
-        file,
-        pages: Object.values(pageMap),
-        customTemplates,
-      });
+        // then feeding it to worker
+        await workerPool.handleSrcFileUpdate({
+          file,
+          pages: Object.values(pageMap),
+          template,
+        });
 
-      return;
-    }
+        return;
+      }
+    });
   };
-
-  for (const [name, path] of Object.entries(
-    options.solidPages?.templates || {},
-  ) as [name: keyof SolidTemplates, file: string][]) {
-    const file = resolve(sourceFolderPath, path);
-    tplWatchers[file] = async () => {
-      customTemplates[name] = await fsx.readFile(file, "utf8");
-    };
-  }
 
   for (const { file, parser } of await sourceFilesParsers(config, options)) {
     srcWatchers[file] = async () => {
@@ -128,26 +132,20 @@ export async function solidPages(
     };
   }
 
-  // populating tplWatchers for bootstrap
-  for (const handler of Object.values(tplWatchers)) {
-    await handler();
-  }
-
-  // populating srcWatchers for bootstrap (only call alfter tplWatchers populated)
+  // populating srcWatchers for bootstrap
   for (const handler of Object.values(srcWatchers)) {
     await handler();
   }
 
   const bootstrapPayload: BootstrapPayload<Workers> = {
-    pages: Object.values(pageMap),
+    root,
     sourceFolder,
-    sourceFolderPath,
-    customTemplates,
+    pages: Object.values(pageMap),
+    template,
   };
 
   return {
     bootstrapPayload,
     watchHandler,
-    watchPatterns: [...Object.keys(tplWatchers), ...Object.keys(srcWatchers)],
   };
 }

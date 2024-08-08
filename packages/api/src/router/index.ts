@@ -68,11 +68,11 @@ export function routeMapper(
 }
 
 function usePartitioner(
-  useDefinitions: UseDefinition[],
+  useDefinitions: Array<UseDefinition>,
   method: APIMethod,
-): [before: Middleware[], Middleware[]] {
-  const before: Record<string, Middleware[]> = {};
-  const after: Record<string, Middleware[]> = {};
+): [before: Array<Middleware>, Array<Middleware>] {
+  const before: Record<string, Array<Middleware>> = {};
+  const after: Record<string, Array<Middleware>> = {};
 
   const idFactory = (name: string | undefined): string => {
     return ["@use", method, name || randomUUID()].join(":");

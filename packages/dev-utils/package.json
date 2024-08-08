@@ -1,0 +1,44 @@
+{
+  "type": "module",
+  "name": "@appril/dev-utils",
+  "version": "0.0.48",
+  "description": "Appril Dev Utils",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": ["pkg/*"],
+  "directories": {
+    "bin": "pkg/bin"
+  },
+  "exports": {
+    ".": {
+      "types": "./pkg/index.d.ts",
+      "default": "./pkg/index.mjs"
+    }
+  },
+  "scripts": {
+    "// ✨ linters": "",
+    "lint": "biome lint ./src",
+    "// ✨ types": "",
+    "tsc": "tsc",
+    "// ✨ build": "",
+    "prebuild:000": "rimraf pkg",
+    "prebuild:001": "pnpm run lint",
+    "prebuild:002": "pnpm run tsc",
+    "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
+    "build": "node ../../esbuild.mjs index"
+  },
+  "dependencies": {
+    "@appril/configs": "workspace:^",
+    "@biomejs/js-api": "^0.6.2",
+    "@biomejs/wasm-nodejs": "^1.8.3",
+    "crc": "catalog:",
+    "fs-extra": "catalog:",
+    "handlebars": "^4.7.8"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "catalog:"
+  }
+}

@@ -6,6 +6,7 @@ import type {
   ResolvedPluginOptions,
   ApiRoute,
   BootstrapPayload,
+  WatchHandler,
 } from "../@types";
 
 import { sourceFilesParsers } from "../api-generator/parsers";
@@ -18,7 +19,7 @@ export async function fetchGenerator(
   options: ResolvedPluginOptions,
   { workerPool }: { workerPool: Workers },
 ) {
-  const { sourceFolder, sourceFolderPath } = options;
+  const { root, sourceFolder } = options;
 
   const { filter = (_r: ApiRoute) => true } = options.fetchGenerator;
 
@@ -26,26 +27,37 @@ export async function fetchGenerator(
 
   const routeMap: Record<string, ApiRoute> = {};
 
-  const watchHandler = async (file: string) => {
-    if (srcWatchers[file]) {
-      // updating routeMap
-      await srcWatchers[file]();
-
-      // then feeding routeMap to worker
-      await workerPool.handleSrcFileUpdate({
-        file,
-        routes: Object.values(routeMap),
-      });
-
-      return;
+  const watchHandler: WatchHandler = (watcher) => {
+    for (const pattern of [
+      // watching source files for changes
+      ...Object.keys(srcWatchers),
+      // also watching files in apiDir for changes
+      `${resolve(root, defaults.apiDir)}/**/*.ts`,
+    ]) {
+      watcher.add(pattern);
     }
 
-    if (routeMap[file]) {
-      await workerPool.handleRouteFileUpdate({
-        route: routeMap[file],
-      });
-      return;
-    }
+    watcher.on("change", async (file) => {
+      if (srcWatchers[file]) {
+        // updating routeMap
+        await srcWatchers[file]();
+
+        // then feeding routeMap to worker
+        await workerPool.handleSrcFileUpdate({
+          file,
+          routes: Object.values(routeMap),
+        });
+
+        return;
+      }
+
+      if (routeMap[file]) {
+        await workerPool.handleRouteFileUpdate({
+          route: routeMap[file],
+        });
+        return;
+      }
+    });
   };
 
   for (const { file, parser } of await sourceFilesParsers(config, options)) {
@@ -64,19 +76,13 @@ export async function fetchGenerator(
   }
 
   const bootstrapPayload: BootstrapPayload<Workers> = {
-    routes: Object.values(routeMap),
+    root,
     sourceFolder,
-    sourceFolderPath,
+    routes: Object.values(routeMap),
   };
 
   return {
     bootstrapPayload,
     watchHandler,
-    watchPatterns: [
-      // watching source files for changes
-      ...Object.keys(srcWatchers),
-      // also watching files in apiDir for changes
-      ...[`${resolve(sourceFolderPath, defaults.apiDir)}/**/*.ts`],
-    ],
   };
 }

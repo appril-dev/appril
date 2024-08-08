@@ -78,7 +78,7 @@ export function buildRequest<T>(
 
       request.on("error", reject);
 
-      const headerEntries: [k: string, v: string][] = Object.entries(
+      const headerEntries: Array<[k: string, v: string]> = Object.entries(
         headers || {},
       );
 
@@ -109,7 +109,7 @@ function binaryResponseHandler(
   reject: Reject,
 ): ResponseHandler {
   return (response) => {
-    const data: Buffer[] = [];
+    const data: Array<Buffer> = [];
 
     response.setEncoding("binary");
 
@@ -123,7 +123,8 @@ function binaryResponseHandler(
 
     response.on("end", () => {
       if (!response.statusCode || ((response.statusCode / 100) | 0) !== 2) {
-        return reject(errorHandler(new Error(), { response }));
+        reject(errorHandler(new Error(), { response }));
+        return;
       }
 
       resolve({ data: Buffer.concat(data), response });
@@ -151,7 +152,8 @@ function responseHandler(
 
     response.on("end", () => {
       if (!response.statusCode || ((response.statusCode / 100) | 0) !== 2) {
-        return reject(errorHandler(new Error(), { data, response }));
+        reject(errorHandler(new Error(), { data, response }));
+        return;
       }
 
       if (options?.json && data) {
@@ -160,7 +162,8 @@ function responseHandler(
           // biome-ignore lint:
         } catch (error: any) {
           Object.assign(error, { data, response });
-          return reject(error);
+          reject(error);
+          return;
         }
       }
 

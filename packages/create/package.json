@@ -7,7 +7,9 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "bin": {
     "create": "pkg/index.mjs"
   },
@@ -25,17 +27,18 @@
     "build": "node ../../esbuild.mjs index"
   },
   "dependencies": {
-    "@appril/utils": "workspace:^",
+    "@appril/dev-utils": "workspace:^",
     "fs-extra": "catalog:",
     "merge": "^2.1.1",
     "nopt": "catalog:",
-    "npm-check-updates": "^17.0.0",
+    "npm-check-updates": "^17.1.0",
     "prompts": "catalog:"
   },
   "devDependencies": {
     "@appril/api": "workspace:^",
     "@appril/configs": "workspace:^",
     "@appril/dbx": "workspace:^",
+    "@appril/dbx-cli": "workspace:^",
     "@appril/dev": "workspace:^",
     "@appril/fetch": "workspace:^",
     "@solidjs/router": "catalog:solid",

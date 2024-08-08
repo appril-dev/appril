@@ -1,33 +1,31 @@
 import { join } from "node:path";
 
 import { stringify } from "smol-toml";
-import { fileGenerator } from "@appril/utils";
+import { fileGenerator } from "@appril/dev-utils";
 
-import { type SolidPage, type SolidTemplates, BANNER, defaults } from "../base";
+import { type SolidPage, BANNER, defaults } from "../base";
 
 import pageTpl from "./templates/page.hbs";
 import routesTpl from "./templates/routes.hbs";
 import assetsTpl from "./templates/assets.hbs";
 import dataTpl from "./templates/var/data.hbs";
 
-const { generateFile } = fileGenerator();
-
 let sourceFolder: string;
-let sourceFolderPath: string;
+let generateFile: ReturnType<typeof fileGenerator>["generateFile"];
 
 export async function bootstrap(data: {
-  pages: SolidPage[];
+  root: string;
   sourceFolder: string;
-  sourceFolderPath: string;
-  customTemplates: SolidTemplates;
+  pages: Array<SolidPage>;
+  template: string | undefined;
 }) {
-  const { customTemplates } = data;
+  const { template } = data;
 
   sourceFolder = data.sourceFolder;
-  sourceFolderPath = data.sourceFolderPath;
+  generateFile = fileGenerator(data.root).generateFile;
 
   for (const page of data.pages) {
-    await generatePageFiles({ page, customTemplates });
+    await generatePageFiles({ page, template });
   }
 
   await generateIndexFiles(data);
@@ -36,11 +34,11 @@ export async function bootstrap(data: {
 export async function handleSrcFileUpdate({
   file,
   pages,
-  customTemplates,
-}: { file: string; pages: Array<SolidPage>; customTemplates: SolidTemplates }) {
+  template,
+}: { file: string; pages: Array<SolidPage>; template: string | undefined }) {
   // making sure newly added pages have files generated
   for (const page of pages.filter((e) => e.srcFile === file)) {
-    await generatePageFiles({ page, customTemplates });
+    await generatePageFiles({ page, template });
   }
 
   await generateIndexFiles({ pages });
@@ -48,12 +46,12 @@ export async function handleSrcFileUpdate({
 
 async function generatePageFiles({
   page,
-  customTemplates,
-}: { page: SolidPage; customTemplates: SolidTemplates }) {
+  template,
+}: { page: SolidPage; template: string | undefined }) {
   await generateFile(
     join(defaults.pagesDir, page.file),
     {
-      template: customTemplates.page || pageTpl,
+      template: template || pageTpl,
       context: { page },
     },
     { overwrite: false },
@@ -66,14 +64,13 @@ async function generatePageFiles({
         template: dataTpl,
         context: {
           page,
-          importFetch: [
-            defaults.basePrefix,
+          importPathFetch: [
+            defaults.appPrefix,
             sourceFolder,
             defaults.varDir,
             defaults.fetchDir,
             defaults.apiDir,
             defaults.apiDataDir,
-            page.importPath,
           ].join("/"),
         },
       },
@@ -88,19 +85,15 @@ async function generateIndexFiles(data: { pages: Array<SolidPage> }) {
     [defaults.routerRoutesFile, routesTpl],
     [defaults.routerAssetsFile, assetsTpl],
   ]) {
-    await generateFile(join(defaults.routerDir, outfile), {
+    await generateFile(join(defaults.varDir, defaults.routerDir, outfile), {
       template,
       context: {
-        BANNER,
-        pages: pages.map((page) => ({
-          ...page,
-          importPathComponent: [
-            defaults.basePrefix,
-            sourceFolder,
-            defaults.pagesDir,
-            page.importPath,
-          ].join("/"),
-        })),
+        pages,
+        importPathComponents: [
+          defaults.appPrefix,
+          sourceFolder,
+          defaults.pagesDir,
+        ].join("/"),
       },
     });
   }
@@ -108,7 +101,7 @@ async function generateIndexFiles(data: { pages: Array<SolidPage> }) {
   {
     const reducer = (map: Record<string, object>, page: SolidPage) => {
       if (page.dataLoaderGenerator) {
-        map[page.dataLoaderGenerator.apiEndpoint] = {};
+        map[page.dataLoaderGenerator.apiEndpoint] = { page: false };
       }
       return map;
     };
@@ -118,9 +111,6 @@ async function generateIndexFiles(data: { pages: Array<SolidPage> }) {
       stringify(pages.reduce(reducer, {})),
     ].join("\n");
 
-    await generateFile(
-      join(defaults.apiDir, defaults.apiDataDir, defaults.apiSourceFile),
-      content,
-    );
+    await generateFile(defaults.dataSourceFile, content);
   }
 }

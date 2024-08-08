@@ -1,91 +1,90 @@
 export type PluginOptions = {
   apiurl: string;
+
   apiAssets?: {
     filter?: (route: ApiRoute) => boolean;
-    typeMap?: Record<string, string | string[]>;
     importZodErrorHandlerFrom?: string;
   };
+
   apiGenerator?: {
-    templates?: ApiTemplates;
+    // path to custom template, relative to vite root
+    template?: string;
   };
+
   fetchGenerator?: {
     filter?: (route: ApiRoute) => boolean;
   };
+
   solidPages?: {
-    templates?: SolidTemplates;
+    // path to custom template, relative to vite root
+    template?: string;
   };
+
   useWorkers?: boolean;
-  usePolling?: boolean;
+
+  watchOptions?: {
+    usePolling?: boolean;
+    awaitWriteFinish?:
+      | boolean
+      | {
+          stabilityThreshold: number;
+          pollInterval: number;
+        };
+  };
 };
 
 export type ResolvedPluginOptions = Required<
   Omit<PluginOptions, "solidPages">
 > & {
+  root: string;
   sourceFolder: string;
-  sourceFolderPath: string;
   solidPages?: PluginOptions["solidPages"];
 };
 
-export type TypeFile = {
-  file: string;
-  importPath: string;
-  content: string;
-  routes: Set<string>;
-};
-
 export type RouteSection = {
-  // :id -> :id
-  // :id+o -> :id+o
-  // :id.json -> :id.json
-  // :id+o.json -> :id+o.json
   orig: string;
-  // :id -> :id
-  // :id+o -> :id+o
-  // :id.json -> :id
-  // :id+o.json -> :id+o
   base: string;
-  // :id -> ""
-  // :id+o -> ""
-  // :id.json -> .json
-  // :id+o.json -> .json
   ext: string;
   param?: {
-    // :id -> id
-    // :id.json -> id
-    // :id+o -> id
-    // :id+o.json -> id
     name: string;
     isOpt?: boolean;
     isRest?: boolean;
   };
 };
 
-export type ApiRouteConfig = {
-  // override default prefix
-  prefix?: string;
+export type RouteOptions = {
+  // api-related options
+
+  // should generate api entry?
+  api?: boolean;
+
+  // use custom baseurl (eg. /) instead of default /api
+  base?: string;
 
   // relative to apiDir
   file?: string;
 
-  template?: string;
-  templateContext?: Record<string, unknown>;
-
   /**
-   * simple alias, will serve /login and /authorize
-   * "login": { "alias": "authorize" }
+   * simple alias; will serve /login and /authorize
+   *  [login]
+   *  alias = "authorize"
    *
-   * multiple aliases, will serve /login, /authorize and /authenticate
-   * "login": { "alias": [ "authorize", "authenticate" ] }
+   * multiple aliases; will serve /login, /authorize and /authenticate
+   *  [login]
+   *  alias = [ "authorize", "authenticate" ]
    *
-   * alias for dynamic routes, will serve /users/:id and /customers/:id
-   * "users/:id": { "find": "users", "replace": "customers" }
+   * alias for dynamic routes; will serve /users/[id] and /customers/[id]
+   *  ["users/[id]"]
+   *  alias = { find = "users", replace = "customers" }
    *
-   * multiple dynamic aliases
-   * will serve /cms/:page.html, /pages/:page.html and /content/:page.html
-   * "cms/:page.html": [
-   *   { "find": "cms", "replace": "pages" },
-   *   { "find": "cms", "replace": "content" },
-   * ]
+   * multiple dynamic aliases;
+   * will serve /cms/[page].html, /pages/[page].html and /content/[page].html
+   *  ["cms/[page].html"]
+   *  alias = [
+   *    { find = "cms", replace = "pages" },
+   *    { find = "cms", replace = "content" },
+   *  ]
+   *
    * */
   alias?:
     | string
@@ -93,10 +92,25 @@ export type ApiRouteConfig = {
     | (string | { find: string; replace: string })[];
 
   meta?: Record<string, unknown>;
+
+  // solid-related options
+
+  // should generate solid page?
+  page?: boolean;
+
+  dataLoader?: // no dataLoader by default
+  // generate and consume default dataLoader
+    | boolean
+    // do not generate dataLoader, rather use default export of given file.
+    | string
+    // do not generate dataLoader, use default dataLoader of alias route.
+    // error thrown if alias route has no default dataLoader.
+    // error thrown even if alias route has dataLoader but it is a custom dataLoader.
+    | { alias: string };
 };
 
 export type ApiRoute = {
-  prefix?: string;
+  base?: string;
   path: string;
   originalPath: string;
   paramsType: string;
@@ -109,25 +123,14 @@ export type ApiRoute = {
   importName: string;
   importPath: string;
   meta?: Record<string, unknown>;
-  template?: string;
-  templateContext?: Record<string, unknown>;
   // path of parent
   aliasOf?: string;
 };
 
 export type ApiRouteAlias = Pick<
   ApiRoute,
-  "prefix" | "path" | "originalPath" | "importName"
+  "base" | "path" | "originalPath" | "importName"
 > & { aliasOf: string };
-
-export type ApiTemplates = {
-  route?: string;
-};
-
-export type SolidPageConfig = {
-  dataLoader?: boolean | string;
-  meta?: Record<string, unknown>;
-};
 
 export type SolidPage = {
   path: string;
@@ -157,11 +160,11 @@ export type SolidPage = {
   };
 };
 
-export type SolidTemplates = {
-  page?: string;
-};
-
 // biome-ignore format:
 export type BootstrapPayload<
   T extends { bootstrap: (_p: never) => void }
 > = Parameters<T["bootstrap"]>[0];
+
+export type WatchHandler = (
+  w: import("vite").ViteDevServer["watcher"],
+) => void | Promise<void>;

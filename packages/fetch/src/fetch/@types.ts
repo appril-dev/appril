@@ -37,7 +37,7 @@ export type Options = Pick<
   errorHandler?: ErrorHandler;
 };
 
-export type FetchMethod = <T = unknown>(...a: unknown[]) => Promise<T>;
+export type FetchMethod = <T = unknown>(...a: Array<unknown>) => Promise<T>;
 
 export type FetchMapper = Record<APIMethod | "del", FetchMethod>;
 

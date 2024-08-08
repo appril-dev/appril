@@ -20,10 +20,13 @@ export function columnsIterator(
   config: ResolvedConfig,
   schema: string,
   name: string,
-  columns: TableColumn[] | ViewColumn[] | MaterializedViewColumn[],
-  enums: EnumDeclaration[],
-): ColumnDeclaration[] {
-  const columnDeclarations: ColumnDeclaration[] = [];
+  columns:
+    | Array<TableColumn>
+    | Array<ViewColumn>
+    | Array<MaterializedViewColumn>,
+  enums: Array<EnumDeclaration>,
+): Array<ColumnDeclaration> {
+  const columnDeclarations: Array<ColumnDeclaration> = [];
 
   columnDeclarations.push(
     ...columns.flatMap(columnsMapper(config, schema, name, enums)),
@@ -36,7 +39,7 @@ function columnsMapper(
   config: ResolvedConfig,
   schema: string,
   name: string,
-  enums: EnumDeclaration[],
+  enums: Array<EnumDeclaration>,
 ) {
   const { customTypes, zod: zodConfig } = config;
   const fullName = [schema, name].join(".");
@@ -53,7 +56,7 @@ function columnsMapper(
 
   return (
     entry: TableColumn | ViewColumn | MaterializedViewColumn,
-  ): ColumnDeclaration[] => {
+  ): Array<ColumnDeclaration> => {
     const {
       name,
       isPrimaryKey,
@@ -71,9 +74,11 @@ function columnsMapper(
     let isGenerated = false;
 
     let declaredType = "unknown";
+    let importedType: ImportedType | undefined;
     let explicitType = false;
+    let enumDeclaration: EnumDeclaration | undefined;
 
-    const comments: string[] = [];
+    const comments: Array<string> = [];
 
     // order does matter!
     // - check enums
@@ -85,10 +90,12 @@ function columnsMapper(
       // enum name should be extracted from fullName
       const [schema, name] = type.split(".");
 
-      const e = enums.find((e) => e.name === name && e.schema === schema);
+      enumDeclaration = enums.find(
+        (e) => e.name === name && e.schema === schema,
+      );
 
-      if (e) {
-        declaredType = e.declaredName;
+      if (enumDeclaration) {
+        declaredType = enumDeclaration.declaredName;
       }
     }
 
@@ -107,7 +114,7 @@ function columnsMapper(
       if (typeof customDef === "string") {
         declaredType = customDef as string;
       } else if ((customDef as ImportedType).import) {
-        const importedType = customDef as ImportedType;
+        importedType = customDef as ImportedType;
         declaredType = `import("${importedType.from}").${importedType.import}`;
         if (importedType.isArray) {
           isArray = true;
@@ -207,8 +214,10 @@ function columnsMapper(
         isRegular: !(isPrimaryKey || isGenerated),
         defaultValue,
         declaredType,
+        importedType,
         comments,
         zodSchema,
+        enumDeclaration,
       },
     ];
   };

@@ -1,0 +1,43 @@
+import { basename, join } from "node:path";
+
+import { type UserConfig, mergeConfig } from "vite";
+import { aliasPlugin, definePlugin } from "@appril/dev";
+
+import pkg from "./package.json" with { type: "json" };
+
+export default async (basedir: string, config: UserConfig) => {
+  return mergeConfig(config, {
+    build: {
+      outDir: join(import.meta.dirname, pkg.distDir, basename(basedir)),
+      emptyOutDir: true,
+      sourcemap: true,
+    },
+
+    server: {
+      host: true,
+      strictPort: true,
+      fs: {
+        strict: false,
+      },
+    },
+
+    cacheDir: join(basedir, "{{defaults.varDir}}", ".cache"),
+
+    plugins: [
+      aliasPlugin(basedir),
+      definePlugin([
+        {
+          // keys extracted from process.env and exposed to client
+          keys: ["NODE_ENV", "DEBUG"],
+        },
+        {
+          file: join(import.meta.dirname, ".env"),
+          keys: ["HOSTNAME"], // keys exposed to client
+          use(key, val) {
+            process.env[key] = val;
+          },
+        },
+      ]),
+    ],
+  });
+};

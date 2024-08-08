@@ -12,7 +12,7 @@ export const fetchOptions = {
   ...stringify ? { stringify } : {},
 }
 
-export function pathMaker(path: string, params: unknown[]) {
+export function pathMaker(path: string, params: Array<unknown>) {
   const values = [ ...params ]
   return path.split(/\/+/).flatMap((e) => {
     if (e.startsWith(":")) {
@@ -25,7 +25,7 @@ export function pathMaker(path: string, params: unknown[]) {
   })
 }
 
-export function join(...args: unknown[]): string {
+export function join(...args: Array<unknown>): string {
   return args
     .filter((e) => e)
     .join("/")

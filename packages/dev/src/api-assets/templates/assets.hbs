@@ -12,16 +12,16 @@ function zodErrorHandler(error: any) {
 };
 {{/if}}
 
-{{zodSchemas}}
+{{zodSchema}}
 
 export default {
   payloadValidation: {
-    {{#if zodSchemas}}
+    {{#if zodSchema}}
     {{#each payloadTypes}}
     {{index}}: [
       (ctx, next) => {
         try {
-          {{id}}.parse(ctx.payload)
+          {{id}}Schema.parse(ctx.payload)
         } catch (error: any) {
           throw zodErrorHandler(error)
         }
@@ -33,9 +33,9 @@ export default {
   },
 }
 
-{{#if errors.length}}
-console.error("\n[ \x1b[31m{{file}}\x1b[0m ]: failed building zod schema(s)")
-{{#each errors}}
+{{#if zodErrors.length}}
+console.error("\n[ \x1b[31m{{route.file}}\x1b[0m ]: failed building zod schema(s)")
+{{#each zodErrors}}
 console.error(`{{this}}`)
 {{/each}}
 {{/if}}

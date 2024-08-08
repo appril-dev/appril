@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import { readFile, appendFile } from "node:fs/promises";
 
-import { mergePackageJson, copyFiles } from "../helpers";
+import { mergePackageJson, copyFiles } from "../base";
 
 export default async function dbxPreset(
   root: string,

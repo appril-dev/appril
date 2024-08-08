@@ -1,0 +1,21 @@
+import { definitionFactory } from "@appril/api/router";
+
+import { type WrapperT, middlewareFactory } from "./base";
+
+export * from "./typeLiterals";
+export { use } from "./base";
+
+export const get: WrapperT = (handler) => definitionFactory(
+  "get",
+  middlewareFactory(handler as never, "retrieveHandler"),
+)
+
+export const patch: WrapperT = (handler) => definitionFactory(
+  "patch",
+  middlewareFactory(handler as never, "updateHandler"),
+)
+
+export const del: WrapperT = (handler) => definitionFactory(
+  "del",
+  middlewareFactory(handler as never, "deleteHandler"),
+)

@@ -11,13 +11,17 @@ export async function apiHandlerFactory(
   config: ResolvedConfig,
   options: ResolvedPluginOptions,
 ) {
-  const { sourceFolderPath, apiurl } = options;
+  const { root, sourceFolder, apiurl } = options;
+
+  const apiDir = join(defaults.appPrefix, sourceFolder, defaults.apiDir);
   const outDir = resolve(config.build.outDir, join("..", defaults.apiDir));
 
-  const esbuildConfig = await import(
-    resolve(sourceFolderPath, "../esbuild.json"),
-    { with: { type: "json" } }
-  ).then((m) => m.default);
+  const esbuildConfig = await import(resolve(root, "../esbuild.json"), {
+    with: { type: "json" },
+  }).then(
+    // needed cause dynamic import wraps props in a default export
+    (mdl) => mdl.default,
+  );
 
   let app: {
     callback: () => (
@@ -59,7 +63,7 @@ export async function apiHandlerFactory(
       logLevel: "info",
       ...esbuildConfig,
       bundle: true,
-      entryPoints: [join(defaults.srcPrefix, defaults.apiDir, "app.ts")],
+      entryPoints: [join(apiDir, "app.ts")],
       plugins: [...(esbuildConfig.plugins || []), apiHandler],
       outfile,
     });
@@ -73,7 +77,7 @@ export async function apiHandlerFactory(
       await build({
         ...esbuildConfig,
         bundle: true,
-        entryPoints: [join(defaults.srcPrefix, defaults.apiDir, "server.ts")],
+        entryPoints: [join(apiDir, "server.ts")],
         plugins: [...(esbuildConfig.plugins || [])],
         outfile: join(
           outDir,

@@ -1,5 +1,3 @@
-{{BANNER}}
-
 import { lazy } from "solid-js";
 import type { RouteDefinition } from "@solidjs/router";
 
@@ -19,7 +17,7 @@ export const routeMap: RouteMap = {
   {{#each pages}}
   "{{originalPath}}": {
     path: "{{path}}",
-    component: lazy(() => import("{{importPathComponent}}")),
+    component: lazy(() => import("{{../importPathComponents}}/{{importPath}}")),
     {{#if dataLoaderConsumer}}
     load: ({ params }) => {{importName}}$dl(params),
     {{/if}}

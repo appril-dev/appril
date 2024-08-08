@@ -1,15 +1,11 @@
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 
-import type { ResolvedConfig } from "vite";
+import { normalizePath, type ResolvedConfig } from "vite";
 import glob from "fast-glob";
-import { parse } from "smol-toml";
 import fsx from "fs-extra";
+import { parse } from "smol-toml";
 
-import type {
-  ResolvedPluginOptions,
-  SolidPageConfig,
-  SolidPage,
-} from "../@types";
+import type { ResolvedPluginOptions, RouteOptions, SolidPage } from "../@types";
 
 import { normalizeRoutePath, routeSections } from "../base";
 import { defaults } from "../defaults";
@@ -17,9 +13,9 @@ import { defaults } from "../defaults";
 export async function sourceFilesParsers(
   _config: ResolvedConfig,
   options: ResolvedPluginOptions,
-  pattern = `**/*${defaults.routerSourceFile}`,
+  pattern = `*${defaults.sourceFile}`,
 ) {
-  const { sourceFolderPath } = options;
+  const { root } = options;
 
   const parsers: {
     file: string;
@@ -27,7 +23,7 @@ export async function sourceFilesParsers(
   }[] = [];
 
   const srcFiles = await glob(pattern, {
-    cwd: resolve(sourceFolderPath, defaults.routerDir),
+    cwd: root,
     onlyFiles: true,
     absolute: true,
     unique: true,
@@ -39,12 +35,15 @@ export async function sourceFilesParsers(
       async parser() {
         const pageDefs = parse(await fsx.readFile(srcFile, "utf8"));
 
-        const entries: { page: SolidPage }[] = [];
+        const entries: Array<{ page: SolidPage }> = [];
 
-        for (const [_path, cfg] of Object.entries(pageDefs) as [
-          string,
-          SolidPageConfig,
-        ][]) {
+        for (const [_path, opt] of Object.entries(pageDefs) as Array<
+          [path: string, opt: RouteOptions | undefined]
+        >) {
+          if (opt?.page === false) {
+            continue;
+          }
+
           const originalPath = normalizeRoutePath(_path);
 
           const sections = routeSections(originalPath);
@@ -65,7 +64,7 @@ export async function sourceFilesParsers(
           const suffix = /\/$/.test(_path) ? "/index.tsx" : ".tsx";
 
           const dataLoaderGenerator: SolidPage["dataLoaderGenerator"] =
-            cfg?.dataLoader === true
+            opt?.dataLoader === true
               ? {
                   // relative path, worker would prepend varDir
                   datafile: join(defaults.apiDataDir, originalPath),
@@ -74,23 +73,36 @@ export async function sourceFilesParsers(
                 }
               : undefined;
 
-          const dataLoaderConsumer: SolidPage["dataLoaderConsumer"] =
-            cfg?.dataLoader
-              ? typeof cfg.dataLoader === "string"
-                ? {
-                    importDatafile: cfg.dataLoader,
-                    importDatafunc: "default",
-                  }
-                : {
-                    importDatafile: [
-                      defaults.varPrefix,
-                      defaults.apiDataDir,
-                      originalPath,
-                    ].join("/"),
-                    importDatafunc: "dataCache",
-                    useData: true,
-                  }
-              : undefined;
+          let dataLoaderConsumer: SolidPage["dataLoaderConsumer"] | undefined;
+
+          if (opt?.dataLoader) {
+            if (opt.dataLoader === true) {
+              dataLoaderConsumer = {
+                importDatafile: [
+                  defaults.varPrefix,
+                  defaults.apiDataDir,
+                  originalPath,
+                ].join("/"),
+                importDatafunc: "dataCache",
+                useData: true,
+              };
+            } else if (typeof opt.dataLoader === "string") {
+              dataLoaderConsumer = {
+                importDatafile: opt.dataLoader,
+                importDatafunc: "default",
+              };
+            } else if (typeof opt.dataLoader?.alias === "string") {
+              dataLoaderConsumer = {
+                importDatafile: [
+                  defaults.varPrefix,
+                  defaults.apiDataDir,
+                  normalizePath(opt.dataLoader.alias),
+                ].join("/"),
+                importDatafunc: "dataCache",
+                useData: true,
+              };
+            }
+          }
 
           const linkProps = sections
             .slice(1)
@@ -127,7 +139,7 @@ export async function sourceFilesParsers(
               props: linkProps,
               replacements: JSON.stringify(linkReplcements),
             },
-            meta: cfg?.meta ? JSON.stringify(cfg.meta) : undefined,
+            meta: opt?.meta ? JSON.stringify(opt.meta) : undefined,
           };
 
           entries.push({ page });

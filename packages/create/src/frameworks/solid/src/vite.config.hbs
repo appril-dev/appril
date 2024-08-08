@@ -1,0 +1,19 @@
+import { join } from "node:path";
+
+import solidPlugin from "vite-plugin-solid";
+import devPlugin from "@appril/dev";
+
+import { baseurl, apiurl } from "./config";
+import defineConfig from "../vite.config";
+
+export default defineConfig(import.meta.dirname, {
+  base: join(baseurl, "/"),
+  server: { port: {{devPort}} },
+  plugins: [
+    solidPlugin(),
+    devPlugin({
+      apiurl,
+      solidPages: {},
+    }),
+  ],
+})

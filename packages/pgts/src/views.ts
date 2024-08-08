@@ -2,7 +2,11 @@ import type { ViewColumn, MaterializedViewColumn } from "extract-pg-schema";
 
 import { columnsIterator } from "./columns";
 
-import { defaultViewNominator, defaultModelNominator } from "./nominators";
+import {
+  defaultViewNominator,
+  defaultModelNominator,
+  defaultModulePrefix,
+} from "./nominators";
 
 import type {
   ResolvedConfig,
@@ -12,13 +16,13 @@ import type {
 
 type ViewAssets = {
   name: string;
-  columns: ViewColumn[] | MaterializedViewColumn[];
+  columns: Array<ViewColumn> | Array<MaterializedViewColumn>;
 };
 
 export function viewsMapper(
   config: ResolvedConfig,
   schema: string,
-  enums: EnumDeclaration[],
+  enums: Array<EnumDeclaration>,
 ) {
   const {
     viewFilter,
@@ -26,9 +30,10 @@ export function viewsMapper(
     modelNominator,
     viewSuffix,
     queryBuilderSuffix,
+    modulePrefix = defaultModulePrefix,
   } = config;
 
-  return (view: ViewAssets): ViewDeclaration[] => {
+  return (view: ViewAssets): Array<ViewDeclaration> => {
     const { name } = view;
 
     if (!viewFilter(name, { schema })) {
@@ -55,11 +60,12 @@ export function viewsMapper(
         schema,
         name,
         fullName: [schema, name].join("."),
+        modelName,
+        moduleName: `${modulePrefix}:${schema}.${name}`,
         primaryKey: columns.find((e) => e.isPrimaryKey)?.name,
         declaredName,
         recordName,
         queryBuilder,
-        modelName,
         columns,
       },
     ];

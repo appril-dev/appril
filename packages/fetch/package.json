@@ -10,12 +10,12 @@
   "files": ["pkg/*"],
   "exports": {
     ".": {
-      "default": "./pkg/fetch/index.mjs",
-      "types": "./pkg/fetch/index.d.ts"
+      "types": "./pkg/fetch/index.d.ts",
+      "default": "./pkg/fetch/index.mjs"
     },
     "./node": {
-      "default": "./pkg/node/index.mjs",
-      "types": "./pkg/node/index.d.ts"
+      "types": "./pkg/node/index.d.ts",
+      "default": "./pkg/node/index.mjs"
     }
   },
   "scripts": {

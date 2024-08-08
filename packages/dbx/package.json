@@ -1,24 +1,17 @@
 {
   "name": "@appril/dbx",
   "version": "0.0.48",
-  "description": "Thin wrapper around Knex, with type generators and migration handlers",
+  "description": "Thin wrapper around Knex",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
   "files": ["pkg/*"],
-  "bin": {
-    "dbx": "pkg/cli.sh"
-  },
   "exports": {
     ".": {
-      "default": "./pkg/api/index.mjs",
-      "types": "./pkg/api/index.d.ts"
-    },
-    "./cli": {
-      "default": "./pkg/cli/index.mjs",
-      "types": "./pkg/cli/index.d.ts"
+      "types": "./pkg/index.d.ts",
+      "default": "./pkg/index.mjs"
     }
   },
   "scripts": {
@@ -26,39 +19,17 @@
     "lint": "biome lint ./src",
     "// ✨ types": "",
     "tsc": "tsc",
-    "// ✨ build api": "",
-    "build:api": "node ../../esbuild.mjs api/index",
-    "// ✨ build cli": "",
-    "build:cli": "node ../../esbuild.mjs cli/index cli/generators/index cli/migrations/index",
-    "postbuild:cli": "for e in cli.sh bash_completion.sh; do cp src/cli/$e pkg; done",
     "// ✨ build": "",
     "prebuild:000": "rimraf pkg",
     "prebuild:001": "pnpm run lint",
     "prebuild:002": "pnpm run tsc",
     "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
-    "build": "set -e; for e in api cli; do pnpm run build:$e; done"
+    "build": "node ../../esbuild.mjs index"
   },
   "dependencies": {
-    "@appril/pgts": "workspace:^",
-    "@appril/utils": "workspace:^",
-    "date-fns": "^3.6.0",
-    "fast-glob": "catalog:",
-    "fs-extra": "catalog:",
-    "lodash-es": "catalog:",
-    "nopt": "catalog:",
-    "pg": "catalog:dbx",
-    "prompts": "catalog:"
+    "knex": "catalog:dbx"
   },
   "devDependencies": {
-    "@appril/configs": "workspace:^",
-    "@types/fs-extra": "catalog:",
-    "@types/lodash-es": "catalog:",
-    "@types/nopt": "catalog:",
-    "@types/pg": "catalog:dbx",
-    "@types/prompts": "catalog:",
-    "knex": "catalog:dbx"
-  },
-  "peerDependencies": {
-    "knex": "catalog:dbx"
+    "@appril/configs": "workspace:^"
   }
 }

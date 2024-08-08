@@ -1,0 +1,52 @@
+{
+  "name": "@appril/dbx-cli",
+  "version": "0.0.48",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": ["pkg/*"],
+  "bin": {
+    "dbx": "pkg/cli.sh"
+  },
+  "exports": {
+    ".": {
+      "types": "./pkg/index.d.ts",
+      "default": "./pkg/index.mjs"
+    }
+  },
+  "scripts": {
+    "// ✨ linters": "",
+    "lint": "biome lint ./src",
+    "// ✨ types": "",
+    "tsc": "tsc",
+    "// ✨ build": "",
+    "prebuild:000": "rimraf pkg",
+    "prebuild:001": "pnpm run lint",
+    "prebuild:002": "pnpm run tsc",
+    "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
+    "build": "node ../../esbuild.mjs index generators/index migrations/index",
+    "postbuild": "for e in cli.sh bash_completion.sh; do cp --preserve=mode src/$e pkg; done"
+  },
+  "dependencies": {
+    "@appril/pgts": "workspace:^",
+    "@appril/dev": "workspace:^",
+    "@appril/dev-utils": "workspace:^",
+    "date-fns": "^3.6.0",
+    "fast-glob": "catalog:",
+    "fs-extra": "catalog:",
+    "lodash-es": "catalog:",
+    "nopt": "catalog:",
+    "pg": "catalog:dbx",
+    "prompts": "catalog:"
+  },
+  "devDependencies": {
+    "@appril/configs": "workspace:^",
+    "@types/fs-extra": "catalog:",
+    "@types/lodash-es": "catalog:",
+    "@types/nopt": "catalog:",
+    "@types/pg": "catalog:dbx",
+    "@types/prompts": "catalog:"
+  }
+}

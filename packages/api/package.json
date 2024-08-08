@@ -10,16 +10,16 @@
   "files": ["pkg/*"],
   "exports": {
     "./router": {
-      "default": "./pkg/router/index.mjs",
-      "types": "./pkg/router/index.d.ts"
+      "types": "./pkg/router/index.d.ts",
+      "default": "./pkg/router/index.mjs"
     },
     "./queryparser": {
-      "default": "./pkg/queryparser/index.mjs",
-      "types": "./pkg/queryparser/index.d.ts"
+      "types": "./pkg/queryparser/index.d.ts",
+      "default": "./pkg/queryparser/index.mjs"
     },
     "./bodyparser": {
-      "default": "./pkg/bodyparser/index.mjs",
-      "types": "./pkg/bodyparser/index.d.ts"
+      "types": "./pkg/bodyparser/index.d.ts",
+      "default": "./pkg/bodyparser/index.mjs"
     }
   },
   "scripts": {

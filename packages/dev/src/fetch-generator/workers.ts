@@ -1,37 +1,36 @@
 import { join, dirname } from "node:path";
 
-import { fileGenerator } from "@appril/utils";
+import { fileGenerator } from "@appril/dev-utils";
 
 import { type ApiRoute, defaults } from "../base";
-import { extractApiAssets } from "../ast";
 
 import baseTpl from "./templates/base.hbs";
 import fetchTpl from "./templates/fetch.hbs";
 import indexTpl from "./templates/index.hbs";
-
-const { generateFile } = fileGenerator();
+import { extractApiAssets } from "../ast";
 
 let sourceFolder: string;
-let sourceFolderPath: string;
+let generateFile: ReturnType<typeof fileGenerator>["generateFile"];
 
 export async function bootstrap(data: {
-  routes: ApiRoute[];
+  root: string;
   sourceFolder: string;
-  sourceFolderPath: string;
+  routes: Array<ApiRoute>;
 }) {
   const { routes } = data;
 
   sourceFolder = data.sourceFolder;
-  sourceFolderPath = data.sourceFolderPath;
+
+  generateFile = fileGenerator(data.root).generateFile;
 
   await generateFile(join(defaults.varDir, defaults.fetchDir, "base.ts"), {
     template: baseTpl,
     context: {
-      importPathFetch: [defaults.basePrefix, defaults.baseDir, "@fetch"].join(
+      importPathFetch: [defaults.appPrefix, defaults.baseDir, "@fetch"].join(
         "/",
       ),
       importPathConfig: [
-        defaults.basePrefix,
+        defaults.appPrefix,
         sourceFolder,
         defaults.configDir,
       ].join("/"),
@@ -50,7 +49,7 @@ export async function handleSrcFileUpdate({
   routes,
 }: {
   file: string;
-  routes: ApiRoute[];
+  routes: Array<ApiRoute>;
 }) {
   // making sure newly added routes have assets generated
   for (const route of routes.filter((e) => e.srcFile === file)) {
@@ -78,7 +77,7 @@ async function generateRouteAssets({
     {
       relpathResolver(path) {
         return join(
-          defaults.basePrefix,
+          defaults.appPrefix,
           sourceFolder,
           defaults.apiDir,
           dirname(route.file),
@@ -98,7 +97,7 @@ async function generateRouteAssets({
         typeDeclarations,
         fetchDefinitions,
         importPathBase: [
-          defaults.basePrefix,
+          defaults.appPrefix,
           sourceFolder,
           defaults.varDir,
           defaults.fetchDir,
@@ -112,7 +111,7 @@ async function generateRouteAssets({
 async function generateIndexFiles({
   routes,
 }: {
-  routes: ApiRoute[];
+  routes: Array<ApiRoute>;
 }) {
   await generateFile(join(defaults.varDir, defaults.fetchDir, "index.ts"), {
     template: indexTpl,
@@ -121,7 +120,7 @@ async function generateIndexFiles({
         .map((route) => ({
           ...route,
           importPrefix: [
-            defaults.basePrefix,
+            defaults.appPrefix,
             sourceFolder,
             defaults.varDir,
             defaults.fetchDir,

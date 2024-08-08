@@ -6,14 +6,18 @@ import type {
   EnumDeclaration,
 } from "./@types";
 
-import { defaultTableNominator, defaultModelNominator } from "./nominators";
+import {
+  defaultTableNominator,
+  defaultModelNominator,
+  defaultModulePrefix,
+} from "./nominators";
 
 import { columnsIterator } from "./columns";
 
 export function tablesMapper(
   config: ResolvedConfig,
   schema: string,
-  enums: EnumDeclaration[],
+  enums: Array<EnumDeclaration>,
 ) {
   const {
     tableFilter,
@@ -23,12 +27,13 @@ export function tablesMapper(
     insertSuffix,
     updateSuffix,
     queryBuilderSuffix,
+    modulePrefix = defaultModulePrefix,
   } = config;
 
   return (table: {
     name: string;
-    columns: TableColumn[];
-  }): TableDeclaration[] => {
+    columns: Array<TableColumn>;
+  }): Array<TableDeclaration> => {
     const { name } = table;
 
     if (!tableFilter(name, { schema })) {
@@ -57,12 +62,13 @@ export function tablesMapper(
         schema,
         name,
         fullName: [schema, name].join("."),
+        modelName,
+        moduleName: `${modulePrefix}:${schema}.${name}`,
         primaryKey: columns.find((e) => e.isPrimaryKey)?.name,
         declaredName,
         recordName,
         insertName,
         updateName,
-        modelName,
         queryBuilder,
         columns,
         regularColumns: columns.filter((e) => e.isRegular),

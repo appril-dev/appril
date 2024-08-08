@@ -1,4 +1,6 @@
 import type {
+  DefaultState,
+  DefaultContext,
   Middleware,
   APIMethod,
   UseDefinition,
@@ -22,21 +24,21 @@ export const patch: DefinitionI = (arg) => definitionFactory("patch", arg);
 export const post: DefinitionI = (arg) => definitionFactory("post", arg);
 export const del: DefinitionI = (arg) => definitionFactory("del", arg);
 
-export const use: UseDefinitionI = (...args: unknown[]) => {
+export const use: UseDefinitionI = (...args: Array<unknown>) => {
   return useDefinitionFactory<UseScope>(args);
 };
 
-export const useGlobal: UseDefinitionGlobalI = (...args: unknown[]) => {
+export const useGlobal: UseDefinitionGlobalI = (...args: Array<unknown>) => {
   return useDefinitionFactory<UseScopeGlobal>(args, (e) => {
     return store.useGlobal.push(e);
   });
 };
 
 // factories / builders
-export function definitionFactory(
-  method: APIMethod,
-  arg: unknown,
-): MiddlewareDefinition {
+export function definitionFactory<
+  StateT = DefaultState,
+  ContextT extends DefaultContext = DefaultContext,
+>(method: APIMethod, arg: unknown): MiddlewareDefinition<StateT, ContextT> {
   if (typeof arg === "function") {
     return {
       method,
@@ -61,14 +63,14 @@ export function definitionFactory(
   );
 }
 
-function useDefinitionFactory<TScope extends UseScope | UseScopeGlobal>(
-  args: unknown[],
+export function useDefinitionFactory<TScope extends UseScope | UseScopeGlobal>(
+  args: Array<unknown>,
   callback?: (d: UseDefinition<TScope>) => void,
 ): UseDefinition<TScope> {
   const definition = useDefinitionBuilder(args);
 
-  let $before: TScope[] = [];
-  let $after: TScope[] = [];
+  let $before: Array<TScope> = [];
+  let $after: Array<TScope> = [];
 
   const matchFactory = (apiMethod: APIMethod) => {
     return (scope: UseScope) => {
@@ -83,7 +85,7 @@ function useDefinitionFactory<TScope extends UseScope | UseScopeGlobal>(
 
   Object.defineProperties(definition, {
     before: {
-      value: (...s: TScope[]) => {
+      value: (...s: Array<TScope>) => {
         // do not push, rather replace! (to be able to override by later call)
         $before = s;
         return definition;
@@ -97,7 +99,7 @@ function useDefinitionFactory<TScope extends UseScope | UseScopeGlobal>(
       },
     },
     after: {
-      value: (...s: TScope[]) => {
+      value: (...s: Array<TScope>) => {
         // do not push, rather replace! (to be able to override by later call)
         $after = s;
         return definition;
@@ -117,9 +119,9 @@ function useDefinitionFactory<TScope extends UseScope | UseScopeGlobal>(
   return definition as UseDefinition<TScope>;
 }
 
-function useDefinitionBuilder(args: unknown[]): UseDefinitionBase {
+function useDefinitionBuilder(args: Array<unknown>): UseDefinitionBase {
   let name: keyof UseIdentities | undefined;
-  let use: Middleware[] = [];
+  let use: Array<Middleware> = [];
 
   if (args.length === 2) {
     if (typeof args[0] === "string") {
@@ -129,7 +131,7 @@ function useDefinitionBuilder(args: unknown[]): UseDefinitionBase {
     }
 
     if (typeof args[1] === "function") {
-      use = [args[1]] as Middleware[];
+      use = [args[1]] as Array<Middleware>;
     } else if (Array.isArray(args[1])) {
       use = args[1];
     } else {
@@ -137,7 +139,7 @@ function useDefinitionBuilder(args: unknown[]): UseDefinitionBase {
     }
   } else if (args.length === 1) {
     if (typeof args[0] === "function") {
-      use = [args[0]] as Middleware[];
+      use = [args[0]] as Array<Middleware>;
     } else if (Array.isArray(args[0])) {
       use = args[0];
     } else {

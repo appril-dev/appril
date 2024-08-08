@@ -13,7 +13,7 @@ export function connect(_connectionSettings = {}) {
     asyncStackTraces: DEV,
     pool: {
       // biome-ignore lint:
-      async afterCreate(conn: any, done: (...a: unknown[]) => void) {
+      async afterCreate(conn: any, done: (...a: Array<unknown>) => void) {
         done(null, conn);
       },
     },

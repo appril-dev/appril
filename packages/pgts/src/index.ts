@@ -23,20 +23,20 @@ export default async function pgts(
   connection: string | ConnectionConfig,
   optedConfig: Config = {},
 ): Promise<{
-  schemas: string[];
-  tables: TableDeclaration[];
-  enums: EnumDeclaration[];
-  views: ViewDeclaration[];
+  schemas: Array<string>;
+  tables: Array<TableDeclaration>;
+  enums: Array<EnumDeclaration>;
+  views: Array<ViewDeclaration>;
 }> {
   const config = merge({}, defaultConfig, optedConfig) as ResolvedConfig;
 
   const extractedSchemas = await extractor.extractSchemas(connection, config);
   const flatSchemas = Object.values(extractedSchemas);
 
-  const schemas: string[] = Object.keys(extractedSchemas);
-  const tables: TableDeclaration[] = [];
-  const enums: EnumDeclaration[] = [];
-  const views: ViewDeclaration[] = [];
+  const schemas: Array<string> = Object.keys(extractedSchemas);
+  const tables: Array<TableDeclaration> = [];
+  const enums: Array<EnumDeclaration> = [];
+  const views: Array<ViewDeclaration> = [];
 
   // iterate all schemas for enums before mapping tables/views
   for (const schema of flatSchemas) {

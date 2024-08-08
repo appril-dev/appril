@@ -1,16 +1,24 @@
 #!/usr/bin/env node
 
 import { join } from "node:path";
-import { readFile } from "node:fs/promises";
 
 import fsx from "fs-extra";
 import { run as depsBump } from "npm-check-updates";
 
 import prompts, { type PromptObject } from "prompts";
-import { render } from "@appril/utils";
+import { defaults } from "@appril/dev";
+import { renderToFile, resolveCwd } from "@appril/dev-utils";
 
 import frameworks from "./frameworks";
 import presets from "./presets";
+import { copyFiles } from "./base";
+
+import gitignoreTpl from "./root/.gitignore.hbs";
+import packageTpl from "./root/package.hbs";
+import tsconfigTpl from "./root/tsconfig.hbs";
+import viteConfigTpl from "./root/vite.config.hbs";
+import srcConfigTpl from "./src/config/index.hbs";
+import srcTsconfigTpl from "./src/tsconfig.hbs";
 
 const onState: PromptObject["onState"] = (state) => {
   if (state.aborted) {
@@ -19,9 +27,8 @@ const onState: PromptObject["onState"] = (state) => {
 };
 
 async function init() {
-  const cwd = process.cwd();
-  const srcdir = (...path: string[]) => join(import.meta.dirname, ...path);
-  const dstdir = (...path: string[]) => join(cwd, project.name, ...path);
+  const srcdir = (...path: Array<string>) => join(import.meta.dirname, ...path);
+  const dstdir = (...path: Array<string>) => resolveCwd(project.name, ...path);
 
   const project = await prompts([
     {
@@ -133,20 +140,15 @@ async function init() {
     },
   ]);
 
-  await fsx.copy(srcdir("root"), dstdir());
+  await copyFiles(srcdir("root"), dstdir(), {
+    exclude: [/.+\.hbs/],
+  });
 
-  for (const [a, b] of [
-    [".gitignore.hbs", ".gitignore"],
-    ["tsconfig.hbs", "tsconfig.json"],
-  ]) {
-    await fsx.move(dstdir(a), dstdir(b));
-  }
-
-  const sourceFolders: string[] = project.sourceFolders;
+  const sourceFolders: Array<string> = project.sourceFolders;
 
   const sourceFoldersMapper = (
-    render: (f: string, s: string) => string[],
-    folders: string[] = sourceFolders,
+    render: (f: string, s: string) => Array<string>,
+    folders: Array<string> = sourceFolders,
   ) => {
     return folders.flatMap((folder, i) => {
       return render(folder, folders[i + 1] ? "," : "");
@@ -157,20 +159,26 @@ async function init() {
     project,
     solidFramework: project.framework === "solid",
     sourceFolders,
+    defaults,
+    packageManager: process.env.PACKAGE_MANAGER,
   };
 
-  const context = {
-    ...genericContext,
-    excludedSourceFolders: sourceFoldersMapper((folder, suffix) => [
-      `"${folder}"${suffix}`,
-    ]),
-  };
+  {
+    const context = {
+      ...genericContext,
+      excludedSourceFolders: sourceFoldersMapper((folder, suffix) => [
+        `"${folder}"${suffix}`,
+      ]),
+    };
 
-  for (const file of [".gitignore", "package.json", "tsconfig.json"].map((e) =>
-    dstdir(e),
-  )) {
-    const template = await readFile(file, "utf8");
-    await fsx.outputFile(file, render(template, context), "utf8");
+    for (const [file, template] of [
+      [".gitignore", gitignoreTpl],
+      ["package.json", packageTpl],
+      ["tsconfig.json", tsconfigTpl],
+      ["vite.config.ts", viteConfigTpl],
+    ]) {
+      await renderToFile(dstdir(file), template, context, { format: true });
+    }
   }
 
   for (const preset of project.presets) {
@@ -186,36 +194,27 @@ async function init() {
   };
 
   for (const dir of sourceFolders) {
-    await fsx.copy(srcdir("src"), dstdir(dir));
-
-    for (const [a, b] of [
-      ["package.hbs", "package.json"],
-      ["tsconfig.hbs", "tsconfig.json"],
-    ]) {
-      await fsx.move(dstdir(dir, a), dstdir(dir, b));
-    }
-
-    const devPort = port.next;
+    await copyFiles(srcdir("src"), dstdir(dir), {
+      exclude: [/.+\.hbs/],
+    });
 
     const baseContext = {
       ...genericContext,
       project,
-      devPort,
       excludedSourceFolders: sourceFoldersMapper(
         (folder, suffix) => [`"../${folder}"${suffix}`],
         sourceFolders.filter((f) => f !== dir),
       ),
     };
 
-    for (const file of ["config/index.ts", "package.json", "tsconfig.json"].map(
-      (e) => dstdir(dir, e),
-    )) {
-      const template = await readFile(file, "utf8");
-
-      // biome-ignore format:
-      const baseurl = sourceFolders.length === 1 || /front|src/.test(dir)
-        ? "/"
-        : join("/", dir.replace("@", ""));
+    for (const [file, template] of [
+      ["config/index.ts", srcConfigTpl],
+      ["tsconfig.json", srcTsconfigTpl],
+    ]) {
+      const baseurl =
+        sourceFolders.length === 1 || /front|src/.test(dir)
+          ? "/"
+          : join("/", dir.replace("@", ""));
 
       const context = {
         ...baseContext,
@@ -224,14 +223,15 @@ async function init() {
         },
       };
 
-      await fsx.outputFile(file, render(template, context), "utf8");
+      await renderToFile(dstdir(dir, file), template, context, {
+        format: true,
+      });
     }
 
-    await frameworks[project.framework as keyof typeof frameworks](
-      srcdir("frameworks", project.framework),
-      dstdir(),
-      dir,
-    );
+    await frameworks[project.framework as keyof typeof frameworks](dstdir(), {
+      sourceFolder: dir,
+      devPort: port.next,
+    });
   }
 
   await depsBump({

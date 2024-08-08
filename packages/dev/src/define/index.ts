@@ -1,11 +1,9 @@
-import { resolve } from "node:path";
-
 import type { Plugin } from "vite";
 import fsx from "fs-extra";
 import { parse as dotenv } from "dotenv";
 
 type Entry = {
-  keys: string[];
+  keys: Array<string>;
   file?: string;
   defineOn?: string;
   use?: (key: string, val: string | undefined) => void;
@@ -13,9 +11,7 @@ type Entry = {
 
 const PLUGIN_NAME = "@appril:definePlugin";
 
-export function definePlugin(entries: Entry[]): Plugin {
-  const root = process.cwd();
-
+export const definePlugin = (entries: Array<Entry>): Plugin => {
   return {
     name: PLUGIN_NAME,
 
@@ -25,17 +21,10 @@ export function definePlugin(entries: Entry[]): Plugin {
       for (const { keys, file, defineOn = "process.env", use } of entries) {
         define[defineOn] = {};
 
-        let env = process.env;
-
-        if (file) {
-          const path = resolve(root, file);
-
-          if (!(await fsx.pathExists(path))) {
-            continue;
-          }
-
-          env = dotenv(await fsx.readFile(path, "utf8"));
-        }
+        const env =
+          file && (await fsx.pathExists(file))
+            ? dotenv(await fsx.readFile(file, "utf8"))
+            : process.env;
 
         for (const [key, val] of Object.entries(env)) {
           if (keys.includes(key)) {
@@ -49,4 +38,4 @@ export function definePlugin(entries: Entry[]): Plugin {
       return { define };
     },
   };
-}
+};

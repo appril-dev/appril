@@ -1,18 +1,23 @@
 import { resolve } from "node:path";
 
-import type { ResolvedConfig } from "vite";
 import fsx from "fs-extra";
+
+import type { ResolvedConfig } from "vite";
 
 import type {
   ResolvedPluginOptions,
   ApiRoute,
-  ApiTemplates,
   BootstrapPayload,
+  WatchHandler,
 } from "../@types";
 
 import { sourceFilesParsers } from "./parsers";
 
-/** {apiDir}/_routes.toml schema:
+/** *_routes.toml schema - api options:
+
+# set api to false to exclude route from api
+[some-route]
+api = false
 
 [some-route]
 # will generate {apiDir}/some-route.ts
@@ -29,36 +34,39 @@ import { sourceFilesParsers } from "./parsers";
 ["another-page.html/"]
 # will generate {apiDir}/another-page.html/index.ts
 
-## dynamic params
+## dynamic params - wrapped into [square brackets]
 
-["users/:id"]
-# will generate {apiDir}/users/:id.ts
+["users/[id]"]
+# will generate {apiDir}/users/[id].ts
 
-["users/:id.json"]
-# will generate {apiDir}/users/:id.json.ts
+["users/[id].json"]
+# will generate {apiDir}/users/[id].json.ts
 
-## optional params (+o suffix)
+## optional params - wrapped into [[double square brackets]]
 
-["users/:id+o"]
-# will generate {apiDir}/users/:id+o.ts
+["users/[[id]]"]
+# will generate {apiDir}/users/[[id]].ts
 
-## any/rest params (+a suffix)
+## any/rest params - ...rest wrapped into [...square brackets]
 
-["cms/:path+a"]
-# will generate {apiDir}/cms/:path+a.ts
+["cms/[...path]"]
+# will generate {apiDir}/cms/[...path].ts
 
-["cms/:path+a.html"]
-# will generate {apiDir}/cms/:path+a.html.ts
+["cms/[...path].html"]
+# will generate {apiDir}/cms/[...path].html.ts
 
 ## aliases
+
+# to serve both /users/login and /login
 ["users/login"]
 alias = "login"
-# or
+
+# to serve all of /users/login, /users/authorize and /login
 ["users/login"]
 alias = [ "users/authorize", "login" ]
 
-# dynamic aliases, will serve /users/:id and /customers/:id
-["users/:id"]
+# dynamic aliases, will serve /users/[id] and /customers/[id]
+["users/[id]"]
 alias = { find = "users", replace = "customers" }
 
 ## provide meta object
@@ -67,18 +75,6 @@ meta = { restricted = true, privileges = { role = "manager" } }
 
 */
 
-/**
- * Generates multiple files based on {apiDir}/_routes.toml
- *
- * Generated files:
- *    - {apiDir}/{route}.ts (or {apiDir}/{route}/index.ts if path ends in a slash)
- *    - {apiDir}/_routes.ts - importing route files and exporting mapped routes
- *
- * @param {object} [opts={}] - options
- * @param {string} [opts.apiDir="api"] - path to api folder where to place generated files
- * @param {object} [opts.templates={}] - custom templates
- */
-
 type Workers = typeof import("./workers");
 
 export async function apiGenerator(
@@ -86,49 +82,40 @@ export async function apiGenerator(
   options: ResolvedPluginOptions,
   { workerPool }: { workerPool: Workers },
 ) {
-  const { sourceFolder, sourceFolderPath } = options;
+  const { root, sourceFolder } = options;
 
   const routeMap: Record<string, ApiRoute> = {};
 
-  const tplWatchers: Record<string, () => Promise<void>> = {};
   const srcWatchers: Record<string, () => Promise<void>> = {};
 
-  const customTemplates: ApiTemplates = options.apiGenerator?.templates || {};
+  // intentionally not watching template, keep things simple.
+  // when custom template updated, dev server should be restarted manually
+  // for new routes to use custom template.
+  const template = options.apiGenerator?.template
+    ? await fsx.readFile(resolve(root, options.apiGenerator.template), "utf8")
+    : undefined;
 
-  const watchHandler = async (file: string) => {
-    if (tplWatchers[file]) {
-      // updating templates; to be used on newly added routes only
-      // so no need to update anything here
-      await tplWatchers[file]();
-      return;
+  const watchHandler: WatchHandler = (watcher) => {
+    for (const pattern of [...Object.keys(srcWatchers)]) {
+      watcher.add(pattern);
     }
 
-    if (srcWatchers[file]) {
-      // updating routeMap / aliasMap
-      await srcWatchers[file]();
+    watcher.on("change", async (file) => {
+      if (srcWatchers[file]) {
+        // updating routeMap / aliasMap
+        await srcWatchers[file]();
 
-      // then feeding them to worker
-      await workerPool.handleSrcFileUpdate({
-        file,
-        routes: Object.values(routeMap),
-        customTemplates,
-      });
+        // then feeding them to worker
+        await workerPool.handleSrcFileUpdate({
+          file,
+          routes: Object.values(routeMap),
+          template,
+        });
 
-      return;
-    }
+        return;
+      }
+    });
   };
-
-  // srcWatchers and tplWatchers should be ready by the time configureServer called,
-  // so it's safer to run this here rather than inside configResolved
-  for (const [name, path] of Object.entries(customTemplates) as [
-    name: keyof ApiTemplates,
-    file: string,
-  ][]) {
-    const file = resolve(sourceFolderPath, path);
-    tplWatchers[file] = async () => {
-      customTemplates[name] = await fsx.readFile(file, "utf8");
-    };
-  }
 
   for (const { file, parser } of await sourceFilesParsers(config, options)) {
     srcWatchers[file] = async () => {
@@ -147,26 +134,20 @@ export async function apiGenerator(
     };
   }
 
-  // populating tplWatchers for bootstrap
-  for (const handler of Object.values(tplWatchers)) {
-    await handler();
-  }
-
-  // populating srcWatchers for bootstrap (only call alfter tplWatchers populated)
+  // populating srcWatchers for bootstrap
   for (const handler of Object.values(srcWatchers)) {
     await handler();
   }
 
   const bootstrapPayload: BootstrapPayload<Workers> = {
-    routes: Object.values(routeMap),
+    root,
     sourceFolder,
-    sourceFolderPath,
-    customTemplates,
+    routes: Object.values(routeMap),
+    template,
   };
 
   return {
     bootstrapPayload,
     watchHandler,
-    watchPatterns: [...Object.keys(tplWatchers), ...Object.keys(srcWatchers)],
   };
 }

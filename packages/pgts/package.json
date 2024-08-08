@@ -10,8 +10,8 @@
   "files": ["pkg/*"],
   "exports": {
     ".": {
-      "default": "./pkg/index.mjs",
-      "types": "./pkg/index.d.ts"
+      "types": "./pkg/index.d.ts",
+      "default": "./pkg/index.mjs"
     }
   },
   "scripts": {

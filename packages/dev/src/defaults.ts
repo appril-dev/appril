@@ -1,18 +1,19 @@
 export const defaults = {
-  basePrefix: "~",
+  appPrefix: "~",
   srcPrefix: "@",
   varPrefix: "_",
 
   baseDir: "base",
 
+  sourceFile: "_routes.toml",
+  dataSourceFile: "_data_routes.toml",
+
   apiDir: "api",
-  apiDataDir: "@data",
+  apiDataDir: "_data",
   apiRoutesFile: "routes.ts",
-  apiSourceFile: "_routes.toml",
 
   routerDir: "router",
   routerRoutesFile: "routes.ts",
-  routerSourceFile: "_routes.toml",
   routerAssetsFile: "assets.ts",
 
   configDir: "config",

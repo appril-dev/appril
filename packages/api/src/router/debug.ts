@@ -22,7 +22,7 @@ export function routePrinter(
   route: {
     path: string;
     file: string;
-    exports: { endpoints: RouteEndpoint[] } | { router: unknown };
+    exports: { endpoints: Array<RouteEndpoint> } | { router: unknown };
   },
   printer: Printer | boolean = false,
 ) {
@@ -31,7 +31,7 @@ export function routePrinter(
   }
 
   const { file, path, exports } = route;
-  const lines: string[] = ["\n"];
+  const lines: Array<string> = ["\n"];
 
   lines.push(
     [`[ ${bgBlue(black(` ${path} `))} ]`, grey(` { file: ${file} }`)].join(""),

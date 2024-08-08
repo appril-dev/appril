@@ -3,6 +3,7 @@
   "compilerOptions": {
     "moduleResolution": "bundler",
     "module": "ESNext",
-    "declaration": true
+    "declaration": true,
+    "emitDeclarationOnly": true
   }
 }

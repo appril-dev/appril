@@ -1,4 +1,4 @@
-import { sanitizePath } from "@appril/utils";
+import { sanitizePath } from "@appril/dev-utils";
 
 import type { RouteSection } from "./@types";
 
@@ -15,7 +15,7 @@ export function normalizeRoutePath(path: string): string {
     .replace(/^\/|\/$/g, "");
 }
 
-export function routeSections(path: string): RouteSection[] {
+export function routeSections(path: string): Array<RouteSection> {
   // use only normalized paths here
 
   const requiredParamRegex = /^\[([\w\d-]+)\]$/;
@@ -48,4 +48,8 @@ export function routeSections(path: string): RouteSection[] {
       param,
     } satisfies RouteSection;
   });
+}
+
+export function httpMethodByApi(apiMethod: string): string {
+  return apiMethod === "del" ? "DELETE" : apiMethod.toUpperCase();
 }

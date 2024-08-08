@@ -1,0 +1,22 @@
+{{BANNER}}
+
+declare module "knex/types/tables" {
+  interface Tables {
+  {{#each tables}}
+    "{{moduleName}}": import("knex").Knex.CompositeTableType<
+      import(".").{{recordName}},
+      import(".").{{insertName}},
+      import(".").{{updateName}},
+      import(".").{{queryBuilder}}
+    >;
+  {{/each}}
+  {{#each views}}
+    "{{moduleName}}": import("knex").Knex.CompositeTableType<
+      import(".").{{recordName}}
+    >;
+  {{/each}}
+  }
+}
+
+{{! needed for declared modules to be treated as augmented rather than ambient }}
+export type {}

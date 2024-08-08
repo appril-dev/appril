@@ -1,6 +1,8 @@
 import { camelCase, upperFirst } from "lodash-es";
 import pluralize from "pluralize";
 
+export const defaultModulePrefix = "pgts";
+
 export function defaultNominator(name: string) {
   return upperFirst(camelCase(name));
 }

@@ -5,12 +5,14 @@ import * as apiAssets from "./api-assets/workers";
 import * as fetchGenerator from "./fetch-generator/workers";
 import * as solidPages from "./solid-pages/workers";
 
+// order is highly important but still can use an object
+// cause Object.keys returns string keys in the order they was added
 export const workerMap = {
-  fetchGenerator,
   solidPages,
-  apiAssets,
+  fetchGenerator,
   apiGenerator,
-} as const;
+  apiAssets,
+};
 
 export type WorkerMap = typeof workerMap;
 
@@ -27,16 +29,7 @@ export async function bootstrapWorker(
   payload: Record<string, never>,
   workerPool: WorkerMap,
 ) {
-  const generators = [
-    /** order is highly important!
-     * thus using array rather than iterating over workerMap */
-    "solidPages",
-    "fetchGenerator",
-    "apiGenerator",
-    "apiAssets",
-  ] as const;
-
-  for (const generator of generators) {
+  for (const generator of Object.keys(workerMap) as Array<keyof WorkerMap>) {
     // bootstrap only generators defined in payload
     if (payload[generator]) {
       await workerPool[generator].bootstrap(payload[generator]);
@@ -51,26 +44,24 @@ export function workerFactory(useWorkers: boolean) {
 
   worker.on("exit", (code) => {
     console.error(`\nWorker Exited with code ${code}`);
+    worker?.unref();
     worker = undefined;
   });
 
-  const workerPool: WorkerMap = {
-    ...workerMap,
-  };
+  const workerPool: WorkerMap = { ...workerMap };
 
   if (useWorkers) {
-    for (const [pool, workers] of Object.entries(workerMap) as [
-      k: keyof WorkerMap,
-      v: never,
-    ][]) {
-      // @ts-expect-error read-only property
-      workerPool[pool] = Object.keys(workers).reduce(
-        (map: Record<string, (data: never) => void>, task) => {
-          map[task] = (data) => worker?.postMessage({ pool, task, data });
-          return map;
-        },
-        {},
-      );
+    for (const [pool, workers] of Object.entries(workerPool)) {
+      const reducer = (
+        map: Record<string, (data: never) => void>,
+        task: string,
+      ) => {
+        map[task] = (data) => worker?.postMessage({ pool, task, data });
+        return map;
+      };
+      Object.assign(workerPool, {
+        [pool]: Object.keys(workers).reduce(reducer, {}),
+      });
     }
   }
 

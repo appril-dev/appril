@@ -1,40 +1,33 @@
 import { join } from "node:path";
 
 import { APIMethods } from "@appril/api/router";
-import { fileGenerator } from "@appril/utils";
+import { fileGenerator } from "@appril/dev-utils";
 
-import { type ApiTemplates, type ApiRoute, BANNER, defaults } from "../base";
+import { type ApiRoute, defaults } from "../base";
 
 import baseTpl from "./templates/base.hbs";
 import routeTpl from "./templates/route.hbs";
 import routesTpl from "./templates/routes.hbs";
 
-const { generateFile } = fileGenerator();
-
 let sourceFolder: string;
-let sourceFolderPath: string;
+let generateFile: ReturnType<typeof fileGenerator>["generateFile"];
 
 export async function bootstrap(data: {
-  routes: ApiRoute[];
+  root: string;
   sourceFolder: string;
-  sourceFolderPath: string;
-  customTemplates: ApiTemplates;
+  routes: Array<ApiRoute>;
+  template: string | undefined;
 }) {
-  const { routes, customTemplates } = data;
+  const { routes, template } = data;
 
   sourceFolder = data.sourceFolder;
-  sourceFolderPath = data.sourceFolderPath;
 
-  await generateFile(
-    join(defaults.apiDir, defaults.apiDataDir, defaults.apiSourceFile),
-    "",
-    {
-      overwrite: false,
-    },
-  );
+  generateFile = fileGenerator(data.root).generateFile;
+
+  await generateFile(defaults.dataSourceFile, "", { overwrite: false });
 
   for (const route of routes) {
-    await generateRouteFiles({ route, customTemplates });
+    await generateRouteFiles({ route, template });
   }
 
   await generateIndexFiles(data.routes);
@@ -43,15 +36,15 @@ export async function bootstrap(data: {
 export async function handleSrcFileUpdate({
   file,
   routes,
-  customTemplates,
+  template,
 }: {
   file: string;
-  routes: ApiRoute[];
-  customTemplates: ApiTemplates;
+  routes: Array<ApiRoute>;
+  template: string | undefined;
 }) {
   // making sure newly added routes have files generated
   for (const route of routes.filter((e) => e.srcFile === file)) {
-    await generateRouteFiles({ route, customTemplates });
+    await generateRouteFiles({ route, template });
   }
 
   await generateIndexFiles(routes);
@@ -59,8 +52,8 @@ export async function handleSrcFileUpdate({
 
 async function generateRouteFiles({
   route,
-  customTemplates,
-}: { route: ApiRoute; customTemplates: ApiTemplates }) {
+  template,
+}: { route: ApiRoute; template: string | undefined }) {
   if (!route.optedFile) {
     await generateFile(
       join(defaults.varDir, defaults.apiDir, route.importPath, "index.ts"),
@@ -78,49 +71,30 @@ async function generateRouteFiles({
   await generateFile(
     join(defaults.apiDir, route.file),
     {
-      template: route.template || customTemplates.route || routeTpl,
+      template: template || routeTpl,
       context: { route, defaults },
     },
     { overwrite: false },
   );
 }
 
-async function generateIndexFiles(routes: ApiRoute[]) {
-  await generateFile(join(defaults.apiDir, defaults.apiRoutesFile), {
-    template: routesTpl,
-    context: {
-      BANNER,
-      routes: routes
-        .map((route) => ({
-          ...route,
-          meta: JSON.stringify(route.meta),
-          importPathApi: [
-            defaults.basePrefix,
-            sourceFolder,
-            defaults.apiDir,
-            route.importPath,
-          ].join("/"),
-          importPathVar: [
-            defaults.basePrefix,
-            sourceFolder,
-            defaults.varDir,
-            defaults.apiDir,
-            route.importPath,
-            "@assets",
-          ].join("/"),
-        }))
-        .sort((a, b) => a.path.localeCompare(b.path)),
-      importPathConfig: [
-        defaults.basePrefix,
-        sourceFolder,
-        defaults.configDir,
-      ].join("/"),
-      importPathRouter: [
-        defaults.basePrefix,
-        sourceFolder,
-        defaults.apiDir,
-        "router",
-      ].join("/"),
+async function generateIndexFiles(routes: Array<ApiRoute>) {
+  const base = join(defaults.appPrefix, sourceFolder);
+  await generateFile(
+    join(defaults.varDir, defaults.apiDir, defaults.apiRoutesFile),
+    {
+      template: routesTpl,
+      context: {
+        routes: routes
+          .map((route) => ({
+            ...route,
+            ...(route.meta ? { meta: JSON.stringify(route.meta) } : {}),
+          }))
+          .sort((a, b) => a.path.localeCompare(b.path)),
+        importPathCfg: [base, defaults.configDir].join("/"),
+        importPathApi: [base, defaults.apiDir].join("/"),
+        importPathVar: [base, defaults.varDir, defaults.apiDir].join("/"),
+      },
     },
-  });
+  );
 }

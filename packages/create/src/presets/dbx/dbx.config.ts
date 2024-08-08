@@ -1,4 +1,4 @@
-import { defineConfig } from "@appril/dbx/cli";
+import { defineConfig } from "@appril/dbx-cli";
 
 import { connection, client } from "./config/knex";
 

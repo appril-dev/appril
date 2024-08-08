@@ -1,6 +1,6 @@
 import type { Options as FormidableOptions } from "formidable";
 
-export type TrimOption = string[];
+export type TrimOption = Array<string>;
 
 export type Trimmer = (
   fields: Record<string, unknown>,

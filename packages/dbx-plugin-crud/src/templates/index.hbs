@@ -1,0 +1,241 @@
+import type {
+  DefaultState,
+  DefaultContext,
+  Middleware,
+  MiddlewareDefinition,
+  Middleworker,
+  MiddleworkerContext,
+  UseDefinition,
+} from "@appril/api/router";
+
+import type { QueryBuilder } from "@appril/dbx";
+import type { Knex } from "knex";
+
+export type MaybePromise<T> = T | Promise<T>;
+
+export type Context<
+  TableName extends Knex.TableNames
+> = DefaultContext & {
+  readonly crud: {
+    readonly dbx: QueryBuilder<TableName>;
+    readonly queryBuilder: QueryBuilder<TableName>;
+    readonly primaryKey: string;
+    returning?: string | Array<string> | Knex.Raw;
+  };
+};
+
+export type Handler<StateT, ContextT> = (
+  ctx: MiddleworkerContext<StateT, ContextT>,
+  payload: never,
+  handler: (payload: unknown) => MaybePromise<never>,
+) => MaybePromise<unknown>;
+
+export interface Wrapper<StateT, ContextT> {
+  <StateB = object, ContextB = object>(
+    a: Handler<
+      StateT & StateB,
+      ContextT & ContextB
+    >,
+  ): MiddlewareDefinition<
+    StateT & StateB,
+    ContextT & ContextB
+  >;
+}
+
+export interface UseWrapper<StateT, ContextT> {
+  <StateB = object, ContextB = object>(
+    a: Middleware<
+      StateT & StateB,
+      ContextT & ContextB
+    >,
+  ): UseDefinition;
+}
+
+export type Pager = {
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  nextPage: number;
+  prevPage: number;
+  offset: number;
+};
+
+export const config = {
+  primaryKey: "id",
+  itemsPerPage: 25,
+  sidePages: 4,
+};
+
+export default <TableName extends Knex.TableNames>(
+  dbx: QueryBuilder<TableName>,
+  opt: {
+    primaryKey?: string;
+    itemsPerPage?: number;
+    sidePages?: number;
+  },
+) => {
+  type ContextT = Context<TableName>;
+  type HandlerT = Middleworker<DefaultState, ContextT>;
+
+  const { primaryKey, itemsPerPage, sidePages } = {
+    ...config,
+    ...opt,
+  };
+
+  const createHandler: HandlerT = async (ctx, payload) => {
+    const [item] = await ctx.crud.dbx
+      .insert(payload as never)
+      .returning(ctx.crud.returning || "*");
+    return item;
+  };
+
+  const updateHandler: HandlerT = async (ctx, payload) => {
+    const [item] = await ctx.crud.dbx
+      .where(ctx.crud.primaryKey, ctx.params._id)
+      .update(payload as never)
+      .returning(ctx.crud.returning || "*");
+
+    // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
+    ctx.assert(item, 404);
+
+    return item;
+  };
+
+  const deleteHandler: HandlerT = async (ctx) => {
+    const [item] = await ctx.crud.dbx
+      .where(ctx.crud.primaryKey, ctx.params._id)
+      .delete()
+      .returning(ctx.crud.returning || "*");
+
+    // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
+    ctx.assert(item, 404);
+
+    return item;
+  };
+
+  const retrieveHandler: HandlerT = async (ctx) => {
+    const item = await ctx.crud.queryBuilder
+      .where(ctx.crud.primaryKey, ctx.params.id)
+      .first(ctx.crud.returning || "*");
+
+    // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
+    ctx.assert(item, 404);
+
+    return item;
+  };
+
+  const listHandler: HandlerT = async (ctx) => {
+    const { crud } = ctx;
+
+    const totalItems = await crud.queryBuilder.clone().countRows();
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    let currentPage = Number(ctx.query._page || 0);
+
+    if (currentPage < 1) {
+      currentPage = 1;
+    }
+
+    if (currentPage > totalPages) {
+      currentPage = totalPages;
+    }
+
+    let nextPage = currentPage + 1;
+
+    if (nextPage > totalPages) {
+      nextPage = 0;
+    }
+
+    let prevPage = currentPage - 1;
+
+    if (prevPage < 1) {
+      prevPage = 0;
+    }
+
+    let minPage = currentPage - sidePages;
+
+    if (currentPage + sidePages > totalPages) {
+      minPage = totalPages - sidePages * 2;
+    }
+
+    if (minPage < 1) {
+      minPage = 1;
+    }
+
+    let maxPage = currentPage + sidePages;
+
+    if (currentPage < sidePages) {
+      maxPage = sidePages * 2;
+    }
+
+    if (maxPage > totalPages) {
+      maxPage = totalPages;
+    }
+
+    let offset = (currentPage - 1) * itemsPerPage;
+
+    if (offset < 0) {
+      offset = 0;
+    }
+
+    const pager = {
+      totalItems,
+      totalPages,
+      currentPage,
+      nextPage,
+      prevPage,
+      offset,
+    } as Pager;
+
+    const items = await crud.queryBuilder
+      .select(ctx.crud.returning || "*")
+      .offset(offset)
+      .limit(itemsPerPage);
+
+    return {
+      items,
+      pager,
+    };
+  };
+
+  const crudContext: Record<
+    keyof ContextT["crud"],
+    PropertyDescriptor
+  > = {
+    dbx: {
+      get() {
+        return dbx;
+      }
+    },
+    queryBuilder: { value: dbx.clone() },
+    primaryKey: { value: primaryKey },
+    returning: { value: undefined, writable: true },
+  };
+
+  const ctxExtend = {
+    crud: Object.defineProperties({}, crudContext),
+  };
+
+  const initHandler: Middleware<DefaultState, ContextT> = (ctx, next) => {
+    for (const [key, value] of Object.entries(ctxExtend)) {
+      key in ctx ||
+        Object.defineProperty(ctx, key, {
+          value,
+          configurable: false,
+          writable: false,
+          enumerable: true,
+        });
+    }
+
+    return next();
+  };
+
+  return {
+    initHandler,
+    createHandler,
+    updateHandler,
+    deleteHandler,
+    retrieveHandler,
+    listHandler,
+  }
+};

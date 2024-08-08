@@ -10,7 +10,7 @@ import {
 } from "@appril/api/router";
 
 import { errorHandler } from "~/base/@api/app";
-import routes, { routeStack } from "./routes";
+import routes, { routeStack } from "_/api/routes";
 
 export const app = withQueryparser(new Koa<DefaultState, DefaultContext>());
 

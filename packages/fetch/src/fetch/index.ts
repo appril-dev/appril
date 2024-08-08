@@ -39,16 +39,16 @@ function fetch(base: string | URL, opts?: Options): FetchMapper {
     function _wrapper<T>(): Promise<T>;
 
     // path without data
-    function _wrapper<T>(path: PathEntry | PathEntry[]): Promise<T>;
+    function _wrapper<T>(path: PathEntry | Array<PathEntry>): Promise<T>;
 
     // path and data
     function _wrapper<T>(
-      path: PathEntry | PathEntry[],
+      path: PathEntry | Array<PathEntry>,
       data: GenericObject,
     ): Promise<T>;
 
     function _wrapper<T>(
-      _path?: PathEntry | PathEntry[],
+      _path?: PathEntry | Array<PathEntry>,
       _data?: GenericObject,
     ): Promise<T> {
       const path = Array.isArray(_path)
@@ -59,7 +59,7 @@ function fetch(base: string | URL, opts?: Options): FetchMapper {
 
       const data = Object.assign({}, _data || {});
 
-      let url = join(String(base), ...(path as PathEntry[]));
+      let url = join(String(base), ...(path as Array<PathEntry>));
 
       const config: Options & { method: HTTPMethod; body?: string } = {
         ...fetchConfig,
@@ -119,7 +119,7 @@ const pathTypes: { [key: string]: boolean } = {
   "[object String]": true,
 };
 
-function join(...args: PathEntry[]) {
+function join(...args: Array<PathEntry>) {
   for (const a of args) {
     const type = Object.prototype.toString.call(a);
     if (!pathTypes[type]) {

@@ -53,7 +53,7 @@ export type ZodTable = boolean | Record<string, ZodColumn>;
 export type ZodConfig = Record<string, string | ZodTable>;
 
 export type Config = {
-  schemas?: string[];
+  schemas?: Array<string>;
   customTypes?: CustomTypes;
   recordSuffix?: string;
   insertSuffix?: string;
@@ -68,10 +68,13 @@ export type Config = {
   viewNominator?: ViewNominator;
   viewFilter?: ViewFilter;
   modelNominator?: ModelNominator;
+  modulePrefix?: string;
   zod?: ZodConfig;
 };
 
-export type DefaultConfig = Required<Omit<Config, "schemas" | "zod">>;
+export type DefaultConfig = Required<
+  Omit<Config, "schemas" | "modulePrefix" | "zod">
+>;
 
 export type ResolvedConfig = Required<Config>;
 
@@ -79,13 +82,13 @@ export type EnumDeclaration = {
   schema: string;
   name: string;
   declaredName: string;
-  values: string[];
+  values: Array<string>;
   enumSuffix: string;
 };
 
 export type ColumnDeclaration = {
   type: string;
-  kind: string;
+  kind: import("extract-pg-schema").TableColumnType["kind"];
   name: string;
   isPrimaryKey?: boolean;
   isOptional: boolean;
@@ -93,33 +96,37 @@ export type ColumnDeclaration = {
   isRegular: boolean;
   defaultValue: unknown;
   declaredType: string;
-  comments: string[];
+  importedType?: ImportedType;
+  comments: Array<string>;
   zodSchema?: string;
+  enumDeclaration?: EnumDeclaration;
 };
 
 export type TableDeclaration = {
   schema: string;
   name: string;
   fullName: string;
+  modelName: string;
+  moduleName: string;
   primaryKey?: string;
   declaredName: string;
   recordName: string;
   insertName: string;
   updateName: string;
   queryBuilder: string;
-  modelName: string;
-  columns: ColumnDeclaration[];
-  regularColumns: ColumnDeclaration[];
+  columns: Array<ColumnDeclaration>;
+  regularColumns: Array<ColumnDeclaration>;
 };
 
 export type ViewDeclaration = {
   schema: string;
   name: string;
   fullName: string;
+  modelName: string;
+  moduleName: string;
   primaryKey?: string;
   declaredName: string;
   recordName: string;
   queryBuilder: string;
-  modelName: string;
-  columns: ColumnDeclaration[];
+  columns: Array<ColumnDeclaration>;
 };

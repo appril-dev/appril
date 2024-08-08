@@ -1,7 +1,7 @@
 import { Router } from "@solidjs/router";
 
 import { baseurl } from "@/config";
-import routes from "./routes";
+import routes from "_/router/routes";
 import App from "../App";
 
 export default () => (

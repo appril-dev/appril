@@ -1,25 +1,26 @@
-import * as tsquery from "@phenomnomnominal/tsquery";
 import fsx from "fs-extra";
+import * as tsquery from "@phenomnomnominal/tsquery";
 
-import type {
-  Node,
-  NodeArray,
-  Expression,
-  CallExpression,
-  ImportSpecifier,
-  ImportDeclaration,
-  ArrowFunction,
-  FunctionExpression,
-  TypeAliasDeclaration,
-  InterfaceDeclaration,
-  ParameterDeclaration,
+import ts, {
+  type Node,
+  type NodeArray,
+  type Expression,
+  type CallExpression,
+  type ImportSpecifier,
+  type ImportDeclaration,
+  type ArrowFunction,
+  type FunctionExpression,
+  type TypeAliasDeclaration,
+  type InterfaceDeclaration,
+  type ParameterDeclaration,
+  type TypeReferenceNode,
 } from "typescript";
+import { httpMethodByApi } from "./base";
 
-import ts from "typescript";
-
-export type MiddleworkerPayloadTypes = Record<number, string>;
-
-export type RelpathResolver = (path: string) => string;
+export type MiddleworkerPayloadTypes = Record<
+  number,
+  { method: string; payloadType: string }
+>;
 
 export type FetchDefinition = {
   method: string;
@@ -27,6 +28,8 @@ export type FetchDefinition = {
   payloadType?: string;
   bodyType?: string;
 };
+
+export type RelpathResolver = (path: string) => string;
 
 export type TypeDeclaration = {
   text: string;
@@ -44,79 +47,70 @@ export type TypeDeclaration = {
   };
 };
 
-export async function extractApiAssets(
-  file: string,
+export function extractDefaultExportedArrayMethods<
+  MethodsOfInterest extends readonly string[] = [],
+>(
+  srcText: string,
   {
+    methodsOfInterest,
     relpathResolver,
   }: {
+    methodsOfInterest: readonly string[];
     relpathResolver: RelpathResolver;
   },
-): Promise<{
-  typeDeclarations: TypeDeclaration[];
-  middleworkerPayloadTypes: MiddleworkerPayloadTypes;
-  fetchDefinitions: FetchDefinition[];
-}> {
-  const fileContent = (await fsx.exists(file))
-    ? await fsx.readFile(file, "utf8")
-    : "";
-
-  const ast = tsquery.ast(fileContent);
+): {
+  typeDeclarations: Array<TypeDeclaration>;
+  methods: Array<{
+    method: MethodsOfInterest[number];
+    index: number;
+    payloadType: string | undefined;
+    returnType: string | undefined;
+  }>;
+} {
+  const ast = tsquery.ast(srcText);
 
   const typeDeclarations = extractTypeDeclarations(ast, { relpathResolver });
 
   const callExpressions = tsquery
     .match(ast, "ExportAssignment ArrayLiteralExpression > CallExpression")
-    .filter((e) => e.parent?.parent?.parent === ast) as CallExpression[];
+    .filter((e) => e.parent?.parent?.parent === ast) as Array<CallExpression>;
 
-  const middleworkerPayloadTypes: MiddleworkerPayloadTypes = {};
-  const fetchDefinitions: Record<string, FetchDefinition> = {};
+  const methods = [];
 
-  for (const [i, node] of callExpressions.entries()) {
+  for (const [index, node] of callExpressions.entries()) {
     const method = node.expression.getText();
-    const httpMethod = httpMethodByApi(method);
 
-    if (
-      !["head", "options", "get", "put", "patch", "post", "del"].includes(
-        method,
-      )
-    ) {
+    if (!methodsOfInterest.includes(method)) {
       continue;
     }
 
-    const middleworker = node.arguments?.[0] as
+    const firstArg = node.arguments?.[0] as
       | ArrowFunction
       | FunctionExpression
       | undefined;
 
     if (
-      !middleworker ||
-      ![
-        ts.isArrowFunction(middleworker),
-        ts.isFunctionExpression(middleworker),
-      ].some((e) => e === true)
+      !firstArg ||
+      ![ts.isArrowFunction(firstArg), ts.isFunctionExpression(firstArg)].some(
+        (e) => e === true,
+      )
     ) {
       continue;
     }
 
-    const { payloadType } = paramsMapper(middleworker.parameters);
+    const payloadType = extractPayloadType(firstArg.parameters);
 
-    if (payloadType) {
-      middleworkerPayloadTypes[i] = payloadType;
-    }
+    const returnType = extractReturnType(firstArg);
 
-    fetchDefinitions[method] = {
+    methods.push({
       method,
-      httpMethod,
+      index,
       payloadType,
-      bodyType: extractReturnType(middleworker),
-    };
+      returnType,
+    });
   }
 
-  return {
-    typeDeclarations,
-    middleworkerPayloadTypes,
-    fetchDefinitions: Object.values(fetchDefinitions),
-  };
+  return { typeDeclarations, methods };
 }
 
 export function extractTypeDeclarations(
@@ -126,18 +120,18 @@ export function extractTypeDeclarations(
   }: {
     relpathResolver: RelpathResolver;
   },
-): TypeDeclaration[] {
-  const importDeclarations: ImportDeclaration[] = tsquery.match(
+): Array<TypeDeclaration> {
+  const importDeclarations: Array<ImportDeclaration> = tsquery.match(
     ast,
     "ImportDeclaration",
   );
 
-  const interfaceDeclarations: InterfaceDeclaration[] = tsquery.match(
+  const interfaceDeclarations: Array<InterfaceDeclaration> = tsquery.match(
     ast,
     "InterfaceDeclaration",
   );
 
-  const typeAliasDeclarations: TypeAliasDeclaration[] = tsquery.match(
+  const typeAliasDeclarations: Array<TypeAliasDeclaration> = tsquery.match(
     ast,
     "TypeAliasDeclaration",
   );
@@ -154,13 +148,13 @@ export function extractTypeDeclarations(
     for (const spec of tsquery.match(
       node,
       "ImportSpecifier",
-    ) as ImportSpecifier[]) {
+    ) as Array<ImportSpecifier>) {
       const name = spec.getText();
       let text: string;
       if (node.importClause?.isTypeOnly) {
         text = `import type { ${name} } from "${path}";`;
       } else if (spec.isTypeOnly) {
-        text = `import { ${name} } from "${path}";`;
+        text = `import type { ${name.replace("type ", "")} } from "${path}";`;
       } else {
         continue;
       }
@@ -203,42 +197,38 @@ export function extractTypeDeclarations(
   return Object.values(typeDeclarationsMap);
 }
 
-function paramsMapper(parameters: NodeArray<ParameterDeclaration>): {
-  payloadType?: string;
-} {
-  let payloadType: string | undefined;
+export function extractPayloadType(
+  parameters: NodeArray<ParameterDeclaration>,
+): string | undefined {
+  // payload provided as second argument
+  const payloadParameter = parameters[1];
 
-  for (const [i, parameter] of parameters.entries()) {
-    if (i === 1) {
-      // processing payload parameter at position 1
-      const [typeExp] = tsquery
-        .match(
-          parameter,
-          "IntersectionType,TypeReference,TypeLiteral,AnyKeyword",
-        )
-        .filter((e) => e.parent === parameter);
-
-      payloadType = typeExp?.getText();
-    }
-  }
-
-  return {
-    payloadType,
-  };
-}
-
-function extractReturnType(node: Expression | Node): string | undefined {
-  const [typeExp] = tsquery
-    .match(node, "IntersectionType,TypeReference,TypeLiteral,AnyKeyword")
-    .filter((e) => e.parent === node);
-
-  if (!typeExp) {
+  if (!payloadParameter) {
     return;
   }
 
-  if (/^Promise(\s+)?</.test(typeExp.getText())) {
+  const [typeNode] = tsquery
+    .match(
+      payloadParameter,
+      "IntersectionType,TypeReference,TypeLiteral,AnyKeyword",
+    )
+    .filter((e) => e.parent === payloadParameter);
+
+  return typeNode?.getText();
+}
+
+export function extractReturnType(node: Expression | Node): string | undefined {
+  let [typeNode] = tsquery
+    .match(node, "IntersectionType,TypeReference,TypeLiteral,AnyKeyword")
+    .filter((e) => e.parent === node);
+
+  if (!typeNode) {
+    return;
+  }
+
+  if (/^Promise(\s+)?</.test(typeNode.getText())) {
     const [wrappedType] = tsquery.match(
-      typeExp,
+      typeNode,
       [
         "IntersectionType:first-child",
         "TypeReference:first-child",
@@ -247,12 +237,69 @@ function extractReturnType(node: Expression | Node): string | undefined {
       ].join(","),
     );
 
-    return wrappedType?.getText();
+    typeNode = wrappedType;
   }
 
-  return typeExp.getText();
+  return typeNode?.getText();
 }
 
-export function httpMethodByApi(apiMethod: string): string {
-  return apiMethod === "del" ? "DELETE" : apiMethod.toUpperCase();
+export function extractTypeReferences(node: Node) {
+  return tsquery
+    .match<TypeReferenceNode>(node, "TypeReference")
+    .map((e) => e.typeName.getText());
+}
+
+export async function extractApiAssets(
+  file: string,
+  {
+    relpathResolver,
+  }: {
+    relpathResolver: RelpathResolver;
+  },
+): Promise<{
+  typeDeclarations: Array<TypeDeclaration>;
+  middleworkerPayloadTypes: MiddleworkerPayloadTypes;
+  fetchDefinitions: Array<FetchDefinition>;
+}> {
+  const fileContent = (await fsx.exists(file))
+    ? await fsx.readFile(file, "utf8")
+    : "";
+
+  const { typeDeclarations, methods } = extractDefaultExportedArrayMethods(
+    fileContent,
+    {
+      relpathResolver,
+      methodsOfInterest: [
+        "head",
+        "options",
+        "get",
+        "put",
+        "patch",
+        "post",
+        "del",
+      ],
+    },
+  );
+
+  const middleworkerPayloadTypes: MiddleworkerPayloadTypes = {};
+  const fetchDefinitions: Record<string, FetchDefinition> = {};
+
+  for (const { method, index, payloadType, returnType } of methods) {
+    if (payloadType) {
+      middleworkerPayloadTypes[index] = { method, payloadType };
+    }
+
+    fetchDefinitions[method] = {
+      method,
+      httpMethod: httpMethodByApi(method),
+      payloadType,
+      bodyType: returnType,
+    };
+  }
+
+  return {
+    typeDeclarations,
+    middleworkerPayloadTypes,
+    fetchDefinitions: Object.values(fetchDefinitions),
+  };
 }

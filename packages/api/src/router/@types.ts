@@ -67,8 +67,13 @@ export type MiddlewareDefinition<
 /** biome-ignore lint: */
 type MiddleworkerReturn = any | Promise<any>;
 
-type Middleworker<StateT = DefaultState, ContextT = DefaultContext> = (
-  ctx: import("koa").ParameterizedContext<StateT, ContextT>,
+export type MiddleworkerContext<
+  StateT = DefaultState,
+  ContextT = DefaultContext,
+> = import("koa__router").RouterContext<StateT, ContextT>;
+
+export type Middleworker<StateT = DefaultState, ContextT = DefaultContext> = (
+  ctx: MiddleworkerContext<StateT, ContextT>,
   payload: never,
 ) => MiddleworkerReturn;
 
@@ -84,9 +89,9 @@ export type UseDefinitionBase<
 };
 
 export type UseFactory<TScope> = {
-  before: (...p: TScope[]) => UseDefinition<TScope>;
+  before: (...p: Array<TScope>) => UseDefinition<TScope>;
   beforeMatch: (m: APIMethod, p?: string) => boolean;
-  after: (...p: TScope[]) => UseDefinition<TScope>;
+  after: (...p: Array<TScope>) => UseDefinition<TScope>;
   afterMatch: (m: APIMethod, p?: string) => boolean;
 };
 
@@ -99,44 +104,27 @@ type UseMiddleware<StateT, ContextT> =
   | Middleware<StateT, ContextT>
   | Array<Middleware<StateT, ContextT>>;
 
-export interface DefinitionI<StateA = object, ContextA = object> {
+export interface DefinitionI<StateT = DefaultState, ContextT = DefaultContext> {
   <StateB = object, ContextB = object>(
-    a: Middleworker<
-      DefaultState & StateA & StateB,
-      DefaultContext & ContextA & ContextB
-    >,
-  ): MiddlewareDefinition<
-    DefaultState & StateA & StateB,
-    DefaultContext & ContextA & ContextB
-  >;
+    a: Middleworker<StateT & StateB, ContextT & ContextB>,
+  ): MiddlewareDefinition<StateT & StateB, ContextT & ContextB>;
 
   <StateB = object, ContextB = object>(
-    a: Array<
-      Middleware<
-        DefaultState & StateA & StateB,
-        DefaultContext & ContextA & ContextB
-      >
-    >,
-  ): MiddlewareDefinition<
-    DefaultState & StateA & StateB,
-    DefaultContext & ContextA & ContextB
-  >;
+    a: Array<Middleware<StateT & StateB, ContextT & ContextB>>,
+  ): MiddlewareDefinition<StateT & StateB, ContextT & ContextB>;
 }
 
-export interface UseDefinitionI<StateA = object, ContextA = object> {
+export interface UseDefinitionI<
+  StateT = DefaultState,
+  ContextT = DefaultContext,
+> {
   <StateB = object, ContextB = object>(
-    a: UseMiddleware<
-      DefaultState & StateA & StateB,
-      DefaultContext & ContextA & ContextB
-    >,
+    a: UseMiddleware<StateT & StateB, ContextT & ContextB>,
   ): UseDefinition;
 
   <StateB = object, ContextB = object>(
     a: keyof UseIdentities,
-    b: UseMiddleware<
-      DefaultState & StateA & StateB,
-      DefaultContext & ContextA & ContextB
-    >,
+    b: UseMiddleware<StateT & StateB, ContextT & ContextB>,
   ): UseDefinition;
 }
 

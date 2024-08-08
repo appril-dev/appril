@@ -3,6 +3,8 @@
   "include": ["src"],
   "compilerOptions": {
     "noEmit": true,
+    "declaration": false,
+    "emitDeclarationOnly": false,
     "jsx": "preserve",
     "jsxImportSource": "solid-js"
   }

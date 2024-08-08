@@ -1,27 +1,30 @@
+import { resolve } from "node:path";
+
+import type { ResolvedConfig } from "vite";
 import fsx from "fs-extra";
 import glob from "fast-glob";
-import { resolveCwd, fileGenerator } from "@appril/utils";
+import { fileGenerator } from "@appril/dev-utils";
 
 import { BANNER } from "../base";
 
 type ContextFolder = {
   folder: string;
-  files: ResolvedFile[];
+  files: Array<ResolvedFile>;
 };
 
 type Context = {
-  files: ResolvedFile[];
-  folders: ContextFolder[];
+  files: Array<ResolvedFile>;
+  folders: Array<ContextFolder>;
 };
 
 type ContextHandler = (data: Context) => unknown;
 
 type Entry = {
   base: string;
-  folders?: string[];
-  pattern?: string | string[];
-  ignore?: string | string[];
-  defaultIgnore?: string | string[];
+  folders?: Array<string>;
+  pattern?: string | Array<string>;
+  ignore?: string | Array<string>;
+  defaultIgnore?: string | Array<string>;
   template: string;
   outfile: string;
   context?: ContextHandler;
@@ -43,8 +46,11 @@ const PLUGIN_NAME = "@appril:fileBundlerPlugin";
 export function fileBundlerPlugin(
   entries: Array<Entry>,
 ): import("vite").Plugin {
-  async function resolveFiles(entry: Required<Entry>): Promise<ResolvedFile[]> {
-    const files: ResolvedFile[] = [];
+  async function resolveFiles(
+    root: string,
+    entry: Required<Entry>,
+  ): Promise<Array<ResolvedFile>> {
+    const files: Array<ResolvedFile> = [];
 
     const patterns = Array.isArray(entry.pattern)
       ? entry.pattern
@@ -54,11 +60,11 @@ export function fileBundlerPlugin(
 
     const patternMapper = (p: string) => {
       return folders.length
-        ? folders.map((f) => resolveCwd(entry.base, f, p))
-        : [resolveCwd(entry.base, p)];
+        ? folders.map((f) => resolve(root, entry.base, f, p))
+        : [resolve(root, entry.base, p)];
     };
 
-    const cwd = resolveCwd(entry.base);
+    const cwd = resolve(root, entry.base);
 
     const matches = await glob(patterns.flatMap(patternMapper), {
       cwd,
@@ -79,7 +85,7 @@ export function fileBundlerPlugin(
     });
 
     for (const match of matches) {
-      if (match.path === resolveCwd(entry.outfile)) {
+      if (match.path === resolve(root, entry.outfile)) {
         continue;
       }
 
@@ -109,8 +115,8 @@ export function fileBundlerPlugin(
     return files.sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  async function generateFiles() {
-    const { generateFile } = fileGenerator();
+  async function generateFiles({ root }: ResolvedConfig) {
+    const { generateFile } = fileGenerator(root);
 
     for (const _entry of entries) {
       const entry: Required<Entry> = {
@@ -122,9 +128,12 @@ export function fileBundlerPlugin(
         ..._entry,
       };
 
-      const files = await resolveFiles(entry);
+      const files = await resolveFiles(root, entry);
 
-      const template = await fsx.readFile(resolveCwd(entry.template), "utf8");
+      const template = await fsx.readFile(
+        resolve(root, entry.template),
+        "utf8",
+      );
 
       const folderMapper = (folder: string) => ({
         folder,

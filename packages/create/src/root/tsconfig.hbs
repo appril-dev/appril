@@ -17,7 +17,8 @@
 
   "compilerOptions": {
     "paths": {
-      "~/*": ["./*"]
+      "{{defaults.appPrefix}}/*": ["./*"],
+      "{{defaults.varPrefix}}/*": ["./{{defaults.varDir}}/*"]
     }
   }
 

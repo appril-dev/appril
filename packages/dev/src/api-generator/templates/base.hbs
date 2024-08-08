@@ -1,12 +1,20 @@
-import { type DefinitionI, definitionFactory, use } from "@appril/api/router";
+import {
+  type DefaultState,
+  type DefaultContext,
+  type DefinitionI,
+  definitionFactory,
+  use,
+} from "@appril/api/router";
 
 export type ParamsT = { {{route.paramsType}} }
+export type ContextT = DefaultContext & { params: ParamsT }
+
 export { use };
-export * from "{{defaults.basePrefix}}/{{defaults.baseDir}}/@api/use";
+export * from "{{defaults.appPrefix}}/{{defaults.baseDir}}/@api/use";
 {{#each apiMethods}}
 
 export const {{this}}: DefinitionI<
-  object,
-  { params: ParamsT }
+  DefaultState,
+  ContextT
 > = (a) => definitionFactory("{{this}}", a)
 {{/each}}

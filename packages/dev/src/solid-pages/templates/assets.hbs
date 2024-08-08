@@ -1,5 +1,3 @@
-{{BANNER}}
-
 export type LinkProps =
   {{#each pages}}
   | [ "{{originalPath}}", {{link.props}} ]
@@ -9,8 +7,8 @@ type Replacement = [ pattern: string, index: number ]
 
 export const linkReplcements = {
   {{#each pages}}
-  "{{originalPath}}"(params: string[]) {
-    const replacements: Replacement[] = {{link.replacements}}
+  "{{originalPath}}"(params: Array<string>) {
+    const replacements: Array<Replacement> = {{link.replacements}}
     return replacements.reduce(
       (p,[pattern,i]) => p.replace(pattern, params[i] || ""),
       "{{link.base}}"

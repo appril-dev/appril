@@ -4,37 +4,36 @@ import glob from "fast-glob";
 import fsx from "fs-extra";
 import crc32 from "crc/crc32";
 import { parse } from "smol-toml";
-import { sanitizePath } from "@appril/utils";
+import { sanitizePath } from "@appril/dev-utils";
 
 import { normalizeRoutePath, routeSections, defaults } from "../base";
 
 import type {
   ResolvedPluginOptions,
-  ApiRouteConfig,
+  RouteOptions,
   ApiRoute,
   ApiRouteAlias,
 } from "../@types";
 
 type ParsedEntry = {
-  routeConfig?: ApiRouteConfig;
   route: ApiRoute;
-  alias: ApiRouteAlias[];
+  alias: Array<ApiRouteAlias>;
 };
 
 export async function sourceFilesParsers(
   _config: import("vite").ResolvedConfig,
   options: ResolvedPluginOptions,
-  pattern = `**/*${defaults.apiSourceFile}`,
+  pattern = `*${defaults.sourceFile}`,
 ) {
-  const { sourceFolderPath } = options;
+  const { root } = options;
 
-  const parsers: {
+  const parsers: Array<{
     file: string;
-    parser: () => Promise<ParsedEntry[]>;
-  }[] = [];
+    parser: () => Promise<Array<ParsedEntry>>;
+  }> = [];
 
   const srcFiles = await glob(pattern, {
-    cwd: resolve(sourceFolderPath, defaults.apiDir),
+    cwd: root,
     onlyFiles: true,
     absolute: true,
     unique: true,
@@ -46,12 +45,15 @@ export async function sourceFilesParsers(
       async parser() {
         const routeDefs = parse(await fsx.readFile(srcFile, "utf8"));
 
-        const entries: ParsedEntry[] = [];
+        const entries: Array<ParsedEntry> = [];
 
-        for (const [_path, cfg] of Object.entries(routeDefs) as [
-          string,
-          ApiRouteConfig | undefined,
-        ][]) {
+        for (const [_path, opt] of Object.entries(routeDefs) as Array<
+          [path: string, opt: RouteOptions | undefined]
+        >) {
+          if (opt?.api === false) {
+            continue;
+          }
+
           const originalPath = normalizeRoutePath(_path);
 
           const sections = routeSections(originalPath);
@@ -69,34 +71,21 @@ export async function sourceFilesParsers(
             })
             .join("/");
 
-          const importPath = cfg?.file
-            ? sanitizePath(cfg.file).replace(/\.[^.]+$/, "")
+          const importPath = opt?.file
+            ? sanitizePath(opt.file).replace(/\.[^.]+$/, "")
             : originalPath;
 
           const importName = importNameFromPath(importPath);
 
-          const prefix = cfg?.prefix;
+          const base = opt?.base;
 
-          const suffix = cfg?.file
-            ? sanitizePath(cfg.file).replace(/.+(\.[^.]+)$/, "$1")
+          const suffix = opt?.file
+            ? sanitizePath(opt.file).replace(/.+(\.[^.]+)$/, "$1")
             : /\/$/.test(_path) || !path.includes("/")
               ? "/index.ts"
               : ".ts";
 
           const file = importPath + suffix;
-
-          let template = cfg?.template;
-
-          if (template) {
-            // templates provided by routes are not watched for updates,
-            // reading them once at source file parsing
-            template = await fsx.readFile(
-              /^\//.test(template)
-                ? template
-                : resolve(sourceFolderPath, template),
-              "utf8",
-            );
-          }
 
           const paramsType = sections
             .slice(1)
@@ -127,7 +116,7 @@ export async function sourceFilesParsers(
             .join(", ");
 
           const route: ApiRoute = {
-            prefix,
+            base,
             path: path === "index" ? "/" : join("/", path),
             originalPath,
             paramsType: paramsType || "[key: string|number]: unknown",
@@ -136,22 +125,20 @@ export async function sourceFilesParsers(
             importPath,
             srcFile,
             file,
-            fileFullpath: resolve(sourceFolderPath, defaults.apiDir, file),
-            optedFile: cfg?.file,
-            meta: cfg?.meta,
-            template,
-            templateContext: cfg?.templateContext,
+            fileFullpath: resolve(root, defaults.apiDir, file),
+            optedFile: opt?.file,
+            meta: opt?.meta,
           };
 
-          const alias: ApiRouteAlias[] = [];
+          const alias: Array<ApiRouteAlias> = [];
           const aliasOf = route.path;
 
-          if (Array.isArray(cfg?.alias)) {
-            for (const e of cfg.alias) {
+          if (Array.isArray(opt?.alias)) {
+            for (const e of opt.alias) {
               if (typeof e === "string") {
                 alias.push({
                   aliasOf,
-                  prefix,
+                  base,
                   path: e,
                   originalPath: e,
                   importName: importNameFromPath(importPath + e),
@@ -159,7 +146,7 @@ export async function sourceFilesParsers(
               } else if (typeof e === "object") {
                 alias.push({
                   aliasOf,
-                  prefix,
+                  base,
                   path: path.replace(e.find, e.replace),
                   originalPath: originalPath.replace(e.find, e.replace),
                   importName: importNameFromPath(
@@ -168,30 +155,30 @@ export async function sourceFilesParsers(
                 });
               }
             }
-          } else if (typeof cfg?.alias === "object") {
+          } else if (typeof opt?.alias === "object") {
             alias.push({
               aliasOf,
-              prefix,
-              path: path.replace(cfg.alias.find, cfg.alias.replace),
+              base,
+              path: path.replace(opt.alias.find, opt.alias.replace),
               originalPath: originalPath.replace(
-                cfg.alias.find,
-                cfg.alias.replace,
+                opt.alias.find,
+                opt.alias.replace,
               ),
               importName: importNameFromPath(
-                importPath.replace(cfg.alias.find, cfg.alias.replace),
+                importPath.replace(opt.alias.find, opt.alias.replace),
               ),
             });
-          } else if (typeof cfg?.alias === "string") {
+          } else if (typeof opt?.alias === "string") {
             alias.push({
               aliasOf,
-              prefix,
-              path: cfg.alias,
-              originalPath: cfg.alias,
-              importName: importNameFromPath(importPath + cfg.alias),
+              base,
+              path: opt.alias,
+              originalPath: opt.alias,
+              importName: importNameFromPath(importPath + opt.alias),
             });
           }
 
-          entries.push({ routeConfig: cfg, route, alias });
+          entries.push({ route, alias });
         }
 
         return entries;

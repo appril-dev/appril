@@ -1,12 +1,11 @@
 import { basename, join } from "node:path";
 
-import type { Plugin } from "vite";
-import { resolveCwd } from "@appril/utils";
+import type { FSWatcher, Plugin } from "vite";
 
 import type {
-  ApiRouteConfig,
   PluginOptions,
   ResolvedPluginOptions,
+  WatchHandler,
 } from "./base";
 
 import { workerFactory } from "./worker-pool";
@@ -17,36 +16,19 @@ import { apiAssets } from "./api-assets";
 import { solidPages } from "./solid-pages";
 import { fetchGenerator } from "./fetch-generator";
 
-export type { ApiRouteConfig, PluginOptions, ResolvedPluginOptions };
+export type { PluginOptions, ResolvedPluginOptions };
 
 export * from "./defaults";
 export * from "./define";
+export * from "./alias";
 export * from "./file-bundler";
 
 export default function apprilDevPlugin(options: PluginOptions): Plugin {
-  const sourceFolderPath = resolveCwd();
-
-  const resolvedOptions: ResolvedPluginOptions = {
-    apiAssets: {},
-    apiGenerator: {},
-    fetchGenerator: {},
-    solidPages: undefined,
-    useWorkers: true,
-    usePolling: true,
-    ...options,
-    // not overridable by options
-    sourceFolder: basename(sourceFolderPath),
-    sourceFolderPath,
-  };
-
   const outDirSuffix = "client";
 
   let apiHandler: Awaited<ReturnType<typeof apiHandlerFactory>>;
 
-  const watchMap: {
-    watchPatterns: string[];
-    watchHandler: (file: string) => Promise<void>;
-  }[] = [];
+  let setupWatchers: (w: FSWatcher) => Promise<void>;
 
   return {
     name: "@appril:dev",
@@ -63,6 +45,29 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
     },
 
     async configResolved(config) {
+      const resolvedOptions: ResolvedPluginOptions = {
+        apiAssets: {},
+        apiGenerator: {},
+        fetchGenerator: {},
+        solidPages: undefined,
+        useWorkers: true,
+        watchOptions: {
+          usePolling: false,
+          // wait for the write operation to finish before emit event
+          // as occasionally event emitted while the file is being written
+          awaitWriteFinish: {
+            // Amount of time for a file size to remain constant before emitting its event
+            stabilityThreshold: 1_000,
+            // File size polling interval
+            pollInterval: 250,
+          },
+        },
+        ...options,
+        // not overridable by options
+        root: config.root,
+        sourceFolder: basename(config.root),
+      };
+
       const { worker, workerPool, bootstrap } = workerFactory(
         config.command === "build" ? false : resolvedOptions.useWorkers,
       );
@@ -76,17 +81,26 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
         ...(resolvedOptions.solidPages ? [solidPages] : []),
       ];
 
+      const watchHandlers: Array<WatchHandler> = [];
+
       for (const plugin of plugins) {
-        const { watchPatterns, watchHandler, ...rest } = await plugin(
+        const { watchHandler, ...rest } = await plugin(
           config,
           resolvedOptions,
-          { worker, workerPool: workerPool[plugin.name as never] },
+          { workerPool: workerPool[plugin.name as never] },
         );
         bootstrapPayload[plugin.name] = rest.bootstrapPayload as never;
-        watchMap.push({ watchPatterns, watchHandler });
+        watchHandlers.push(watchHandler);
       }
 
-      await bootstrap(bootstrapPayload);
+      setupWatchers = async (watcher) => {
+        await bootstrap(bootstrapPayload);
+        // run watchHandlers only after bootstrap
+        for (const watchHandler of watchHandlers) {
+          // absolutely necessary to await!
+          await watchHandler(watcher);
+        }
+      };
 
       apiHandler = await apiHandlerFactory(config, resolvedOptions);
 
@@ -98,21 +112,11 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
     async configureServer(server) {
       server.watcher.options = {
         ...server.watcher.options,
-        disableGlobbing: false,
-        usePolling: resolvedOptions.usePolling,
+        ...options.watchOptions,
       };
 
-      for (const { watchPatterns } of watchMap) {
-        server.watcher.add(watchPatterns);
-      }
-
-      server.watcher.on("change", async (file) => {
-        for (const { watchHandler } of watchMap) {
-          // passing file through every handler
-          // cause same file may be watched by multiple generators
-          await watchHandler(file);
-        }
-      });
+      // assuming configureServer always run after configResolved
+      await setupWatchers(server.watcher);
 
       server.middlewares.use(apiHandler.devMiddleware);
     },
