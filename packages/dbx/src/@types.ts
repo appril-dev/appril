@@ -62,9 +62,6 @@ export type Instance<
   toString: () => string;
 };
 
-export type InstanceWithoutPrimaryKey<TableT extends Knex.TableNames = never> =
-  Omit<Instance<TableT>, "primaryKey" | "whereId" | "save" | "saveMany">;
-
 export type CompositeReturn<
   TInstance,
   TableT extends Knex.TableNames = never,

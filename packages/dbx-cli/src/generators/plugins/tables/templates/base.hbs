@@ -24,11 +24,11 @@ export default <
 ) => {
   return dbx<
     "{{table.moduleName}}",
-    {{#if table.primaryKey}}"{{table.primaryKey}}"{{else}}never{{/if}},
+    {{#if table.primaryKey}}"{{table.primaryKey}}"{{else}}object{{/if}},
     ExtraT
   >({
     connection,
-    tableName: "{{table.fullName}}",
-{{#if table.primaryKey}}    primaryKey: "{{table.primaryKey}}",{{/if}}
+    tableName: "{{table.fullName}}",{{#if table.primaryKey}}
+    primaryKey: "{{table.primaryKey}}",{{/if}}
   }, extra)
 };

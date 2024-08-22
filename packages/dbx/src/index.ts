@@ -3,7 +3,6 @@ import type { Knex } from "knex";
 import type {
   Config,
   Instance,
-  InstanceWithoutPrimaryKey,
   TruncateOpts,
   Returning,
   QueryBuilder,
@@ -22,14 +21,10 @@ export default function dbx<
   TableT extends Knex.TableNames = never,
   PKeyT = never,
   ExtraT = unknown,
->(
-  config: Config,
-  extra?: ExtraT,
-): ExtraT &
-  CompositeReturn<
-    PKeyT extends string ? Instance<TableT> : InstanceWithoutPrimaryKey<TableT>,
-    TableT
-  > {
+  InstanceT = PKeyT extends string
+    ? Instance<TableT>
+    : Omit<Instance<TableT>, "primaryKey" | "whereId" | "save" | "saveMany">,
+>(config: Config, extra?: ExtraT): CompositeReturn<InstanceT, TableT> & ExtraT {
   const { tableName, primaryKey } = config;
 
   const connection = config.connection.withUserParams({
@@ -132,13 +127,7 @@ export default function dbx<
     proxyHandler(tableName, connection, instance),
   );
 
-  return proxy as ExtraT &
-    CompositeReturn<
-      PKeyT extends string
-        ? Instance<TableT>
-        : InstanceWithoutPrimaryKey<TableT>,
-      TableT
-    >;
+  return proxy as CompositeReturn<InstanceT, TableT> & ExtraT;
 }
 
 // biome-ignore lint:
