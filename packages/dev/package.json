@@ -8,9 +8,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "directories": {
     "bin": "pkg/bin"
   },
@@ -55,11 +53,5 @@
     "@types/node": "catalog:",
     "@types/qs": "catalog:",
     "vite": "catalog:vite"
-  },
-  "peerDependencies": {
-    "@appril/api": "workspace:^",
-    "typescript": "catalog:",
-    "zod": "catalog:zod",
-    "zod-validation-error": "catalog:zod"
   }
 }

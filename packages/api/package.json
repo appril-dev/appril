@@ -7,9 +7,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "exports": {
     "./router": {
       "types": "./pkg/router/index.d.ts",
@@ -48,10 +46,6 @@
     "@types/koa": "catalog:koa",
     "@types/koa__router": "catalog:koa",
     "@types/qs": "catalog:",
-    "koa": "catalog:koa"
-  },
-  "peerDependencies": {
-    "@koa/router": "catalog:koa",
     "koa": "catalog:koa"
   }
 }
