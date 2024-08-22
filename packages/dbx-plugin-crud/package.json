@@ -1,12 +1,14 @@
 {
   "name": "@appril/dbx-plugin-crud",
-  "version": "0.0.48",
+  "version": "0.0.49",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "exports": {
     ".": {
       "types": "./pkg/index.d.ts",
