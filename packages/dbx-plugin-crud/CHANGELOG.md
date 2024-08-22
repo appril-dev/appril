@@ -1,5 +1,13 @@
 # @appril/dbx-plugin-crud
 
+## 0.0.51
+
+### Patch Changes
+
+- Updated dependencies [c6ab892]
+  - @appril/dbx@0.0.50
+  - @appril/dbx-cli@0.0.51
+
 ## 0.0.50
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @appril/dbx-cli
 
+## 0.0.51
+
+### Patch Changes
+
+- c6ab892: version bump
+
 ## 0.0.50
 
 ### Patch Changes
