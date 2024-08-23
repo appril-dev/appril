@@ -15,10 +15,12 @@ export const fetchOptions = {
 export function pathMaker(path: string, params: Array<unknown>) {
   const values = [ ...params ]
   return path.split(/\/+/).flatMap((e) => {
-    if (e.startsWith(":")) {
-      if (/\+[oa]$/.test(e)) {
-        return values.splice(0)
-      }
+    if (e.startsWith("[[") || e.startsWith("[...")) {
+      // optional/rest param
+      return values.splice(0)
+    }
+    if (e.startsWith("[")) {
+      // required param
       return values.splice(0, 1)
     }
     return [ e ]
