@@ -51,7 +51,7 @@ export async function apiHandlerFactory(
             const exports = await import(
               [outfile, new Date().getTime()].join("?")
             );
-            app = exports.app;
+            app = await exports.default();
           } catch (e) {
             console.error(e);
           }

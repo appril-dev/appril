@@ -4,7 +4,7 @@ import nopt from "nopt";
 
 import "~/init";
 
-import { app } from "./app";
+import createApp from "./app";
 
 const { port, sock } = nopt(
   {
@@ -31,9 +31,11 @@ if (sock) {
   } catch (e) {}
 }
 
-app.listen(port || sock, () => {
-  if (sock) {
-    chmodSync(sock, 0o777);
-  }
-  console.log("\n\t✨ Server Started\n");
+createApp().then((app) => {
+  app.listen(port || sock, () => {
+    if (sock) {
+      chmodSync(sock, 0o777);
+    }
+    console.log("\n\t✨ Server Started\n");
+  });
 });

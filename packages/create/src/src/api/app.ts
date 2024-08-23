@@ -12,16 +12,20 @@ import {
 import { errorHandler } from "~/base/@api/app";
 import routes, { routeStack } from "_/api/routes";
 
-export const app = withQueryparser(new Koa<DefaultState, DefaultContext>());
+export default async () => {
+  const app = withQueryparser(new Koa<DefaultState, DefaultContext>());
 
-app.on("error", console.error);
+  app.on("error", console.error);
 
-app.use(errorHandler);
+  app.use(errorHandler);
 
-if (process.env.DEBUG?.includes("api")) {
-  routeStack.map((e) => routePrinter(e, console.log));
-  app.use(logger());
-}
+  if (process.env.DEBUG?.includes("api")) {
+    routeStack.map((e) => routePrinter(e, console.log));
+    app.use(logger());
+  }
 
-// should go latest
-app.use(routes);
+  // should go latest
+  app.use(routes);
+
+  return app;
+};
