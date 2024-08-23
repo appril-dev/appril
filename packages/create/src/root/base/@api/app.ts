@@ -35,17 +35,13 @@ export const errorHandler: Middleware = async (ctx, next) => {
 };
 
 function extractCodeWithMessage(error: unknown): [number, string] {
-  // allows throwing strings:
-  //   throw "some error"
-  //   throw "500: some error"
+  // when string thrown, use status code 400
   if (typeof error === "string") {
-    // biome-ignore format:
-    const [
-      _, /** placeholder, ignore */
-      code = 400,
-      message = error,
-    ] = error.trim().match(/^(\d+):\s*([^\0]+)/) || [];
-    return [Number(code), message];
+    return [400, error];
+  }
+
+  if (Array.isArray(error)) {
+    return [Number(error[0]) || 400, error[1] || "Unknown Error Occurred"];
   }
 
   if (error instanceof Error) {

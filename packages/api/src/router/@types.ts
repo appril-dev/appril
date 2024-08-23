@@ -61,9 +61,8 @@ export type MiddlewareDefinition<
 };
 
 // use throw inside handler when needed to say NotFound (or another error):
-// throw "404: Not Found"
-// throw "400: Bad Request"
-// throw "statuscode: [some message]"
+// throw [ 404, "Not Found" ]
+// throw [ 400, "Bad Request" ]
 /** biome-ignore lint: */
 type MiddleworkerReturn = any | Promise<any>;
 
