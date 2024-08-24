@@ -90,10 +90,21 @@ export default <TableName extends Knex.TableNames>(
   };
 
   const updateHandler: HandlerT = async (ctx, payload) => {
-    const [item] = await ctx.crud.dbx
-      .where(ctx.crud.primaryKey, ctx.params._id)
-      .update(payload as never)
-      .returning(ctx.crud.returning || "*");
+    const updates = Object.entries(payload).reduce((map: Record<string,unknown>, [k, v]) => {
+      if (v !== undefined) {
+        map[k] = v
+      }
+      return map
+    }, {})
+
+    const [item] = Object.keys(updates).length
+      ? await ctx.crud.dbx
+          .where(ctx.crud.primaryKey, ctx.params._id)
+          .update(payload as never)
+          .returning(ctx.crud.returning || "*")
+      : await ctx.crud.dbx
+          .where(ctx.crud.primaryKey, ctx.params._id)
+          .select(ctx.crud.returning || "*")
 
     // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
     ctx.assert(item, 404);
