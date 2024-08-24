@@ -1,5 +1,13 @@
 # @appril/dev
 
+## 0.0.51
+
+### Patch Changes
+
+- 8d16603: version bump
+- Updated dependencies [8d16603]
+  - @appril/dev-utils@0.0.50
+
 ## 0.0.50
 
 ### Patch Changes

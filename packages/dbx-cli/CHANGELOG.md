@@ -1,5 +1,15 @@
 # @appril/dbx-cli
 
+## 0.0.52
+
+### Patch Changes
+
+- 8d16603: version bump
+- Updated dependencies [8d16603]
+  - @appril/dev@0.0.51
+  - @appril/dev-utils@0.0.50
+  - @appril/pgts@0.0.49
+
 ## 0.0.51
 
 ### Patch Changes
