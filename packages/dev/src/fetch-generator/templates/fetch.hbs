@@ -4,13 +4,8 @@ import {
   join, withLoader, pathMaker,
 } from "{{importPathBase}}";
 
-{{#each typeDeclarations}}
-{{text}}
+{{#each typeDeclarations}}{{text}}
 {{/each}}
-
-function resolve(params: [ {{route.fetchParamsType}} ]) {
-  return pathMaker("{{route.originalPath}}", params)
-}
 
 function apiFactory(
   api: import("@appril/fetch").FetchMapper,
@@ -34,7 +29,7 @@ function apiFactory(
     {{/if}}
   > {
     return api.{{method}}(
-      resolve(params),
+      pathMaker("{{route.originalPath}}", params),
       payload || {},
     )
   }
@@ -74,5 +69,7 @@ export default {
   createApi,
   fetch,
   withLoader,
-  resolve,
+  resolve(params: [ {{route.fetchParamsType}} ]) {
+    return join(baseurl, apiurl, pathMaker("{{route.originalPath}}", params))
+  },
 };
