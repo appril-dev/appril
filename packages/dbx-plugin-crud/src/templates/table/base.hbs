@@ -14,13 +14,20 @@ import handlersFactory, {
   type UseWrapper,
 } from "..";
 
-export type ContextT = Context<"{{table.moduleName}}">;
+export const columns = [ {{#each table.columns}}"{{name}}", {{/each}} ]
+
+export type ColumnsT = typeof columns[number]
+export type ContextT = Context<"{{table.moduleName}}", ColumnsT>;
 export type HandlerT = Handler<DefaultState, ContextT>;
 export type WrapperT = Wrapper<DefaultState, ContextT>;
 export type UseWrapperT = UseWrapper<DefaultState, ContextT>;
 
-export const handlers = handlersFactory<"{{table.moduleName}}">(
+export const handlers = handlersFactory<
+  "{{table.moduleName}}",
+  ColumnsT
+>(
   dbx,
+  columns,
   {
     primaryKey: "{{table.primaryKey}}",
   },

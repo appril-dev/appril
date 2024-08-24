@@ -14,13 +14,15 @@ import type { Knex } from "knex";
 export type MaybePromise<T> = T | Promise<T>;
 
 export type Context<
-  TableName extends Knex.TableNames
+  TableName extends Knex.TableNames,
+  Columns
 > = DefaultContext & {
   readonly crud: {
     readonly dbx: QueryBuilder<TableName>;
     readonly queryBuilder: QueryBuilder<TableName>;
     readonly primaryKey: string;
-    returning?: string | Array<string> | Knex.Raw;
+    returning?: Array<Columns> | Knex.Raw;
+    returningExclude?: Array<Columns> | Knex.Raw;
   };
 };
 
@@ -66,15 +68,19 @@ export const config = {
   sidePages: 4,
 };
 
-export default <TableName extends Knex.TableNames>(
+export default <
+  TableName extends Knex.TableNames,
+  Columns
+>(
   dbx: QueryBuilder<TableName>,
+  columns: readonly Columns[],
   opt: {
     primaryKey?: string;
     itemsPerPage?: number;
     sidePages?: number;
   },
 ) => {
-  type ContextT = Context<TableName>;
+  type ContextT = Context<TableName, Columns>;
   type HandlerT = Middleworker<DefaultState, ContextT>;
 
   const { primaryKey, itemsPerPage, sidePages } = {
@@ -85,7 +91,7 @@ export default <TableName extends Knex.TableNames>(
   const createHandler: HandlerT = async (ctx, payload) => {
     const [item] = await ctx.crud.dbx
       .insert(payload as never)
-      .returning(ctx.crud.returning || "*");
+      .returning(ctx.crud.returning as Array<string>);
     return item;
   };
 
@@ -101,10 +107,10 @@ export default <TableName extends Knex.TableNames>(
       ? await ctx.crud.dbx
           .where(ctx.crud.primaryKey, ctx.params._id)
           .update(payload as never)
-          .returning(ctx.crud.returning || "*")
+          .returning(ctx.crud.returning as Array<string>)
       : await ctx.crud.dbx
           .where(ctx.crud.primaryKey, ctx.params._id)
-          .select(ctx.crud.returning || "*")
+          .select(ctx.crud.returning as Array<string>)
 
     // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
     ctx.assert(item, 404);
@@ -116,7 +122,7 @@ export default <TableName extends Knex.TableNames>(
     const [item] = await ctx.crud.dbx
       .where(ctx.crud.primaryKey, ctx.params._id)
       .delete()
-      .returning(ctx.crud.returning || "*");
+      .returning(ctx.crud.returning as Array<string>);
 
     // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
     ctx.assert(item, 404);
@@ -127,7 +133,7 @@ export default <TableName extends Knex.TableNames>(
   const retrieveHandler: HandlerT = async (ctx) => {
     const item = await ctx.crud.queryBuilder
       .where(ctx.crud.primaryKey, ctx.params.id)
-      .first(ctx.crud.returning || "*");
+      .first(ctx.crud.returning as Array<string>);
 
     // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
     ctx.assert(item, 404);
@@ -199,7 +205,7 @@ export default <TableName extends Knex.TableNames>(
     } as Pager;
 
     const items = await crud.queryBuilder
-      .select(ctx.crud.returning || "*")
+      .select(ctx.crud.returning as Array<string>)
       .offset(offset)
       .limit(itemsPerPage);
 
@@ -208,6 +214,9 @@ export default <TableName extends Knex.TableNames>(
       pager,
     };
   };
+
+  let returning: Array<Columns> | Knex.Raw | undefined
+  let returningExclude: Array<Columns> = []
 
   const crudContext: Record<
     keyof ContextT["crud"],
@@ -220,7 +229,20 @@ export default <TableName extends Knex.TableNames>(
     },
     queryBuilder: { value: dbx.clone() },
     primaryKey: { value: primaryKey },
-    returning: { value: undefined, writable: true },
+    returning: {
+      get() {
+        return returning || (
+          returningExclude.length
+            ? columns.filter((e) => !returningExclude.includes(e))
+            : "*"
+        )
+      },
+      set(val) { returning = val },
+    },
+    returningExclude: {
+      get() { return returningExclude },
+      set(val) { returningExclude = Array.isArray(val) ? val : [] },
+    },
   };
 
   const ctxExtend = {
