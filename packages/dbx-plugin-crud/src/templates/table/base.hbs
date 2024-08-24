@@ -26,7 +26,10 @@ export const handlers = handlersFactory<"{{table.moduleName}}">(
   },
 )
 
-export const use: UseWrapperT = (...a: Array<unknown>) => useDefinitionFactory<UseScope>(a);
+export const use: UseWrapperT = (...a: Array<unknown>) => useDefinitionFactory<UseScope>([[
+  handlers.initHandler,
+  ...a
+]]);
 
 export const middlewareFactory = (
   handler: HandlerT,
