@@ -136,10 +136,6 @@ function columnsMapper(
       comments.push(`Default Value: ${defaultValue}`);
     }
 
-    if (comment) {
-      comments.push(`Comment: ${comment}`);
-    }
-
     if (declaredType === "unknown") {
       comments.push(`Unknown Type: ${type}`);
     }
@@ -158,6 +154,10 @@ function columnsMapper(
       if (isNullable) {
         declaredType += " | null";
       }
+    }
+
+    if (comment) {
+      comments.push(comment);
     }
 
     const isOptional = isNullable || isIdentity || defaultValue;
