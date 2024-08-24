@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-function _dbx() {
+function _appril_dbx_cli() {
 
   local cur prev opts
 
@@ -28,4 +28,4 @@ function _dbx() {
 
 }
 
-complete -F _dbx dbx
+complete -F _appril_dbx_cli dbx
