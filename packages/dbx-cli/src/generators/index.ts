@@ -1,30 +1,27 @@
 import nopt from "nopt";
-import fsx from "fs-extra";
+import chokidar from "chokidar";
+
 import pgts from "@appril/pgts";
 import { resolveCwd } from "@appril/dev-utils";
 
-import typesPlugin from "./plugins/types";
-import tablesPlugin from "./plugins/tables";
+import typesGenerator from "./types";
+import tablesGenerator from "./tables";
 
-import { type GeneratorConfig, run } from "../base";
+import { getConfig, run } from "../base";
 
-const { config: configFile } = nopt(
+const { config: configFile, mode } = nopt(
   {
     config: String,
+    mode: ["once", "watch"],
   },
   {
     c: ["--config"],
+    m: ["--mode"],
   },
 );
 
-run(async () => {
-  if (!(await fsx.pathExists(configFile))) {
-    throw new Error(`Config file does not exists: ${configFile}`);
-  }
-
-  const {
-    default: { plugins = [], ...config },
-  }: { default: GeneratorConfig } = await import(resolveCwd(configFile));
+const worker = async () => {
+  const { plugins = [], ...config } = await getConfig(resolveCwd(configFile));
 
   for (const requiredParam of ["connection", "base"] as const) {
     if (!config[requiredParam]) {
@@ -39,16 +36,29 @@ run(async () => {
     ...config,
   });
 
-  for (const [label, plugin] of [
-    ["types", typesPlugin],
-    ["tables", tablesPlugin],
+  for (const [label, generator] of [
+    ["types", typesGenerator],
+    ["tables", tablesGenerator],
   ] as const) {
     process.stdout.write(` 🡺 Generating ${label}... `);
-    await plugin(config, data);
+    await generator(config, data);
     console.log("Done ✨");
   }
 
   for (const plugin of plugins) {
     await plugin(config, data);
   }
-});
+
+  if (mode === "watch") {
+    console.log(`Watching ${configFile} for changes...`);
+  }
+};
+
+if (mode === "watch") {
+  worker().then(() => {
+    const watcher = chokidar.watch(configFile);
+    watcher.on("change", worker);
+  });
+} else {
+  run(worker);
+}

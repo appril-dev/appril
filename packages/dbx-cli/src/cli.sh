@@ -5,9 +5,6 @@ set -e
 unset -v \
   no_action \
   dbxfile \
-  dbxfile_compiled \
-  knexfile_generated \
-  knexfile_compiled \
   generate \
   migrate \
   migrate_args \
@@ -19,28 +16,12 @@ unset -v \
 node="node --env-file=.env --enable-source-maps"
 
 dbxfile="dbx.config.ts"
-dbxfile_compiled="var/.cache/dbx.config.mjs"
-
-knexfile_generated="var/.cache/dbx.knexfile.ts"
 
 no_action="true"
 generate=""
 migrate=""
 migrate_args=""
 next=""
-
-function esbuilder() {
-  local entry="$1"
-  shift
-  esbuild "$entry" "$@" \
-    --bundle \
-    --platform=node \
-    --target=node20 \
-    --format=esm \
-    --packages=external \
-    --sourcemap=inline \
-    ;
-}
 
 function dbx_run() {
   local d="$1"
@@ -66,9 +47,11 @@ function print_usage() {
   echo
   echo "Usage:"
   echo
-  echo "  dbx [-c dbx.config.ts] [-g] [-m ...]"
+  echo "  dbx [-c dbx.config.ts] [-g] [-w] [-m ...]"
   echo
-  echo "  dbx -g                          : Generate files"
+  echo "  dbx -g                          : Run generators/plugins"
+  echo
+  echo "  dbx -w                          : Watch mode - run generators/plugins when config file updated"
   echo
   echo "  dbx -m create                   : Create a new migration file"
   echo
@@ -99,14 +82,18 @@ if [[ -z $distDir ]]; then
   exit 1
 fi
 
-while getopts ":hc:g:m:" opt; do
+while getopts ":hgwc:m:" opt; do
   case ${opt} in
     c)
       dbxfile=$OPTARG
       ;;
     g)
       no_action="false"
-      generate="true"
+      generate="once"
+      ;;
+    w)
+      no_action="false"
+      generate="watch"
       ;;
     m)
       no_action="false"
@@ -174,33 +161,25 @@ elif [[ -n $1 ]]; then
   exit 1
 fi
 
-if [ ! -f "$dbxfile" ]; then
+if [[ ! -f "$dbxfile" ]]; then
   print_error "$dbxfile should be a file"
   exit 1
 fi
 
-knexfile_compiled="$distDir/${dbxfile/dbx.config/knexfile}"
-knexfile_compiled="${knexfile_compiled%.*}.mjs"
-
-esbuilder "$dbxfile" --outfile="$dbxfile_compiled"
-
 function compile_migration_files() {
 
   dbx_run migrations \
-    --config="$dbxfile_compiled" \
+    --config="$dbxfile" \
     --action="knexfile" \
-    --dbxfile="$dbxfile" \
-    --outfile="$knexfile_generated" \
+    --outdir="$distDir" \
     ;
-
-  esbuilder "$knexfile_generated" --outfile="$knexfile_compiled"
 
 }
 
 if [[ "$migrate" == "create" ]]; then
 
   dbx_run migrations \
-    --config="$dbxfile_compiled" \
+    --config="$dbxfile" \
     --action="create" \
     ;
 
@@ -218,7 +197,7 @@ if [[ -n "$migrate" ]]; then
     exit 0
   fi
 
-  knex_run --knexfile "$knexfile_compiled" \
+  knex_run --cwd "$distDir" \
     migrate:$migrate \
     $migrate_args \
     ;
@@ -226,5 +205,5 @@ if [[ -n "$migrate" ]]; then
 fi
 
 if [[ -n "$generate" ]]; then
-  dbx_run generators --config="$dbxfile_compiled"
+  dbx_run generators --config="$dbxfile" --mode="$generate"
 fi

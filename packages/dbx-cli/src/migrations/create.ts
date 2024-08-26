@@ -5,7 +5,7 @@ import pg from "pg";
 import { format as datetimeFormat } from "date-fns";
 import { resolveCwd, renderToFile } from "@appril/dev-utils";
 
-import type { MigrationsConfig, MigrationsTemplates } from "../base";
+import type { Config, MigrationsTemplates } from "../base";
 
 import createTableTpl from "./templates/createTable.hbs";
 import alterTableTpl from "./templates/alterTable.hbs";
@@ -21,9 +21,7 @@ const defaultTemplates: Templates = {
   generic: genericTpl,
 };
 
-export default async function createMigration(
-  config: MigrationsConfig,
-): Promise<void> {
+export default async function createMigration(config: Config): Promise<void> {
   const {
     connection,
     schemas,

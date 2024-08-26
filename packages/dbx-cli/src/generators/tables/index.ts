@@ -4,7 +4,7 @@ import fsx from "fs-extra";
 import { defaults } from "@appril/dev";
 import { resolveCwd, fileGenerator } from "@appril/dev-utils";
 
-import { type GeneratorPlugin, type Templates, BANNER } from "../../../base";
+import { type GeneratorPlugin, type Templates, BANNER } from "../../base";
 
 import baseTpl from "./templates/base.hbs";
 import tableTpl from "./templates/table.hbs";

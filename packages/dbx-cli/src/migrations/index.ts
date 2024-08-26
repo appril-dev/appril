@@ -1,8 +1,7 @@
 import nopt from "nopt";
-import fsx from "fs-extra";
 import { resolveCwd } from "@appril/dev-utils";
 
-import { type MigrationsConfig, run } from "../base";
+import { getConfig, run } from "../base";
 
 import createMigration from "./create";
 import generateKnexfile from "./knexfile";
@@ -19,13 +18,7 @@ const { config: configFile, action } = nopt(
 );
 
 run(async () => {
-  if (!(await fsx.pathExists(configFile))) {
-    throw new Error(`Config file does not exists: ${configFile}`);
-  }
-
-  const { default: config }: { default: MigrationsConfig } = await import(
-    resolveCwd(configFile)
-  );
+  const config = await getConfig(resolveCwd(configFile));
 
   for (const requiredParam of [
     "connection",
@@ -46,7 +39,7 @@ run(async () => {
   }
 
   if (action === "knexfile") {
-    await generateKnexfile(config);
+    await generateKnexfile(configFile, config);
     return;
   }
 

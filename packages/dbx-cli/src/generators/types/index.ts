@@ -3,11 +3,7 @@ import { join } from "node:path";
 import fsx from "fs-extra";
 import { resolveCwd, fileGenerator } from "@appril/dev-utils";
 
-import {
-  type GeneratorPlugin,
-  type TypesTemplates,
-  BANNER,
-} from "../../../base";
+import { type GeneratorPlugin, type TypesTemplates, BANNER } from "../../base";
 
 import knexDtsTpl from "./templates/knex.d.hbs";
 import indexTpl from "./templates/index.hbs";

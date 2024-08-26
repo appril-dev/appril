@@ -55,11 +55,8 @@ export type Config = PgtsConfig & {
 
 export type DefaultConfig = Required<Pick<Config, "schemas">>;
 
-export type GeneratorConfig = Config & DefaultConfig;
-export type MigrationsConfig = Config & DefaultConfig;
-
 export type GeneratorPlugin = (
-  config: GeneratorConfig,
+  config: Config,
   data: {
     schemas: Array<string>;
     tables: Array<TableDeclaration>;

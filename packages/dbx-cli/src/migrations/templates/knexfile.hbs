@@ -1,7 +1,7 @@
-import dbxConfig from "~/{{dbxfile}}";
+import dbxConfig from "{{defaults.appPrefix}}/{{dbxfile}}";
 
 {{#each files}}
-import * as {{const}} from "~/{{../base}}/{{../migrationDir}}/{{path}}";
+import * as {{const}} from "{{../defaults.appPrefix}}/{{../base}}/{{../migrationDir}}/{{path}}";
 {{/each}}
 
 const imports = {

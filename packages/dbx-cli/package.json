@@ -6,9 +6,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "bin": {
     "dbx": "pkg/cli.sh"
   },
@@ -35,7 +33,9 @@
     "@appril/pgts": "workspace:^",
     "@appril/dev": "workspace:^",
     "@appril/dev-utils": "workspace:^",
+    "chokidar": "catalog:",
     "date-fns": "^3.6.0",
+    "esbuild": "catalog:",
     "fast-glob": "catalog:",
     "fs-extra": "catalog:",
     "lodash-es": "catalog:",
