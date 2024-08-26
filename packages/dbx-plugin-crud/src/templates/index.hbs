@@ -227,7 +227,7 @@ export default <
         return dbx;
       }
     },
-    queryBuilder: { value: dbx.clone() },
+    queryBuilder: { get: dbx.clone },
     primaryKey: { value: primaryKey },
     returning: {
       get() {

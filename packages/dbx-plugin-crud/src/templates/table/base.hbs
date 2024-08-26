@@ -14,7 +14,7 @@ import handlersFactory, {
   type UseWrapper,
 } from "..";
 
-export const columns = [ {{#each table.columns}}"{{name}}", {{/each}} ]
+export const columns = [ {{#each table.columns}}"{{name}}", {{/each}} ] as const;
 
 export type ColumnsT = typeof columns[number]
 export type ContextT = Context<"{{table.moduleName}}", ColumnsT>;
