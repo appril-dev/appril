@@ -8,9 +8,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "directories": {
     "bin": "pkg/bin"
   },
@@ -35,7 +33,7 @@
   "dependencies": {
     "@appril/dev-utils": "workspace:^",
     "@phenomnomnominal/tsquery": "^6.1.3",
-    "chokidar": "^3.6.0",
+    "chokidar": "catalog:",
     "crc": "catalog:",
     "dotenv": "^16.4.5",
     "esbuild": "catalog:",

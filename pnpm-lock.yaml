@@ -37,6 +37,9 @@ catalogs:
     '@types/qs':
       specifier: ^6.9.15
       version: 6.9.15
+    chokidar:
+      specifier: ^3.6.0
+      version: 3.6.0
     crc:
       specifier: ^4.3.2
       version: 4.3.2
@@ -264,9 +267,15 @@ importers:
       '@appril/pgts':
         specifier: workspace:^
         version: link:../pgts
+      chokidar:
+        specifier: 'catalog:'
+        version: 3.6.0
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
+      esbuild:
+        specifier: 'catalog:'
+        version: 0.23.1
       fast-glob:
         specifier: 'catalog:'
         version: 3.3.2
@@ -342,7 +351,7 @@ importers:
         specifier: ^6.1.3
         version: 6.1.3(typescript@5.5.4)
       chokidar:
-        specifier: ^3.6.0
+        specifier: 'catalog:'
         version: 3.6.0
       crc:
         specifier: 'catalog:'
