@@ -3,10 +3,6 @@ declare module "*.hbs" {
   export default src;
 }
 
-declare module "~/init" {
-  export type {};
-}
-
 declare module "~/config" {
   export const DEV: boolean;
 }

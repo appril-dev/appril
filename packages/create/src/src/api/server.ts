@@ -2,8 +2,6 @@ import { unlinkSync, chmodSync } from "node:fs";
 
 import nopt from "nopt";
 
-import "~/init";
-
 import createApp from "./app";
 
 const { port, sock } = nopt(
