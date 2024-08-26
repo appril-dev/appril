@@ -18,10 +18,7 @@ export async function apiHandlerFactory(
 
   const esbuildConfig = await import(resolve(root, "../esbuild.json"), {
     with: { type: "json" },
-  }).then(
-    // needed cause dynamic import wraps props in a default export
-    (mdl) => mdl.default,
-  );
+  }).then((mdl) => mdl.default);
 
   let app: {
     callback: () => (
