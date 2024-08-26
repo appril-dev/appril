@@ -1,5 +1,11 @@
 # @appril/dev
 
+## 0.0.52
+
+### Patch Changes
+
+- 7f849df: version bump
+
 ## 0.0.51
 
 ### Patch Changes

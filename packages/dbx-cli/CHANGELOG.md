@@ -1,5 +1,13 @@
 # @appril/dbx-cli
 
+## 0.0.53
+
+### Patch Changes
+
+- 7f849df: version bump
+- Updated dependencies [7f849df]
+  - @appril/dev@0.0.52
+
 ## 0.0.52
 
 ### Patch Changes

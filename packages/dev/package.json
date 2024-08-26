@@ -1,14 +1,16 @@
 {
   "type": "module",
   "name": "@appril/dev",
-  "version": "0.0.51",
+  "version": "0.0.52",
   "description": "Appril Dev",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "directories": {
     "bin": "pkg/bin"
   },
