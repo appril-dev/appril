@@ -1,5 +1,11 @@
 # @appril/api
 
+## 0.0.51
+
+### Patch Changes
+
+- 0c5f3fb: version bump
+
 ## 0.0.50
 
 ### Patch Changes

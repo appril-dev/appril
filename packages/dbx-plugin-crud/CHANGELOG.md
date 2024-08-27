@@ -1,5 +1,14 @@
 # @appril/dbx-plugin-crud
 
+## 0.0.54
+
+### Patch Changes
+
+- 0c5f3fb: version bump
+- Updated dependencies [0c5f3fb]
+  - @appril/dbx-cli@0.0.54
+  - @appril/dev@0.0.52
+
 ## 0.0.53
 
 ### Patch Changes
