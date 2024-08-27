@@ -40,7 +40,7 @@ const worker = async () => {
     ["types", typesGenerator],
     ["tables", tablesGenerator],
   ] as const) {
-    process.stdout.write(` 🡺 Generating ${label}... `);
+    process.stdout.write(`  ➜ Generating ${label}... `);
     await generator(config, data);
     console.log("Done ✨");
   }
