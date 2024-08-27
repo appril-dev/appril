@@ -13,10 +13,10 @@ import type { Knex } from "knex";
 
 export type MaybePromise<T> = T | Promise<T>;
 
-export type Context<
+export type CrudContext<
   TableName extends Knex.TableNames,
   Columns
-> = DefaultContext & {
+> = {
   readonly crud: {
     readonly dbx: QueryBuilder<TableName>;
     readonly queryBuilder: QueryBuilder<TableName>;
@@ -26,8 +26,13 @@ export type Context<
   };
 };
 
+export type HandlerContext<
+  StateT,
+  ContextT
+> = DefaultContext & MiddleworkerContext<StateT, ContextT>;
+
 export type Handler<StateT, ContextT> = (
-  ctx: MiddleworkerContext<StateT, ContextT>,
+  ctx: HandlerContext<StateT, ContextT>,
   payload: never,
   handler: (payload: unknown) => MaybePromise<never>,
 ) => MaybePromise<unknown>;
@@ -80,7 +85,11 @@ export default <
     sidePages?: number;
   },
 ) => {
-  type ContextT = Context<TableName, Columns>;
+  type ContextT = HandlerContext<
+    DefaultState,
+    CrudContext<TableName, Columns> & { params: { id: string } }
+  >
+
   type HandlerT = Middleworker<DefaultState, ContextT>;
 
   const { primaryKey, itemsPerPage, sidePages } = {
@@ -105,11 +114,11 @@ export default <
 
     const [item] = Object.keys(updates).length
       ? await ctx.crud.dbx
-          .where(ctx.crud.primaryKey, ctx.params._id)
+          .where(ctx.crud.primaryKey, ctx.params.id)
           .update(payload as never)
           .returning(ctx.crud.returning as Array<string>)
       : await ctx.crud.dbx
-          .where(ctx.crud.primaryKey, ctx.params._id)
+          .where(ctx.crud.primaryKey, ctx.params.id)
           .select(ctx.crud.returning as Array<string>)
 
     // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
@@ -120,7 +129,7 @@ export default <
 
   const deleteHandler: HandlerT = async (ctx) => {
     const [item] = await ctx.crud.dbx
-      .where(ctx.crud.primaryKey, ctx.params._id)
+      .where(ctx.crud.primaryKey, ctx.params.id)
       .delete()
       .returning(ctx.crud.returning as Array<string>);
 
@@ -249,7 +258,10 @@ export default <
     crud: Object.defineProperties({}, crudContext),
   };
 
-  const initHandler: Middleware<DefaultState, ContextT> = (ctx, next) => {
+  const initMiddleware: Middleware<
+    DefaultState,
+    ContextT
+  > = (ctx, next) => {
     for (const [key, value] of Object.entries(ctxExtend)) {
       key in ctx ||
         Object.defineProperty(ctx, key, {
@@ -263,12 +275,42 @@ export default <
     return next();
   };
 
-  return {
-    initHandler,
+  const handlers = {
     createHandler,
     updateHandler,
     deleteHandler,
     retrieveHandler,
     listHandler,
+  } as const;
+
+  type MiddlewareFactory = Record<
+    keyof typeof handlers,
+    (
+      h: Handler<DefaultState, ContextT>,
+    ) => Array<Middleware<DefaultState, ContextT>>
+  >;
+
+  const middlewareFactory: MiddlewareFactory = {} as MiddlewareFactory;
+
+  for (const [name, handler] of Object.entries(handlers) as Array<
+    [
+      name: keyof typeof handlers,
+      handler: (typeof handlers)[keyof typeof handlers],
+    ]
+  >) {
+    middlewareFactory[name] = (customHandler) => [
+      initMiddleware,
+      async (ctx, next) => {
+        ctx.body = await customHandler(ctx, ctx.payload as never, (payload) =>
+          handler(ctx, payload as never),
+        );
+        return next();
+      },
+    ];
   }
+
+  return {
+    initMiddleware,
+    middlewareFactory,
+  };
 };

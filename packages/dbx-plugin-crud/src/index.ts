@@ -17,7 +17,6 @@ import publicIdTpl from "./templates/public/[id].hbs";
 import publicIndexTpl from "./templates/public/index.hbs";
 
 import tableIdTpl from "./templates/table/[id].hbs";
-import tableBaseTpl from "./templates/table/base.hbs";
 import tableIndexTpl from "./templates/table/index.hbs";
 import tableTypeLiteralsTpl from "./templates/table/typeLiterals.hbs";
 
@@ -57,7 +56,7 @@ export default (
   const { generateFile } = fileGenerator(root);
 
   return async (dbxConfig, data) => {
-    process.stdout.write(" 🡺 Generating CRUD api... ");
+    process.stdout.write("  ➜ Generating CRUD api... ");
 
     const tables = data.tables.flatMap((table) => {
       if (table.schema !== schema || !table.primaryKey) {
@@ -115,7 +114,6 @@ export default (
 
       for (const [file, template] of [
         ["[id].ts", tableIdTpl],
-        ["base.ts", tableBaseTpl],
         ["index.ts", tableIndexTpl],
         ["typeLiterals.ts", tableTypeLiteralsTpl],
       ] as const) {

@@ -1,21 +1,45 @@
-import { definitionFactory } from "@appril/api/router";
+import {
+  type DefaultState,
+  type UseScope,
+  definitionFactory,
+  useDefinitionFactory,
+} from "@appril/api/router";
 
-import { type WrapperT, middlewareFactory } from "./base";
+import type {
+  CrudContext,
+  HandlerContext,
+  Wrapper,
+  UseWrapper,
+} from "..";
+
+import { type ColumnT, initMiddleware, middlewareFactory } from ".";
+
+type ContextT = HandlerContext<
+  DefaultState,
+  CrudContext<"{{table.moduleName}}", ColumnT> & { params: { id: string } }
+>;
 
 export * from "./typeLiterals";
-export { use } from "./base";
 
-export const get: WrapperT = (handler) => definitionFactory(
+export const use: UseWrapper<
+  DefaultState,
+  ContextT
+> = (...a: Array<unknown>) => useDefinitionFactory<UseScope>([[
+  initMiddleware,
+  ...a
+]]);
+
+export const get: Wrapper<DefaultState, ContextT> = (handler) => definitionFactory(
   "get",
-  middlewareFactory(handler as never, "retrieveHandler"),
+  middlewareFactory.retrieveHandler(handler as never),
 )
 
-export const patch: WrapperT = (handler) => definitionFactory(
+export const patch: Wrapper<DefaultState, ContextT> = (handler) => definitionFactory(
   "patch",
-  middlewareFactory(handler as never, "updateHandler"),
+  middlewareFactory.updateHandler(handler as never),
 )
 
-export const del: WrapperT = (handler) => definitionFactory(
+export const del: Wrapper<DefaultState, ContextT> = (handler) => definitionFactory(
   "del",
-  middlewareFactory(handler as never, "deleteHandler"),
+  middlewareFactory.deleteHandler(handler as never),
 )
