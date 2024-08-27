@@ -97,9 +97,9 @@ export type UseDefinitionBase<
 
 export type UseFactory<TScope> = {
   before: (...p: Array<TScope>) => UseDefinition<TScope>;
-  beforeMatch: (m: APIMethod, p?: string) => boolean;
+  "@before": (m: APIMethod, p?: string) => boolean;
   after: (...p: Array<TScope>) => UseDefinition<TScope>;
-  afterMatch: (m: APIMethod, p?: string) => boolean;
+  "@after": (m: APIMethod, p?: string) => boolean;
 };
 
 // biome-ignore format:

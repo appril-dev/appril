@@ -78,22 +78,32 @@ function usePartitioner(
     return ["@use", method, name || randomUUID()].join(":");
   };
 
-  for (const { use, name, beforeMatch, afterMatch } of store.useGlobal) {
+  for (const {
+    use,
+    name,
+    ["@before"]: beforeFilter,
+    ["@after"]: afterFilter,
+  } of store.useGlobal) {
     const id = idFactory(name);
-    if (beforeMatch(method)) {
+    if (beforeFilter(method)) {
       before[id] = use;
     }
-    if (afterMatch(method)) {
+    if (afterFilter(method)) {
       after[id] = use;
     }
   }
 
-  for (const { use, name, beforeMatch, afterMatch } of useDefinitions) {
+  for (const {
+    use,
+    name,
+    ["@before"]: beforeFilter,
+    ["@after"]: afterFilter,
+  } of useDefinitions) {
     const id = idFactory(name);
-    if (beforeMatch(method)) {
+    if (beforeFilter(method)) {
       before[id] = use;
     }
-    if (afterMatch(method)) {
+    if (afterFilter(method)) {
       after[id] = use;
     }
   }

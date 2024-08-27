@@ -91,7 +91,7 @@ export function useDefinitionFactory<TScope extends UseScope | UseScopeGlobal>(
         return definition;
       },
     },
-    beforeMatch: {
+    "@before": {
       value: (m: APIMethod) => {
         // if NO opted methods, run before ANY method!
         // if Some methods opted, run only before opted methods
@@ -105,7 +105,7 @@ export function useDefinitionFactory<TScope extends UseScope | UseScopeGlobal>(
         return definition;
       },
     },
-    afterMatch: {
+    "@after": {
       value: (m: APIMethod) => {
         // if NO methods opted, do NOT run anywhere!
         // if Some methods opted, run only after opted methods;
