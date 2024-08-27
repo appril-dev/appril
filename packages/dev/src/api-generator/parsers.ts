@@ -119,7 +119,7 @@ export async function sourceFilesParsers(
             base,
             path: path === "index" ? "/" : join("/", path),
             originalPath,
-            paramsType: paramsType || "[key: string|number]: unknown",
+            paramsType,
             fetchParamsType,
             importName,
             importPath,

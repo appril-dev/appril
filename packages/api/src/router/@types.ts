@@ -69,7 +69,15 @@ type MiddleworkerReturn = any | Promise<any>;
 export type MiddleworkerContext<
   StateT = DefaultState,
   ContextT = DefaultContext,
-> = import("koa__router").RouterContext<StateT, ContextT>;
+> = import("koa").ParameterizedContext<
+  StateT,
+  ContextT &
+    Omit<
+      // dropping default params to not shadow custom params
+      import("koa__router").RouterParamContext<StateT, ContextT>,
+      "params"
+    >
+>;
 
 export type Middleworker<StateT = DefaultState, ContextT = DefaultContext> = (
   ctx: MiddleworkerContext<StateT, ContextT>,
