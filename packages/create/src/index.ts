@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S node --enable-source-maps --no-warnings=ExperimentalWarning
 
 import { join } from "node:path";
 
