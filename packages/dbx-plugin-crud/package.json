@@ -6,9 +6,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "exports": {
     ".": {
       "types": "./pkg/index.d.ts",
@@ -25,7 +23,7 @@
     "prebuild:001": "pnpm run lint",
     "prebuild:002": "pnpm run tsc",
     "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
-    "build": "node ../../esbuild.mjs index"
+    "build": "../../esbuild.mjs index"
   },
   "devDependencies": {
     "@appril/configs": "workspace:^",

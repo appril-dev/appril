@@ -1,3 +1,5 @@
+#!/usr/bin/env -S node --enable-source-maps --no-warnings=ExperimentalWarning
+
 import nopt from "nopt";
 import { build } from "esbuild";
 

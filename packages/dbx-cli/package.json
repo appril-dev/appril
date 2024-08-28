@@ -6,9 +6,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "pkg/*"
-  ],
+  "files": ["pkg/*"],
   "bin": {
     "dbx": "pkg/cli.sh"
   },
@@ -28,7 +26,7 @@
     "prebuild:001": "pnpm run lint",
     "prebuild:002": "pnpm run tsc",
     "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
-    "build": "node ../../esbuild.mjs index generators/index migrations/index",
+    "build": "../../esbuild.mjs index generators/index migrations/index",
     "postbuild": "for e in cli.sh bash_completion.sh; do cp --preserve=mode src/$e pkg; done"
   },
   "dependencies": {
