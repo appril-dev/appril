@@ -1,5 +1,5 @@
 export NODE_OPTIONS="--enable-source-maps --no-warnings=ExperimentalWarning"
 
-for f in $(find -L node_modules/@appril -type f -name bash_completion.sh); do
+for f in .env $(find -L node_modules/@appril -type f -name bash_completion.sh); do
   source $f
 done

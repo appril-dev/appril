@@ -16,6 +16,7 @@ export default async function dbxPreset(
   const env = await readFile(resolve(src, ".env"), "utf8");
 
   await appendFile(resolve(dst, ".env"), env);
+  await appendFile(resolve(dst, ".env.schema"), env);
 
   await mergePackageJson(src, dst);
 }
