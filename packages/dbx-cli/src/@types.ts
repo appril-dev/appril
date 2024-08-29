@@ -55,12 +55,14 @@ export type Config = PgtsConfig & {
 
 export type DefaultConfig = Required<Pick<Config, "schemas">>;
 
+export type GeneratorPluginData = {
+  schemas: Array<string>;
+  tables: Array<TableDeclaration>;
+  views: Array<ViewDeclaration>;
+  enums: Array<EnumDeclaration>;
+};
+
 export type GeneratorPlugin = (
   config: Config,
-  data: {
-    schemas: Array<string>;
-    tables: Array<TableDeclaration>;
-    views: Array<ViewDeclaration>;
-    enums: Array<EnumDeclaration>;
-  },
+  data: GeneratorPluginData,
 ) => void | Promise<void>;

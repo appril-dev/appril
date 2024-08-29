@@ -1,9 +1,14 @@
-import { join } from "node:path";
+import { resolve, join } from "node:path";
 
 import fsx from "fs-extra";
-import { resolveCwd, fileGenerator } from "@appril/dev-utils";
+import { fileGenerator } from "@appril/dev-utils";
 
-import { type GeneratorPlugin, type TypesTemplates, BANNER } from "../../base";
+import {
+  type Config,
+  type GeneratorPluginData,
+  type TypesTemplates,
+  BANNER,
+} from "../../base";
 
 import knexDtsTpl from "./templates/knex.d.hbs";
 import indexTpl from "./templates/index.hbs";
@@ -15,19 +20,21 @@ const defaultTemplates: Required<TypesTemplates> = {
 
 type TemplateName = keyof typeof defaultTemplates;
 
-const typesPlugin: GeneratorPlugin = async (
-  config,
-  { schemas, tables, views, enums },
+const typesPlugin = async (
+  // absolute path
+  root: string,
+  config: Config,
+  { schemas, tables, views, enums }: GeneratorPluginData,
 ) => {
   const { base, typesTemplates } = config;
 
-  const { generateFile } = fileGenerator(resolveCwd());
+  const { generateFile } = fileGenerator(root);
 
   const templates: typeof defaultTemplates = { ...defaultTemplates };
 
   for (const [name, file] of Object.entries({ ...typesTemplates })) {
     templates[name as TemplateName] = await fsx.readFile(
-      resolveCwd(file),
+      resolve(root, file),
       "utf8",
     );
   }

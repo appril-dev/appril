@@ -1,9 +1,9 @@
-import { join } from "node:path";
+import { resolve, join } from "node:path";
 
 import prompts from "prompts";
 import pg from "pg";
 import { format as datetimeFormat } from "date-fns";
-import { resolveCwd, renderToFile } from "@appril/dev-utils";
+import { renderToFile } from "@appril/dev-utils";
 
 import type { Config, MigrationsTemplates } from "../base";
 
@@ -21,7 +21,11 @@ const defaultTemplates: Templates = {
   generic: genericTpl,
 };
 
-export default async function createMigration(config: Config): Promise<void> {
+export default async (
+  // absolute path
+  root: string,
+  config: Config,
+): Promise<void> => {
   const {
     connection,
     schemas,
@@ -129,6 +133,7 @@ export default async function createMigration(config: Config): Promise<void> {
       input.name,
     );
 
+    // relative to root
     const outfile = join(
       base,
       migrationDir,
@@ -138,13 +143,13 @@ export default async function createMigration(config: Config): Promise<void> {
 
     const table = input.table.replace("@none", "");
 
-    await renderToFile(resolveCwd(outfile), template, { table });
+    await renderToFile(resolve(root, outfile), template, { table });
 
-    console.log(`\x1b[32m√\x1b[0m ${outfile} ✨`);
+    console.log(`\x1b[32m➜\x1b[0m ${outfile} ✨`);
   } finally {
     db.end();
   }
-}
+};
 
 function formatName(...chunks: Array<string>) {
   return chunks

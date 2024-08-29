@@ -34,32 +34,20 @@ class MigrationSource {
 
 }
 
-const {
+export const {
   connection,
   client,
-  migrationSchema,
-  migrationTable,
-  disableTransactions,
 } = dbxConfig
 
-const config = {
-  connection,
-  client,
-  migrations: {
-    migrationSource: new MigrationSource,
-    disableTransactions,
-    ...migrationSchema
-      ? { schemaName: migrationSchema }
-      : {},
-    ...migrationTable
-      ? { tableName: migrationTable }
-      : {},
-  },
-}
-
-export default {
-  development: config,
-  test: config,
-  stage: config,
-  production: config,
+export const migrations = {
+  migrationSource: new MigrationSource,
+  ...dbxConfig.migrationSchema
+    ? { schemaName: dbxConfig.migrationSchema }
+    : {},
+  ...dbxConfig.migrationTable
+    ? { tableName: dbxConfig.migrationTable }
+    : {},
+  ...dbxConfig.disableTransactions
+    ? { schemaName: dbxConfig.disableTransactions }
+    : {},
 }

@@ -1,15 +1,14 @@
-import { resolve, dirname, join } from "node:path";
+import { resolve, join } from "node:path";
 
 import fsx from "fs-extra";
-import nopt from "nopt";
 import glob from "fast-glob";
-import { build } from "esbuild";
 import { sortBy } from "lodash-es";
+import { type BuildOptions, build as esbuild } from "esbuild";
 
 import { defaults } from "@appril/dev";
 import { renderToFile } from "@appril/dev-utils";
 
-import { type Config, BANNER, getEsbuildConfig } from "../base";
+import { type Config, BANNER } from "../base";
 
 import defaultTemplate from "./templates/knexfile.hbs";
 
@@ -24,15 +23,21 @@ type MigrationsSourceRenderContext = Config & {
   files: Array<MigrationsSourceFile>;
 };
 
-const { outdir } = nopt({
-  outdir: String,
-});
-
-export default async function generateKnexfile(
-  configFile: string,
+export default async (
+  // absolute path
+  root: string,
   config: Config,
-): Promise<void> {
-  const root = dirname(configFile);
+  esbuildConfig: BuildOptions,
+  {
+    dbxfile,
+    outfile,
+  }: {
+    // relative to root
+    dbxfile: string;
+    // relative to root
+    outfile: string;
+  },
+): Promise<void> => {
   const { base, migrationDir, migrationTemplates } = config;
 
   const matches = await glob("**/*.ts", {
@@ -54,27 +59,26 @@ export default async function generateKnexfile(
 
   const knexfile = resolve(root, `knexfile.${new Date().getTime()}.ts`);
 
-  const esbuildConfig = await getEsbuildConfig(root);
-
   await renderToFile<MigrationsSourceRenderContext>(
     knexfile,
     BANNER + template,
     {
       ...config,
       defaults,
-      dbxfile: configFile.replace(/\.ts$/, ""),
+      dbxfile: dbxfile.replace(/\.ts$/i, ""),
       files: sortBy(files, "path"),
     },
   );
 
   try {
-    await build({
+    await esbuild({
       ...esbuildConfig,
       bundle: true,
       entryPoints: [knexfile],
-      outfile: resolve(root, join(outdir, "knexfile.mjs")),
+      outfile: resolve(root, outfile),
+      logLevel: "error",
     });
   } finally {
     await fsx.unlink(knexfile);
   }
-}
+};

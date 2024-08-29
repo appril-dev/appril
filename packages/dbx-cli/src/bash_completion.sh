@@ -15,7 +15,7 @@ function _appril_dbx_cli() {
       opts=$(ls dbx.*.ts)
       ;;
     -m)
-      opts="create up down latest rollback list compile"
+      opts="create up down latest rollback list unlock version compile"
       ;;
     rollback)
       opts="--all"
