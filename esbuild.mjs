@@ -12,7 +12,9 @@ for (const entryPoint of argv.remain) {
   await build({
     entryPoints: [`src/${entryPoint}.ts`],
     outfile: `pkg/${entryPoint}.mjs`,
+    target: `node${pkg.nodeVersion.split(".")[0]}`,
     define: {
+      "process.env.NODE_VERSION": JSON.stringify(pkg.nodeVersion),
       "process.env.PACKAGE_MANAGER": JSON.stringify(pkg.packageManager),
     },
     ...config,

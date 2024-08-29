@@ -1,7 +1,6 @@
 {
   "bundle": true,
   "platform": "node",
-  "target": "node22",
   "format": "esm",
   "packages": "external",
   "sourcemap": "linked",

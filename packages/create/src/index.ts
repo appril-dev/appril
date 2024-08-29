@@ -14,6 +14,7 @@ import presets from "./presets";
 import { copyFiles } from "./base";
 
 import gitignoreTpl from "./root/.gitignore.hbs";
+import npmrcTpl from "./root/.npmrc.hbs";
 import packageTpl from "./root/package.hbs";
 import tsconfigTpl from "./root/tsconfig.hbs";
 import viteConfigTpl from "./root/vite.config.hbs";
@@ -160,7 +161,9 @@ async function init() {
     solidFramework: project.framework === "solid",
     sourceFolders,
     defaults,
-    packageManager: process.env.PACKAGE_MANAGER,
+    // coming from esbuild (define option)
+    NODE_VERSION: process.env.NODE_VERSION,
+    PACKAGE_MANAGER: process.env.PACKAGE_MANAGER,
   };
 
   {
@@ -173,6 +176,7 @@ async function init() {
 
     for (const [file, template] of [
       [".gitignore", gitignoreTpl],
+      [".npmrc", npmrcTpl],
       ["package.json", packageTpl],
       ["tsconfig.json", tsconfigTpl],
       ["vite.config.ts", viteConfigTpl],
