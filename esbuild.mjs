@@ -1,26 +1,31 @@
 #!/usr/bin/env -S node --enable-source-maps --no-warnings=ExperimentalWarning
 
-import nopt from "nopt";
+import { parseArgs } from "node:util";
+
 import { build } from "esbuild";
 
 import pkg from "./package.json" with { type: "json" };
-import config from "./esbuild.json" with { type: "json" };
 
-const { argv, ...opts } = nopt({});
+const { positionals } = parseArgs({ allowPositionals: true });
 
-for (const entryPoint of argv.remain) {
+const target = `node${pkg.nodeVersion.replace(/[^\d.]/g, "").split(".")[0]}`;
+
+for (const entryPoint of positionals) {
   await build({
+    bundle: true,
+    platform: "node",
+    format: "esm",
+    packages: "external",
+    sourcemap: "linked",
+    logLevel: "info",
+    loader: { ".hbs": "text" },
     entryPoints: [`src/${entryPoint}.ts`],
     outfile: `pkg/${entryPoint}.mjs`,
-    target: `node${pkg.nodeVersion.split(".")[0]}`,
+    target,
     define: {
-      "process.env.NODE_VERSION": JSON.stringify(pkg.nodeVersion),
-      "process.env.PACKAGE_MANAGER": JSON.stringify(pkg.packageManager),
+      "process.env.APPRIL__NODE_VERSION": JSON.stringify(pkg.nodeVersion),
+      "process.env.APPRIL__ESBUILD_TARGET": JSON.stringify(target),
+      "process.env.APPRIL__PACKAGE_MANAGER": JSON.stringify(pkg.packageManager),
     },
-    ...config,
-    ...Object.entries(opts).reduce((a, [k, v]) => {
-      a[k.replace(/(\w)\-(\w)/g, (_m, a, b) => a + b.toUpperCase())] = v;
-      return a;
-    }, {}),
   });
 }
