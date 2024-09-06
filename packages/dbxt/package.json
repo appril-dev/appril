@@ -1,13 +1,15 @@
 {
   "name": "@appril/dbxt",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Thin wrapper around Knex",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "exports": {
     ".": {
       "types": "./pkg/index.d.ts",

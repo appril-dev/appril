@@ -1,12 +1,15 @@
 {
   "name": "@appril/configs",
-  "version": "0.0.49",
+  "version": "0.0.50",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "files": ["tsconfig*.json", "biome*.json"],
+  "files": [
+    "tsconfig*.json",
+    "biome*.json"
+  ],
   "exports": {
     "./tsconfig.vite-solid.json": "./tsconfig.vite-solid.json",
     "./tsconfig.lib.json": "./tsconfig.lib.json",
