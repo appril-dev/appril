@@ -14,10 +14,13 @@ export function render<Context = object>(
   return handlebars.compile(template, { noEscape })(context);
 }
 
-export async function renderWithFormat(
-  ...a: Parameters<typeof render>
+export async function renderWithFormat<Context = object>(
+  template: string,
+  context: Context,
+  options?: Options & { filePath?: string },
 ): Promise<string> {
-  return formatSourceCode(render(...a));
+  const { filePath, ...renderOpts } = { ...options };
+  return formatSourceCode(render(template, context, renderOpts), { filePath });
 }
 
 export async function renderToFile<Context = object>(
@@ -35,7 +38,10 @@ export async function renderToFile<Context = object>(
   return fsx.outputFile(
     file,
     format
-      ? await renderWithFormat(template, context, renderOpts)
+      ? await renderWithFormat(template, context, {
+          ...renderOpts,
+          filePath: file,
+        })
       : render(template, context, renderOpts),
     "utf8",
   );
