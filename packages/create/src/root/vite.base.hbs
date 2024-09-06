@@ -5,10 +5,11 @@ import { aliasPlugin, definePlugin } from "@appril/dev";
 
 import pkg from "./package.json" with { type: "json" };
 
-export default async (basedir: string, config: UserConfig) => {
+export default async (srcFolderPath: string, config: UserConfig) => {
+  const srcFolder = basename(srcFolderPath)
   return mergeConfig(config, {
     build: {
-      outDir: join(import.meta.dirname, pkg.distDir, basename(basedir)),
+      outDir: join(import.meta.dirname, pkg.distDir, srcFolder),
       emptyOutDir: true,
       sourcemap: true,
     },
@@ -21,10 +22,10 @@ export default async (basedir: string, config: UserConfig) => {
       },
     },
 
-    cacheDir: join(basedir, "{{defaults.varDir}}", ".cache"),
+    cacheDir: join(import.meta.dirname, "{{defaults.varDir}}", `${srcFolder}.vite`),
 
     plugins: [
-      aliasPlugin(basedir),
+      aliasPlugin(import.meta.dirname),
       definePlugin([
         {
           // keys extracted from process.env and exposed to client

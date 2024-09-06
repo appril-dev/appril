@@ -1,13 +1,17 @@
 import { join } from "node:path";
 
+import { defaults } from "@appril/dev";
 import { renderToFile } from "@appril/dev-utils";
 
-import { mergePackageJson, copyFiles } from "../base";
+import { mergePackageJson, copyFiles } from "@/base";
 
 import viteConfigTpl from "./solid/src/vite.config.hbs";
+import componentsLinkTpl from "./solid/src/components/Link.hbs";
+import routerIndexTpl from "./solid/src/router/index.hbs";
+import indexTpl from "./solid/src/index.hbs";
 
 export default async (
-  root: string,
+  appRoot: string,
   {
     devPort,
     sourceFolder,
@@ -18,7 +22,7 @@ export default async (
 ): Promise<void> => {
   {
     const src = join(import.meta.dirname, "frameworks/solid/root");
-    const dst = root;
+    const dst = appRoot;
 
     await copyFiles(src, dst, {
       exclude: ["package.json"],
@@ -29,17 +33,24 @@ export default async (
 
   {
     const src = join(import.meta.dirname, "frameworks/solid/src");
-    const dst = join(root, sourceFolder);
+    const dst = join(appRoot, sourceFolder);
 
     await copyFiles(src, dst, {
       exclude: [/.+\.hbs/],
     });
 
-    await renderToFile(
-      join(dst, "vite.config.ts"),
-      viteConfigTpl,
-      { devPort },
-      { format: true },
-    );
+    for (const [file, template] of [
+      ["index.ts", indexTpl],
+      ["vite.config.ts", viteConfigTpl],
+      ["router/index.tsx", routerIndexTpl],
+      ["components/Link.tsx", componentsLinkTpl],
+    ]) {
+      await renderToFile(
+        join(dst, file),
+        template,
+        { devPort, defaults, sourceFolder },
+        { format: true },
+      );
+    }
   }
 };

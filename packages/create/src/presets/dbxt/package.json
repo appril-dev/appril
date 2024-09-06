@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "@appril/dbx": "^0.0.0",
+    "@appril/dbxt": "^0.0.0",
     "knex": "^0.0.0"
   },
   "devDependencies": {
-    "@appril/dbx-cli": "^0.0.0"
+    "@appril/dbxt-migrate": "^0.0.0"
   }
 }

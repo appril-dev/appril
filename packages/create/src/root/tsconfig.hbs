@@ -1,30 +1,11 @@
 {
-
-  "extends": "@appril/configs/tsconfig.app.json",
-
-  "include": [
-    {{#if solidFramework}}
-    "**/*.tsx",
-    {{/if}}
-    "**/*.ts"
-  ],
-
-  "exclude": [
-    {{#each excludedSourceFolders}}
-    {{this}}
-    {{/each}}
-  ],
-
+  "extends": "@appril/configs/tsconfig.vite-solid.json",
   "compilerOptions": {
     "paths": {
-      "{{defaults.appPrefix}}/*": [ "./*" ],
-      "{{defaults.varPrefix}}/*": [
-        {{#each sourceFolders}}
-        "./{{this}}/{{../defaults.varDir}}/*",
-        {{/each}}
-        "./{{defaults.varDir}}/*"
-      ]
+      {{#each sourceFolders}}
+      "{{this}}/*": ["./{{this}}/*", "./{{../defaults.varDir}}/{{this}}/*"],
+      {{/each}}
+      "{{defaults.appPrefix}}/*": ["./*", "./{{defaults.varDir}}/*"]
     }
   }
-
 }

@@ -9,8 +9,8 @@ import {
   routePrinter,
 } from "@appril/api/router";
 
-import { errorHandler } from "~/base/@api/app";
-import routes, { routeStack } from "_/api/routes";
+import { errorHandler } from "{{defaults.appPrefix}}/base/api/app";
+import routes, { routeStack } from "{{srcFolder}}/{{defaults.varApiDir}}/routes";
 
 export default async () => {
   const app = withQueryparser(new Koa<DefaultState, DefaultContext>());

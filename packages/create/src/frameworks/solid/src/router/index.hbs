@@ -1,8 +1,8 @@
 import { Router } from "@solidjs/router";
 
-import { baseurl } from "@/config";
-import routes from "_/router/routes";
+import routes from "{{sourceFolder}}/{{defaults.varRouterDir}}/routes";
 import App from "../App";
+import { baseurl } from "../config";
 
 export default () => (
   <Router root={App} base={baseurl}>

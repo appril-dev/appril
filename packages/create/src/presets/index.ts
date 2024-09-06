@@ -1,5 +1,7 @@
-import dbx from "./dbx";
+import dbxt from "./dbxt";
+import pgxt from "./pgxt";
 
 export default {
-  "@appril/dbx": dbx,
+  "@appril/dbxt": dbxt,
+  "@appril/pgxt": pgxt,
 };

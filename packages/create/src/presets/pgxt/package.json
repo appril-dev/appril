@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "pg": "^0.0.0"
+  },
+  "devDependencies": {
+    "@appril/pgxt": "^0.0.0",
+    "@appril/pgxt-cli": "^0.0.0",
+    "@types/pg": "^0.0.0"
+  }
+}

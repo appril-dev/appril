@@ -7,7 +7,9 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "bin": {
     "create": "pkg/index.mjs"
   },
@@ -28,25 +30,25 @@
     "@appril/dev-utils": "workspace:^",
     "fs-extra": "catalog:",
     "merge": "^2.1.1",
-    "nopt": "catalog:",
-    "npm-check-updates": "^17.1.0",
+    "npm-check-updates": "^17.1.1",
     "prompts": "catalog:"
   },
   "devDependencies": {
     "@appril/api": "workspace:^",
     "@appril/configs": "workspace:^",
-    "@appril/dbx": "workspace:^",
-    "@appril/dbx-cli": "workspace:^",
+    "@appril/dbxt": "workspace:^",
+    "@appril/dbxt-migrate": "workspace:^",
     "@appril/dev": "workspace:^",
     "@appril/fetch": "workspace:^",
+    "@appril/pgxt": "workspace:^",
+    "@appril/pgxt-cli": "workspace:^",
     "@solidjs/router": "catalog:solid",
     "@types/fs-extra": "catalog:",
     "@types/koa": "catalog:koa",
     "@types/koa-logger": "catalog:koa",
     "@types/koa__router": "catalog:koa",
-    "@types/nopt": "catalog:",
     "@types/prompts": "catalog:",
-    "knex": "catalog:dbx",
+    "knex": "catalog:",
     "koa": "catalog:koa",
     "koa-logger": "catalog:koa",
     "solid-js": "catalog:solid",

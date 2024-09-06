@@ -15,15 +15,20 @@ import { copyFiles } from "./base";
 
 import gitignoreTpl from "./root/.gitignore.hbs";
 import npmrcTpl from "./root/.npmrc.hbs";
+import esbuildTpl from "./root/esbuild.hbs";
 import packageTpl from "./root/package.hbs";
 import tsconfigTpl from "./root/tsconfig.hbs";
-import viteConfigTpl from "./root/vite.config.hbs";
+import viteBaseTpl from "./root/vite.base.hbs";
+
 import srcConfigTpl from "./src/config/index.hbs";
-import srcTsconfigTpl from "./src/tsconfig.hbs";
+import srcApiAppTpl from "./src/api/app.hbs";
+import srcApiServerTpl from "./src/api/server.hbs";
 
 const onState: PromptObject["onState"] = (state) => {
   if (state.aborted) {
-    process.nextTick(() => process.exit(0));
+    // if exit with status code zero,
+    // next job (if any) will continue running, assuming app created
+    process.nextTick(() => process.exit(1));
   }
 };
 
@@ -138,6 +143,7 @@ async function init() {
         selected: true,
       })),
       hint: "- Space to select. Return to submit",
+      onState,
     },
   ]);
 
@@ -162,31 +168,39 @@ async function init() {
     sourceFolders,
     defaults,
     // coming from esbuild (define option)
-    NODE_VERSION: process.env.NODE_VERSION,
-    PACKAGE_MANAGER: process.env.PACKAGE_MANAGER,
+    NODE_VERSION: process.env.APPRIL__NODE_VERSION,
+    ESBUILD_TARGET: process.env.APPRIL__ESBUILD_TARGET,
+    PACKAGE_MANAGER: process.env.APPRIL__PACKAGE_MANAGER,
   };
 
   {
     const context = {
       ...genericContext,
       excludedSourceFolders: sourceFoldersMapper((folder, suffix) => [
-        `"${folder}"${suffix}`,
+        `"./${folder}"${suffix}`,
       ]),
     };
 
     for (const [file, template] of [
       [".gitignore", gitignoreTpl],
       [".npmrc", npmrcTpl],
+      ["esbuild.json", esbuildTpl],
       ["package.json", packageTpl],
       ["tsconfig.json", tsconfigTpl],
-      ["vite.config.ts", viteConfigTpl],
+      ["vite.base.ts", viteBaseTpl],
     ]) {
       await renderToFile(dstdir(file), template, context, { format: true });
     }
   }
 
-  for (const preset of project.presets) {
-    await presets[preset as keyof typeof presets](srcdir("presets"), dstdir());
+  const optedPresets: Array<keyof typeof presets> = [...project.presets];
+
+  if (optedPresets.includes("@appril/pgxt")) {
+    optedPresets.includes("@appril/dbxt") || optedPresets.push("@appril/dbxt");
+  }
+
+  for (const preset of optedPresets) {
+    await presets[preset](srcdir("presets"), dstdir());
   }
 
   const port = {
@@ -197,43 +211,40 @@ async function init() {
     },
   };
 
-  for (const dir of sourceFolders) {
-    await copyFiles(srcdir("src"), dstdir(dir), {
+  for (const srcFolder of sourceFolders) {
+    await copyFiles(srcdir("src"), dstdir(srcFolder), {
       exclude: [/.+\.hbs/],
     });
 
     const baseContext = {
       ...genericContext,
-      project,
+      srcFolder,
       excludedSourceFolders: sourceFoldersMapper(
         (folder, suffix) => [`"../${folder}"${suffix}`],
-        sourceFolders.filter((f) => f !== dir),
+        sourceFolders.filter((f) => f !== srcFolder),
       ),
     };
 
     for (const [file, template] of [
       ["config/index.ts", srcConfigTpl],
-      ["tsconfig.json", srcTsconfigTpl],
+      ["api/app.ts", srcApiAppTpl],
+      ["api/server.ts", srcApiServerTpl],
     ]) {
-      const baseurl =
-        sourceFolders.length === 1 || /front|src/.test(dir)
-          ? "/"
-          : join("/", dir.replace("@", ""));
-
       const context = {
         ...baseContext,
-        src: {
-          baseurl,
-        },
+        baseurl:
+          sourceFolders.length === 1 || /front|src/.test(srcFolder)
+            ? "/"
+            : join("/", srcFolder.replace("@", "")),
       };
 
-      await renderToFile(dstdir(dir, file), template, context, {
+      await renderToFile(dstdir(srcFolder, file), template, context, {
         format: true,
       });
     }
 
     await frameworks[project.framework as keyof typeof frameworks](dstdir(), {
-      sourceFolder: dir,
+      sourceFolder: srcFolder,
       devPort: port.next,
     });
   }

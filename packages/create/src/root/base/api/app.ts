@@ -7,7 +7,7 @@ import {
 } from "@appril/api/router";
 
 import { bodyparser } from "@appril/api/bodyparser";
-import { DEV } from "~/config";
+import { DEV } from "@/config";
 
 useGlobal("bodyparser", bodyparser.json()).before("post", "put", "patch");
 
