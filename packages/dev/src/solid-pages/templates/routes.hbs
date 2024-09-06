@@ -17,7 +17,7 @@ export const routeMap: RouteMap = {
   {{#each pages}}
   "{{originalPath}}": {
     path: "{{path}}",
-    component: lazy(() => import("{{../importPathComponents}}/{{importPath}}")),
+    component: lazy(() => import("{{../importComponentsPath}}/{{importPath}}")),
     {{#if dataLoaderConsumer}}
     load: ({ params }) => {{importName}}$dl(params),
     {{/if}}

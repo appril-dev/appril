@@ -7,7 +7,7 @@ export type PluginOptions = {
   };
 
   apiGenerator?: {
-    // path to custom template, relative to vite root
+    // path to custom template, relative to vite.config.ts
     template?: string;
   };
 
@@ -16,7 +16,7 @@ export type PluginOptions = {
   };
 
   solidPages?: {
-    // path to custom template, relative to vite root
+    // path to custom template, relative to vite.config.ts
     template?: string;
   };
 
@@ -36,7 +36,7 @@ export type PluginOptions = {
 export type ResolvedPluginOptions = Required<
   Omit<PluginOptions, "solidPages">
 > & {
-  root: string;
+  appRoot: string;
   sourceFolder: string;
   solidPages?: PluginOptions["solidPages"];
 };

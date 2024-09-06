@@ -8,7 +8,9 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "directories": {
     "bin": "pkg/bin"
   },
@@ -46,12 +48,15 @@
     "typescript": "catalog:"
   },
   "devDependencies": {
-    "@appril/api": "workspace:^",
     "@appril/configs": "workspace:^",
     "@types/fs-extra": "catalog:",
     "@types/lodash-es": "catalog:",
+    "@types/qs": "catalog:"
+  },
+  "peerDependencies": {
+    "@appril/api": "workspace:",
+    "@appril/fetch": "workspace:",
     "@types/node": "catalog:",
-    "@types/qs": "catalog:",
     "vite": "catalog:vite"
   }
 }

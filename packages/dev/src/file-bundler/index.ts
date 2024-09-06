@@ -5,7 +5,7 @@ import fsx from "fs-extra";
 import glob from "fast-glob";
 import { fileGenerator } from "@appril/dev-utils";
 
-import { BANNER } from "../base";
+import { BANNER } from "@/base";
 
 type ContextFolder = {
   folder: string;

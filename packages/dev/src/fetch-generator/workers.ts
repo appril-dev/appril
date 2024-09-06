@@ -2,18 +2,18 @@ import { join, dirname } from "node:path";
 
 import { fileGenerator } from "@appril/dev-utils";
 
-import { type ApiRoute, defaults } from "../base";
+import { type ApiRoute, defaults } from "@/base";
+import { extractApiAssets } from "@/ast";
 
 import baseTpl from "./templates/base.hbs";
 import fetchTpl from "./templates/fetch.hbs";
 import indexTpl from "./templates/index.hbs";
-import { extractApiAssets } from "../ast";
 
 let sourceFolder: string;
 let generateFile: ReturnType<typeof fileGenerator>["generateFile"];
 
 export async function bootstrap(data: {
-  root: string;
+  appRoot: string;
   sourceFolder: string;
   routes: Array<ApiRoute>;
 }) {
@@ -21,21 +21,15 @@ export async function bootstrap(data: {
 
   sourceFolder = data.sourceFolder;
 
-  generateFile = fileGenerator(data.root).generateFile;
+  generateFile = fileGenerator(data.appRoot).generateFile;
 
-  await generateFile(join(defaults.varDir, defaults.fetchDir, "base.ts"), {
-    template: baseTpl,
-    context: {
-      importPathFetch: [defaults.appPrefix, defaults.baseDir, "@fetch"].join(
-        "/",
-      ),
-      importPathConfig: [
-        defaults.appPrefix,
-        sourceFolder,
-        defaults.configDir,
-      ].join("/"),
+  await generateFile(
+    join(defaults.varDir, sourceFolder, defaults.varFetchDir, "base.ts"),
+    {
+      template: baseTpl,
+      context: { defaults, sourceFolder },
     },
-  });
+  );
 
   for (const route of routes) {
     await generateRouteAssets({ route });
@@ -76,33 +70,26 @@ async function generateRouteAssets({
     route.fileFullpath,
     {
       relpathResolver(path) {
-        return join(
-          defaults.appPrefix,
-          sourceFolder,
-          defaults.apiDir,
-          dirname(route.file),
-          path,
-        );
+        return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
       },
     },
   );
 
   await generateFile(
-    join(defaults.varDir, defaults.fetchDir, defaults.apiDir, route.file),
+    join(
+      defaults.varDir,
+      sourceFolder,
+      defaults.varFetchDir,
+      defaults.apiDir,
+      route.file,
+    ),
     {
       template: fetchTpl,
       context: {
         route,
-        sourceFolder,
         typeDeclarations,
         fetchDefinitions,
-        importPathBase: [
-          defaults.appPrefix,
-          sourceFolder,
-          defaults.varDir,
-          defaults.fetchDir,
-          "base",
-        ].join("/"),
+        importBase: [sourceFolder, defaults.varFetchDir, "base"].join("/"),
       },
     },
   );
@@ -113,21 +100,18 @@ async function generateIndexFiles({
 }: {
   routes: Array<ApiRoute>;
 }) {
-  await generateFile(join(defaults.varDir, defaults.fetchDir, "index.ts"), {
-    template: indexTpl,
-    context: {
-      routes: routes
-        .map((route) => ({
-          ...route,
-          importPrefix: [
-            defaults.appPrefix,
-            sourceFolder,
-            defaults.varDir,
-            defaults.fetchDir,
-            defaults.apiDir,
-          ].join("/"),
-        }))
-        .sort((a, b) => a.path.localeCompare(b.path)),
+  await generateFile(
+    join(defaults.varDir, sourceFolder, defaults.varFetchDir, "index.ts"),
+    {
+      template: indexTpl,
+      context: {
+        importVarBase: [
+          sourceFolder,
+          defaults.varFetchDir,
+          defaults.apiDir,
+        ].join("/"),
+        routes: routes.sort((a, b) => a.path.localeCompare(b.path)),
+      },
     },
-  });
+  );
 }

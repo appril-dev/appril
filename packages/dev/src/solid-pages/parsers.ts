@@ -5,17 +5,21 @@ import glob from "fast-glob";
 import fsx from "fs-extra";
 import { parse } from "smol-toml";
 
-import type { ResolvedPluginOptions, RouteOptions, SolidPage } from "../@types";
-
-import { normalizeRoutePath, routeSections } from "../base";
-import { defaults } from "../defaults";
+import {
+  type ResolvedPluginOptions,
+  type RouteOptions,
+  type SolidPage,
+  normalizeRoutePath,
+  routeSections,
+  defaults,
+} from "@/base";
 
 export async function sourceFilesParsers(
-  _config: ResolvedConfig,
+  config: ResolvedConfig,
   options: ResolvedPluginOptions,
   pattern = `*${defaults.sourceFile}`,
 ) {
-  const { root } = options;
+  const { sourceFolder } = options;
 
   const parsers: {
     file: string;
@@ -23,7 +27,7 @@ export async function sourceFilesParsers(
   }[] = [];
 
   const srcFiles = await glob(pattern, {
-    cwd: root,
+    cwd: config.root,
     onlyFiles: true,
     absolute: true,
     unique: true,
@@ -67,7 +71,7 @@ export async function sourceFilesParsers(
             opt?.dataLoader === true
               ? {
                   // relative path, worker would prepend varDir
-                  datafile: join(defaults.apiDataDir, originalPath),
+                  datafile: join(defaults.varDataDir, originalPath),
                   // relative path, api generator would prepend apiDir
                   apiEndpoint: [defaults.apiDataDir, originalPath].join("/"),
                 }
@@ -79,8 +83,8 @@ export async function sourceFilesParsers(
             if (opt.dataLoader === true) {
               dataLoaderConsumer = {
                 importDatafile: [
-                  defaults.varPrefix,
-                  defaults.apiDataDir,
+                  sourceFolder,
+                  defaults.varDataDir,
                   originalPath,
                 ].join("/"),
                 importDatafunc: "dataCache",
@@ -94,8 +98,8 @@ export async function sourceFilesParsers(
             } else if (typeof opt.dataLoader?.alias === "string") {
               dataLoaderConsumer = {
                 importDatafile: [
-                  defaults.varPrefix,
-                  defaults.apiDataDir,
+                  sourceFolder,
+                  defaults.varDataDir,
                   normalizePath(opt.dataLoader.alias),
                 ].join("/"),
                 importDatafunc: "dataCache",

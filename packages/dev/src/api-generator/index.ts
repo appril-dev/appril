@@ -9,13 +9,13 @@ import type {
   ApiRoute,
   BootstrapPayload,
   WatchHandler,
-} from "../@types";
+} from "@/base";
 
 import { sourceFilesParsers } from "./parsers";
 
 /** *_routes.toml schema - api options:
 
-# set api to false to exclude route from api
+# set api to false to exclude route
 [some-route]
 api = false
 
@@ -82,7 +82,7 @@ export async function apiGenerator(
   options: ResolvedPluginOptions,
   { workerPool }: { workerPool: Workers },
 ) {
-  const { root, sourceFolder } = options;
+  const { appRoot, sourceFolder } = options;
 
   const routeMap: Record<string, ApiRoute> = {};
 
@@ -92,7 +92,10 @@ export async function apiGenerator(
   // when custom template updated, dev server should be restarted manually
   // for new routes to use custom template.
   const template = options.apiGenerator?.template
-    ? await fsx.readFile(resolve(root, options.apiGenerator.template), "utf8")
+    ? await fsx.readFile(
+        resolve(config.root, options.apiGenerator.template),
+        "utf8",
+      )
     : undefined;
 
   const watchHandler: WatchHandler = (watcher) => {
@@ -140,7 +143,7 @@ export async function apiGenerator(
   }
 
   const bootstrapPayload: BootstrapPayload<Workers> = {
-    root,
+    appRoot,
     sourceFolder,
     routes: Object.values(routeMap),
     template,

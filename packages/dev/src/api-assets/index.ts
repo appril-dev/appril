@@ -1,14 +1,14 @@
-import { join } from "node:path";
+import { resolve, join } from "node:path";
 
-import type {
-  ResolvedPluginOptions,
-  ApiRoute,
-  BootstrapPayload,
-  WatchHandler,
-} from "../@types";
+import {
+  type ResolvedPluginOptions,
+  type ApiRoute,
+  type BootstrapPayload,
+  type WatchHandler,
+  defaults,
+} from "@/base";
 
-import { sourceFilesParsers } from "../api-generator/parsers";
-import { defaults } from "../defaults";
+import { sourceFilesParsers } from "@/api-generator/parsers";
 
 type Workers = typeof import("./workers");
 
@@ -17,7 +17,7 @@ export async function apiAssets(
   options: ResolvedPluginOptions,
   { workerPool }: { workerPool: Workers },
 ) {
-  const { root, sourceFolder } = options;
+  const { appRoot, sourceFolder } = options;
 
   // biome-ignore format:
   const {
@@ -36,7 +36,7 @@ export async function apiAssets(
       // watching source files for changes
       ...Object.keys(srcWatchers),
       // also watching files in apiDir for changes
-      `${join(root, sourceFolder, defaults.apiDir)}/**/*.ts`,
+      `${join(config.root, defaults.apiDir)}/**/*.ts`,
     ]) {
       watcher.add(pattern);
     }
@@ -83,9 +83,10 @@ export async function apiAssets(
   }
 
   const bootstrapPayload: BootstrapPayload<Workers> = {
-    root,
+    appRoot,
     sourceFolder,
-    outDir: config.build.outDir,
+    // at initialization, outDir is getting "client" suffix, removing it
+    outDir: resolve(config.build.outDir, ".."),
     command: config.command,
     watchOptions: options.watchOptions,
     routes: Object.values(routeMap),

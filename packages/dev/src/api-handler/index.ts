@@ -4,19 +4,18 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { type Plugin, context, build } from "esbuild";
 import type { ResolvedConfig } from "vite";
 
-import type { ResolvedPluginOptions } from "../@types";
-import { defaults } from "../defaults";
+import { type ResolvedPluginOptions, defaults } from "@/base";
 
 export async function apiHandlerFactory(
   config: ResolvedConfig,
   options: ResolvedPluginOptions,
 ) {
-  const { root, sourceFolder, apiurl } = options;
+  const { appRoot, sourceFolder, apiurl } = options;
 
-  const apiDir = join(defaults.appPrefix, sourceFolder, defaults.apiDir);
+  const apiDir = join(sourceFolder, defaults.apiDir);
   const outDir = resolve(config.build.outDir, join("..", defaults.apiDir));
 
-  const esbuildConfig = await import(resolve(root, "../esbuild.json"), {
+  const esbuildConfig = await import(resolve(appRoot, "esbuild.json"), {
     with: { type: "json" },
   }).then((mdl) => mdl.default);
 

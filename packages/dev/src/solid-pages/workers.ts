@@ -3,18 +3,18 @@ import { join } from "node:path";
 import { stringify } from "smol-toml";
 import { fileGenerator } from "@appril/dev-utils";
 
-import { type SolidPage, BANNER, defaults } from "../base";
+import { type SolidPage, BANNER, defaults } from "@/base";
 
+import assetsTpl from "./templates/assets.hbs";
+import dataTpl from "./templates/data.hbs";
 import pageTpl from "./templates/page.hbs";
 import routesTpl from "./templates/routes.hbs";
-import assetsTpl from "./templates/assets.hbs";
-import dataTpl from "./templates/var/data.hbs";
 
 let sourceFolder: string;
 let generateFile: ReturnType<typeof fileGenerator>["generateFile"];
 
 export async function bootstrap(data: {
-  root: string;
+  appRoot: string;
   sourceFolder: string;
   pages: Array<SolidPage>;
   template: string | undefined;
@@ -22,7 +22,7 @@ export async function bootstrap(data: {
   const { template } = data;
 
   sourceFolder = data.sourceFolder;
-  generateFile = fileGenerator(data.root).generateFile;
+  generateFile = fileGenerator(data.appRoot).generateFile;
 
   for (const page of data.pages) {
     await generatePageFiles({ page, template });
@@ -49,7 +49,7 @@ async function generatePageFiles({
   template,
 }: { page: SolidPage; template: string | undefined }) {
   await generateFile(
-    join(defaults.pagesDir, page.file),
+    join(sourceFolder, defaults.pagesDir, page.file),
     {
       template: template || pageTpl,
       context: { page },
@@ -59,16 +59,18 @@ async function generatePageFiles({
 
   if (page.dataLoaderGenerator) {
     await generateFile(
-      join(defaults.varDir, `${page.dataLoaderGenerator.datafile}.ts`),
+      join(
+        defaults.varDir,
+        sourceFolder,
+        `${page.dataLoaderGenerator.datafile}.ts`,
+      ),
       {
         template: dataTpl,
         context: {
           page,
-          importPathFetch: [
-            defaults.appPrefix,
+          importBase: [
             sourceFolder,
-            defaults.varDir,
-            defaults.fetchDir,
+            defaults.varFetchDir,
             defaults.apiDir,
             defaults.apiDataDir,
           ].join("/"),
@@ -85,17 +87,16 @@ async function generateIndexFiles(data: { pages: Array<SolidPage> }) {
     [defaults.routerRoutesFile, routesTpl],
     [defaults.routerAssetsFile, assetsTpl],
   ]) {
-    await generateFile(join(defaults.varDir, defaults.routerDir, outfile), {
-      template,
-      context: {
-        pages,
-        importPathComponents: [
-          defaults.appPrefix,
-          sourceFolder,
-          defaults.pagesDir,
-        ].join("/"),
+    await generateFile(
+      join(defaults.varDir, sourceFolder, defaults.varRouterDir, outfile),
+      {
+        template,
+        context: {
+          pages,
+          importComponentsPath: [sourceFolder, defaults.pagesDir].join("/"),
+        },
       },
-    });
+    );
   }
 
   {
@@ -111,6 +112,6 @@ async function generateIndexFiles(data: { pages: Array<SolidPage> }) {
       stringify(pages.reduce(reducer, {})),
     ].join("\n");
 
-    await generateFile(defaults.dataSourceFile, content);
+    await generateFile(join(sourceFolder, defaults.dataSourceFile), content);
   }
 }

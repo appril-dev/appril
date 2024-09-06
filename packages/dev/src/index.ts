@@ -1,4 +1,4 @@
-import { basename, join } from "node:path";
+import { resolve, basename, join } from "node:path";
 
 import type { FSWatcher, Plugin } from "vite";
 
@@ -18,7 +18,7 @@ import { fetchGenerator } from "./fetch-generator";
 
 export type { PluginOptions, ResolvedPluginOptions };
 
-export * from "./defaults";
+export { defaults } from "./defaults";
 export * from "./define";
 export * from "./alias";
 export * from "./file-bundler";
@@ -64,7 +64,7 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
         },
         ...options,
         // not overridable by options
-        root: config.root,
+        appRoot: resolve(config.root, ".."),
         sourceFolder: basename(config.root),
       };
 

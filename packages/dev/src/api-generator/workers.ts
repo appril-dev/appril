@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { APIMethods } from "@appril/api/router";
 import { fileGenerator } from "@appril/dev-utils";
 
-import { type ApiRoute, defaults } from "../base";
+import { type ApiRoute, defaults } from "@/base";
 
 import baseTpl from "./templates/base.hbs";
 import routeTpl from "./templates/route.hbs";
@@ -13,7 +13,7 @@ let sourceFolder: string;
 let generateFile: ReturnType<typeof fileGenerator>["generateFile"];
 
 export async function bootstrap(data: {
-  root: string;
+  appRoot: string;
   sourceFolder: string;
   routes: Array<ApiRoute>;
   template: string | undefined;
@@ -22,7 +22,7 @@ export async function bootstrap(data: {
 
   sourceFolder = data.sourceFolder;
 
-  generateFile = fileGenerator(data.root).generateFile;
+  generateFile = fileGenerator(data.appRoot).generateFile;
 
   await generateFile(defaults.dataSourceFile, "", { overwrite: false });
 
@@ -56,7 +56,13 @@ async function generateRouteFiles({
 }: { route: ApiRoute; template: string | undefined }) {
   if (!route.optedFile) {
     await generateFile(
-      join(defaults.varDir, defaults.apiDir, route.importPath, "index.ts"),
+      join(
+        defaults.varDir,
+        sourceFolder,
+        defaults.varApiDir,
+        route.importPath,
+        "index.ts",
+      ),
       {
         template: baseTpl,
         context: {
@@ -69,19 +75,26 @@ async function generateRouteFiles({
   }
 
   await generateFile(
-    join(defaults.apiDir, route.file),
+    join(sourceFolder, defaults.apiDir, route.file),
     {
       template: template || routeTpl,
-      context: { route, defaults },
+      context: {
+        route,
+        importVarBase: `${sourceFolder}/${defaults.varApiDir}`,
+      },
     },
     { overwrite: false },
   );
 }
 
 async function generateIndexFiles(routes: Array<ApiRoute>) {
-  const base = join(defaults.appPrefix, sourceFolder);
   await generateFile(
-    join(defaults.varDir, defaults.apiDir, defaults.apiRoutesFile),
+    join(
+      defaults.varDir,
+      sourceFolder,
+      defaults.varApiDir,
+      defaults.apiRoutesFile,
+    ),
     {
       template: routesTpl,
       context: {
@@ -91,9 +104,9 @@ async function generateIndexFiles(routes: Array<ApiRoute>) {
             ...(route.meta ? { meta: JSON.stringify(route.meta) } : {}),
           }))
           .sort((a, b) => a.path.localeCompare(b.path)),
-        importPathCfg: [base, defaults.configDir].join("/"),
-        importPathApi: [base, defaults.apiDir].join("/"),
-        importPathVar: [base, defaults.varDir, defaults.apiDir].join("/"),
+        importPathCfg: [sourceFolder, defaults.configDir].join("/"),
+        importPathApi: [sourceFolder, defaults.apiDir].join("/"),
+        importPathVar: [sourceFolder, defaults.varApiDir].join("/"),
       },
     },
   );

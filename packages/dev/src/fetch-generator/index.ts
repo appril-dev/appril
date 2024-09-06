@@ -2,15 +2,15 @@ import { resolve } from "node:path";
 
 import type { ResolvedConfig } from "vite";
 
-import type {
-  ResolvedPluginOptions,
-  ApiRoute,
-  BootstrapPayload,
-  WatchHandler,
-} from "../@types";
+import {
+  type ResolvedPluginOptions,
+  type ApiRoute,
+  type BootstrapPayload,
+  type WatchHandler,
+  defaults,
+} from "@/base";
 
-import { sourceFilesParsers } from "../api-generator/parsers";
-import { defaults } from "../defaults";
+import { sourceFilesParsers } from "@/api-generator/parsers";
 
 type Workers = typeof import("./workers");
 
@@ -19,7 +19,7 @@ export async function fetchGenerator(
   options: ResolvedPluginOptions,
   { workerPool }: { workerPool: Workers },
 ) {
-  const { root, sourceFolder } = options;
+  const { appRoot, sourceFolder } = options;
 
   const { filter = (_r: ApiRoute) => true } = options.fetchGenerator;
 
@@ -32,7 +32,7 @@ export async function fetchGenerator(
       // watching source files for changes
       ...Object.keys(srcWatchers),
       // also watching files in apiDir for changes
-      `${resolve(root, defaults.apiDir)}/**/*.ts`,
+      `${resolve(config.root, defaults.apiDir)}/**/*.ts`,
     ]) {
       watcher.add(pattern);
     }
@@ -76,7 +76,7 @@ export async function fetchGenerator(
   }
 
   const bootstrapPayload: BootstrapPayload<Workers> = {
-    root,
+    appRoot,
     sourceFolder,
     routes: Object.values(routeMap),
   };

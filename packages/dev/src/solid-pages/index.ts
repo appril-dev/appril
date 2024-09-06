@@ -9,14 +9,14 @@ import type {
   SolidPage,
   BootstrapPayload,
   WatchHandler,
-} from "../@types";
+} from "@/base";
 
 import { sourceFilesParsers } from "./parsers";
 
 /** *_routes.toml schema - page options:
 
-# set page to false to exclude route from client's route stack
-[some-route]
+# set page to false to exclude route from client route stack
+["some-route"]
 page = false
 
 ["some-page"]
@@ -89,7 +89,7 @@ export async function solidPages(
   options: ResolvedPluginOptions,
   { workerPool }: { workerPool: Workers },
 ) {
-  const { root, sourceFolder } = options;
+  const { appRoot, sourceFolder } = options;
 
   const pageMap: Record<string, SolidPage> = {};
 
@@ -99,7 +99,10 @@ export async function solidPages(
   // when custom template updated, dev server should be restarted manually
   // for new pages to use custom template.
   const template = options.solidPages?.template
-    ? await fsx.readFile(resolve(root, options.solidPages.template), "utf8")
+    ? await fsx.readFile(
+        resolve(config.root, options.solidPages.template),
+        "utf8",
+      )
     : undefined;
 
   const watchHandler: WatchHandler = (watcher) => {
@@ -138,7 +141,7 @@ export async function solidPages(
   }
 
   const bootstrapPayload: BootstrapPayload<Workers> = {
-    root,
+    appRoot,
     sourceFolder,
     pages: Object.values(pageMap),
     template,

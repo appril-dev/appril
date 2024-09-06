@@ -6,14 +6,15 @@ import crc32 from "crc/crc32";
 import { parse } from "smol-toml";
 import { sanitizePath } from "@appril/dev-utils";
 
-import { normalizeRoutePath, routeSections, defaults } from "../base";
-
-import type {
-  ResolvedPluginOptions,
-  RouteOptions,
-  ApiRoute,
-  ApiRouteAlias,
-} from "../@types";
+import {
+  type ResolvedPluginOptions,
+  type RouteOptions,
+  type ApiRoute,
+  type ApiRouteAlias,
+  normalizeRoutePath,
+  routeSections,
+  defaults,
+} from "@/base";
 
 type ParsedEntry = {
   route: ApiRoute;
@@ -21,19 +22,17 @@ type ParsedEntry = {
 };
 
 export async function sourceFilesParsers(
-  _config: import("vite").ResolvedConfig,
-  options: ResolvedPluginOptions,
+  config: import("vite").ResolvedConfig,
+  _options: ResolvedPluginOptions,
   pattern = `*${defaults.sourceFile}`,
 ) {
-  const { root } = options;
-
   const parsers: Array<{
     file: string;
     parser: () => Promise<Array<ParsedEntry>>;
   }> = [];
 
   const srcFiles = await glob(pattern, {
-    cwd: root,
+    cwd: config.root,
     onlyFiles: true,
     absolute: true,
     unique: true,
@@ -125,7 +124,7 @@ export async function sourceFilesParsers(
             importPath,
             srcFile,
             file,
-            fileFullpath: resolve(root, defaults.apiDir, file),
+            fileFullpath: resolve(config.root, defaults.apiDir, file),
             optedFile: opt?.file,
             meta: opt?.meta,
           };

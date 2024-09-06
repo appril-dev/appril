@@ -2,7 +2,7 @@ import {
   baseurl, apiurl,
   fetchFactory, fetchOptions,
   join, withLoader, pathMaker,
-} from "{{importPathBase}}";
+} from "{{importBase}}";
 
 {{#each typeDeclarations}}{{text}}
 {{/each}}
@@ -14,7 +14,7 @@ function apiFactory(
   {{#each fetchDefinitions}}
   function {{method}}(
     params: [ {{../route.fetchParamsType}} ],
-    payload{{#unless payloadType}}?{{/unless}}: import("{{../importPathBase}}").MaybeRef<
+    payload{{#unless payloadType}}?{{/unless}}: import("{{../importBase}}").MaybeRef<
       {{#if payloadType}}
       {{payloadType}}
       {{else}}
@@ -29,7 +29,7 @@ function apiFactory(
     {{/if}}
   > {
     return api.{{method}}(
-      pathMaker("{{route.originalPath}}", params),
+      pathMaker("{{../route.originalPath}}", params),
       payload || {},
     )
   }

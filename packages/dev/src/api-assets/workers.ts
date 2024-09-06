@@ -1,5 +1,4 @@
 import { cpus } from "node:os";
-import { resolve, join } from "node:path";
 import { Worker } from "node:worker_threads";
 
 import type { ResolvedConfig } from "vite";
@@ -7,37 +6,35 @@ import chokidar, { type FSWatcher } from "chokidar";
 import { chunk } from "lodash-es";
 import { fileGenerator } from "@appril/dev-utils";
 
-import { defaults, type ApiRoute, type ResolvedPluginOptions } from "../base";
+import { defaults, type ApiRoute, type ResolvedPluginOptions } from "@/base";
 
 import {
-  type DerivedRoute,
   type WorkerPayload,
   type DiscoveredTypeDeclaration,
   type HashMap,
   extractDepFiles,
   identicalHashMap,
   generateAssetsFile,
+  varFilePath,
 } from "./base";
 
-// absolute path to sourceFolder
-let root: string;
+let appRoot: string;
 let sourceFolder: string;
+
 // exposing routes to be updateable by handleSrcFileUpdate
 // then later consumed by watchers
 let routes: Array<ApiRoute>;
+
 let importZodErrorHandlerFrom: string | undefined;
 let generateFile: ReturnType<typeof fileGenerator>["generateFile"];
 
 // route files may import type files from anywhere
 // but vite does not watch files outside root
-// so using a custom watcher here.
-// wrt performance/conflicts - watcher runs inside a worker
-// so should not affect plugin/vite at all
 let watcher: FSWatcher | undefined;
 
 const depsMap: Record<string, Set<string>> = {};
 
-function watchDepFile(file: string, route: DerivedRoute) {
+function watchDepFile(file: string, route: ApiRoute) {
   if (!depsMap[file]) {
     depsMap[file] = new Set();
     watcher?.add(file);
@@ -46,7 +43,7 @@ function watchDepFile(file: string, route: DerivedRoute) {
 }
 
 export async function bootstrap(data: {
-  root: string;
+  appRoot: string;
   sourceFolder: string;
   outDir: string;
   command: ResolvedConfig["command"];
@@ -54,13 +51,11 @@ export async function bootstrap(data: {
   routes: Array<ApiRoute>;
   importZodErrorHandlerFrom?: string;
 }) {
-  root = data.root;
+  appRoot = data.appRoot;
   sourceFolder = data.sourceFolder;
   routes = data.routes;
   importZodErrorHandlerFrom = data.importZodErrorHandlerFrom;
-  generateFile = fileGenerator(data.root).generateFile;
-
-  const appRoot = resolve(root, "..");
+  generateFile = fileGenerator(appRoot).generateFile;
 
   if (data.command === "serve") {
     watcher = chokidar.watch(appRoot, {
@@ -70,7 +65,7 @@ export async function bootstrap(data: {
         "**/node_modules/**",
         `${data.outDir}/**`,
         // excluding varDir to avoid infinite circular rebuilds
-        `${appRoot}/**/${defaults.varDir}/**`,
+        `${appRoot}/${defaults.varDir}/**`,
       ],
     });
 
@@ -115,56 +110,45 @@ export async function handleRouteFileUpdate({
   await generateRouteAssets([route]);
 }
 
-async function generateRouteAssets(_routes: Array<ApiRoute>) {
-  const routes: Array<DerivedRoute> = _routes.flatMap((route) => {
-    const appDir = resolve(root, "..");
-    const varDir = join(
-      root,
-      defaults.varDir,
-      defaults.apiDir,
-      route.importPath,
-    );
-    return route.optedFile
-      ? []
-      : [
-          {
-            ...route,
-            appDir,
-            srcDir: root,
-            varDir,
-            hashmapFile: join(varDir, "@hashmap.json"),
-            schemaFile: join(varDir, "@schema.ts"),
-            assetsFile: join(varDir, "@assets.ts"),
-          },
-        ];
-  });
-
+async function generateRouteAssets(routes: Array<ApiRoute>) {
   for (const route of routes) {
     // generating a generic assets file
     // to avoid import errors while zod schema generated
     await generateAssetsFile(route, {
+      appRoot,
+      sourceFolder,
       typeDeclarations: [],
       payloadTypes: [],
       importZodErrorHandlerFrom,
       overwrite: false, // skip if exists
     });
 
+    const hashmapFile = varFilePath(route, "hashmap", {
+      appRoot,
+      sourceFolder,
+    });
+
     // generating hashmap file, if not exists
-    await generateFile(route.hashmapFile, "{}", { overwrite: false });
+    await generateFile(hashmapFile, "{}", { overwrite: false });
   }
 
-  const staleRoutes: Array<DerivedRoute> = [];
+  const staleRoutes: Array<ApiRoute> = [];
 
   for (const route of routes) {
-    const hashmap: { default: HashMap } = await import(route.hashmapFile, {
+    const hashmapFile = varFilePath(route, "hashmap", {
+      appRoot,
+      sourceFolder,
+    });
+
+    const hashmap: { default: HashMap } = await import(hashmapFile, {
       with: { type: "json" },
     });
 
-    for (const file of extractDepFiles(route, hashmap.default)) {
+    for (const file of extractDepFiles(route, hashmap.default, { appRoot })) {
       watchDepFile(file, route);
     }
 
-    if (await identicalHashMap(route, hashmap.default)) {
+    if (await identicalHashMap(route, hashmap.default, { appRoot })) {
       continue;
     }
 
@@ -199,6 +183,7 @@ async function generateRouteAssets(_routes: Array<ApiRoute>) {
 
           worker.postMessage({
             route,
+            appRoot,
             sourceFolder,
             importZodErrorHandlerFrom,
           } satisfies WorkerPayload);

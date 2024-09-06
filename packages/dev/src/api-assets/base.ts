@@ -4,18 +4,10 @@ import { renderToFile } from "@appril/dev-utils";
 import crc32 from "crc/crc32";
 import fsx from "fs-extra";
 
-import type { TypeDeclaration } from "../ast";
+import { type ApiRoute, defaults } from "@/base";
+import type { TypeDeclaration } from "@/ast";
 
 import assetsTpl from "./templates/assets.hbs";
-
-export type DerivedRoute = import("../@types").ApiRoute & {
-  appDir: string;
-  srcDir: string;
-  varDir: string;
-  hashmapFile: string;
-  schemaFile: string;
-  assetsFile: string;
-};
 
 export type PayloadType = {
   id: string;
@@ -24,7 +16,8 @@ export type PayloadType = {
 };
 
 export type WorkerPayload = {
-  route: DerivedRoute;
+  route: ApiRoute;
+  appRoot: string;
   sourceFolder: string;
   importZodErrorHandlerFrom: string | undefined;
 };
@@ -43,9 +36,37 @@ export type DiscoveredTypeDeclaration = {
   included?: boolean;
 };
 
+export function varFileBase(
+  route: ApiRoute,
+  { appRoot, sourceFolder }: { appRoot: string; sourceFolder: string },
+) {
+  return join(
+    appRoot,
+    defaults.varDir,
+    sourceFolder,
+    defaults.varApiDir,
+    route.importPath,
+  );
+}
+
+export function varFilePath(
+  route: ApiRoute,
+  file: "assets" | "schema" | "hashmap",
+  { appRoot, sourceFolder }: { appRoot: string; sourceFolder: string },
+) {
+  return join(
+    varFileBase(route, { appRoot, sourceFolder }),
+    { assets: "@assets.ts", schema: "@schema.ts", hashmap: "@hashmap.json" }[
+      file
+    ],
+  );
+}
+
 export function generateAssetsFile(
-  route: DerivedRoute,
+  route: ApiRoute,
   {
+    appRoot,
+    sourceFolder,
     typeDeclarations,
     payloadTypes,
     zodSchema,
@@ -53,6 +74,8 @@ export function generateAssetsFile(
     importZodErrorHandlerFrom,
     overwrite = true,
   }: {
+    appRoot: string;
+    sourceFolder: string;
     typeDeclarations: Array<TypeDeclaration>;
     payloadTypes: Array<PayloadType>;
     zodSchema?: string | undefined;
@@ -62,7 +85,7 @@ export function generateAssetsFile(
   },
 ) {
   return renderToFile(
-    route.assetsFile,
+    varFilePath(route, "assets", { appRoot, sourceFolder }),
     assetsTpl,
     {
       route,
@@ -90,16 +113,24 @@ async function generateHashSum(file: string): Promise<number> {
 // computing hash for route and all it's deps.
 // when some hash changed, rebuild route
 export async function generateHashMap(
-  route: DerivedRoute,
+  route: ApiRoute,
   _deps: Array<string>,
+  {
+    appRoot,
+    sourceFolder,
+  }: {
+    appRoot: string;
+    sourceFolder: string;
+  },
 ): Promise<HashMap> {
   const deps: HashMap["deps"] = {};
 
   for (const file of new Set(_deps)) {
-    if (!file.startsWith(route.varDir)) {
+    const varDir = varFileBase(route, { appRoot, sourceFolder });
+    if (!file.startsWith(varDir)) {
       deps[
         // dropping root in case hashmap used in CI environment / another OS
-        file.replace(`${route.appDir}/`, "")
+        file.replace(`${appRoot}/`, "")
       ] = await generateHashSum(file);
     }
   }
@@ -112,7 +143,11 @@ export async function generateHashMap(
 }
 
 // returns false if some file changed
-export async function identicalHashMap(route: DerivedRoute, hashmap: HashMap) {
+export async function identicalHashMap(
+  route: ApiRoute,
+  hashmap: HashMap,
+  { appRoot }: { appRoot: string },
+) {
   if (
     !identicalHashSum(hashmap.hash, await generateHashSum(route.fileFullpath))
   ) {
@@ -122,8 +157,7 @@ export async function identicalHashMap(route: DerivedRoute, hashmap: HashMap) {
 
   for (const [path, sum] of Object.entries(hashmap.deps)) {
     // prepending root as it was removed by generateHashSum
-    const file = join(route.appDir, path);
-    if (!identicalHashSum(sum, await generateHashSum(file))) {
+    if (!identicalHashSum(sum, await generateHashSum(join(appRoot, path)))) {
       return false;
     }
   }
@@ -131,10 +165,14 @@ export async function identicalHashMap(route: DerivedRoute, hashmap: HashMap) {
   return true;
 }
 
-export function extractDepFiles(route: DerivedRoute, hashmap: HashMap) {
+export function extractDepFiles(
+  _route: ApiRoute,
+  hashmap: HashMap,
+  { appRoot }: { appRoot: string },
+) {
   return Object.keys(hashmap.deps || {}).map((e) => {
     // restoring root dropped by generateHashMap
-    return join(route.appDir, e);
+    return join(appRoot, e);
   });
 }
 
