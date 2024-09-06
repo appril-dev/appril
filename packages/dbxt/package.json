@@ -1,6 +1,6 @@
 {
-  "name": "@appril/dbx",
-  "version": "0.0.51",
+  "name": "@appril/dbxt",
+  "version": "0.0.0",
   "description": "Thin wrapper around Knex",
   "author": "Slee Woo",
   "license": "MIT",
@@ -26,8 +26,8 @@
     "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
     "build": "../../esbuild.mjs index"
   },
-  "dependencies": {
-    "knex": "catalog:dbx"
+  "peerDependencies": {
+    "knex": "catalog:"
   },
   "devDependencies": {
     "@appril/configs": "workspace:^"

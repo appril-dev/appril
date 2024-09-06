@@ -17,14 +17,17 @@ const customInspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
 export * from "./@types";
 
-export default function dbx<
+export default <
   TableT extends Knex.TableNames = never,
   PKeyT = never,
   ExtraT = unknown,
   InstanceT = PKeyT extends string
     ? Instance<TableT>
     : Omit<Instance<TableT>, "primaryKey" | "whereId" | "save" | "saveMany">,
->(config: Config, extra?: ExtraT): CompositeReturn<InstanceT, TableT> & ExtraT {
+>(
+  config: Config,
+  extra?: ExtraT,
+): CompositeReturn<InstanceT, TableT> & ExtraT => {
   const { tableName, primaryKey } = config;
 
   const connection = config.connection.withUserParams({
@@ -128,7 +131,7 @@ export default function dbx<
   );
 
   return proxy as CompositeReturn<InstanceT, TableT> & ExtraT;
-}
+};
 
 // biome-ignore lint:
 function proxyHandler(tableName: string, connection: any, instance: any) {
