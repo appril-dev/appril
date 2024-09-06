@@ -1,0 +1,34 @@
+import dbxt from "@appril/dbxt";
+
+import { connection } from "{{defaults.appPrefix}}/{{baseDir}}/setup";
+
+export type RecordT = import("{{defaults.appPrefix}}/{{baseDir}}/{{table.schema}}/types").{{table.recordName}};
+{{#if isTable}}
+export type InsertT = import("{{defaults.appPrefix}}/{{baseDir}}/{{table.schema}}/types").{{table.insertName}};
+export type UpdateT = import("{{defaults.appPrefix}}/{{baseDir}}/{{table.schema}}/types").{{table.updateName}};
+{{/if}}
+export type QueryT =  import("{{defaults.appPrefix}}/{{baseDir}}/{{table.schema}}/types").{{table.queryBuilder}};
+
+type ExtraMethod = (
+  this: QueryT,
+  ...a: Array<never>
+) => QueryT | ExtraMethod;
+
+export { connection };
+export const tableName = "{{table.name}}";
+
+export default <
+  ExtraT = Record<string, ExtraMethod>
+>(
+  extra?: ExtraT,
+) => {
+  return dbxt<
+    "{{table.moduleName}}",
+    {{#if table.primaryKey}}"{{table.primaryKey}}"{{else}}object{{/if}},
+    ExtraT
+  >({
+    connection,
+    tableName: "{{table.fullName}}",{{#if table.primaryKey}}
+    primaryKey: "{{table.primaryKey}}",{{/if}}
+  }, extra)
+};

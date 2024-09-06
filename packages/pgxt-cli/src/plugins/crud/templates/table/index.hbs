@@ -1,0 +1,58 @@
+import {
+  type DefaultState,
+  type UseScope,
+  definitionFactory,
+  useDefinitionFactory,
+} from "@appril/api/router";
+
+import dbxtInstance from "{{tblImportPath}}";
+
+import factory, {
+  type CrudContext,
+  type HandlerContext,
+  type Wrapper,
+  type UseWrapper,
+} from "..";
+
+type ContextT = HandlerContext<
+  DefaultState,
+  CrudContext<"{{table.moduleName}}", ColumnT> & { params: {} }
+>
+
+export * from "./typeLiterals";
+
+export const columns = [
+{{#each table.columns}}  "{{name}}",
+{{/each}}
+] as const;
+
+export type ColumnT = typeof columns[number];
+
+export const { initMiddleware, middlewareFactory } = factory<
+  "{{table.moduleName}}",
+  ColumnT
+>(
+  dbxtInstance,
+  columns,
+  {
+    primaryKey: "{{table.primaryKey}}",
+  },
+)
+
+export const use: UseWrapper<
+  DefaultState,
+  ContextT
+> = (...a: Array<unknown>) => useDefinitionFactory<UseScope>([[
+  initMiddleware,
+  ...a
+]]);
+
+export const get: Wrapper<DefaultState, ContextT> = (handler) => definitionFactory(
+  "get",
+  middlewareFactory.listHandler(handler as never),
+)
+
+export const post: Wrapper<DefaultState, ContextT> = (handler) => definitionFactory(
+  "post",
+  middlewareFactory.createHandler(handler as never),
+)

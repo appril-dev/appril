@@ -1,0 +1,50 @@
+{
+  "name": "@appril/pgxt-cli",
+  "version": "0.0.0",
+  "author": "Slee Woo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "pkg/*"
+  ],
+  "bin": {
+    "pgxt": "pkg/cli.sh"
+  },
+  "exports": {
+    ".": {
+      "types": "./pkg/index.d.ts",
+      "default": "./pkg/index.mjs"
+    }
+  },
+  "scripts": {
+    "// ✨ linters": "",
+    "lint": "biome lint ./src",
+    "// ✨ types": "",
+    "tsc": "tsc",
+    "// ✨ build": "",
+    "prebuild:000": "rimraf pkg",
+    "prebuild:001": "pnpm run lint",
+    "prebuild:002": "pnpm run tsc",
+    "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
+    "build": "../../esbuild.mjs index cli",
+    "postbuild": "for e in *.sh; do cp --preserve=mode src/$e pkg; done"
+  },
+  "dependencies": {
+    "@appril/dev": "workspace:^",
+    "@appril/dev-utils": "workspace:^",
+    "chokidar": "catalog:",
+    "esbuild": "catalog:",
+    "fs-extra": "catalog:",
+    "smol-toml": "catalog:"
+  },
+  "devDependencies": {
+    "@appril/configs": "workspace:^",
+    "@types/fs-extra": "catalog:",
+    "@types/pg": "^8.11.8"
+  },
+  "peerDependencies": {
+    "@appril/pgxt": "workspace:^"
+  }
+}

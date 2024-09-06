@@ -1,0 +1,25 @@
+import { type RecordT, type InsertT, get, post } from "{{varImportPath}}";
+
+export default [
+
+  get(
+    (
+      ctx,
+      payload,
+      handler,
+    ): Promise<Array<RecordT>> => {
+      return handler(payload)
+    }
+  ),
+
+  post(
+    async (
+      ctx,
+      payload: InsertT,
+      handler,
+    ): Promise<RecordT> => {
+      return handler(payload)
+    }
+  ),
+
+]

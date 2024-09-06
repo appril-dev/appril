@@ -1,0 +1,11 @@
+{{BANNER}}
+
+{{#each tables}}
+export { default as {{declaredName}} } from "./{{../tablesDir}}/{{name}}";
+
+{{/each}}
+
+{{#each views}}
+export { default as {{declaredName}} } from "./{{../tablesDir}}/{{name}}";
+
+{{/each}}
