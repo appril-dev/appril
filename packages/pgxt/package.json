@@ -1,13 +1,14 @@
 {
-  "name": "@appril/pgts",
-  "version": "0.0.49",
-  "description": "PostgreSQL Typed Schema",
+  "name": "@appril/pgxt",
+  "version": "0.0.0",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "exports": {
     ".": {
       "types": "./pkg/index.d.ts",
@@ -27,7 +28,7 @@
     "build": "../../esbuild.mjs index"
   },
   "dependencies": {
-    "extract-pg-schema": "catalog:dbx",
+    "extract-pg-schema": "catalog:",
     "lodash-es": "catalog:",
     "pluralize": "^8.0.0",
     "zod": "catalog:zod"
@@ -35,7 +36,10 @@
   "devDependencies": {
     "@appril/configs": "workspace:^",
     "@types/lodash-es": "catalog:",
-    "@types/pg": "catalog:dbx",
+    "@types/pg": "catalog:",
     "@types/pluralize": "^0.0.33"
+  },
+  "peerDependencies": {
+    "pg": "catalog:"
   }
 }

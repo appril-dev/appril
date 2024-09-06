@@ -19,16 +19,16 @@ export * from "./@types";
 
 export { defaultConfig as config };
 
-export default async function pgts(
+export default async (
   connection: string | ConnectionConfig,
-  optedConfig: Config = {},
+  userConfig: Config = {},
 ): Promise<{
   schemas: Array<string>;
   tables: Array<TableDeclaration>;
   enums: Array<EnumDeclaration>;
   views: Array<ViewDeclaration>;
-}> {
-  const config = merge({}, defaultConfig, optedConfig) as ResolvedConfig;
+}> => {
+  const config = merge({}, defaultConfig, userConfig) as ResolvedConfig;
 
   const extractedSchemas = await extractor.extractSchemas(connection, config);
   const flatSchemas = Object.values(extractedSchemas);
@@ -65,4 +65,4 @@ export default async function pgts(
     enums: enums.sort((a, b) => a.name.localeCompare(b.name)),
     views: views.sort((a, b) => a.name.localeCompare(b.name)),
   };
-}
+};

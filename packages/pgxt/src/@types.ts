@@ -31,6 +31,7 @@ export type TableNominator = (
   name: string,
   context: NominatorContext,
 ) => string;
+
 export type TableFilter = (name: string, context: FilterContext) => boolean;
 
 export type EnumNominator = (name: string, context: NominatorContext) => string;
