@@ -3,7 +3,7 @@ import zlib from "node:zlib";
 import IncomingForm from "formidable";
 import rawParser from "raw-body";
 
-import type { Middleware } from "../router/@types";
+import type { Middleware } from "@/router/@types";
 
 import type {
   JsonOptions,

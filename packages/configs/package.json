@@ -6,15 +6,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "tsconfig*.json",
-    "biome*.json"
-  ],
+  "files": ["tsconfig*.json", "biome*.json"],
   "exports": {
-    "./tsconfig.app.json": "./tsconfig.app.json",
-    "./tsconfig.app.vite-solid.json": "./tsconfig.app.vite-solid.json",
+    "./tsconfig.vite-solid.json": "./tsconfig.vite-solid.json",
     "./tsconfig.lib.json": "./tsconfig.lib.json",
-    "./tsconfig.lib.vite-solid.json": "./tsconfig.lib.vite-solid.json",
     "./biome": "./biome.json",
     "./biome.json": "./biome.json"
   }

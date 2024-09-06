@@ -1,5 +1,5 @@
 import type Koa from "koa";
-import type { DefaultState, DefaultContext } from "../router/@types";
+import type { DefaultState, DefaultContext } from "@/router/@types";
 import type { IParseOptions, IStringifyOptions } from "qs";
 import { parse, stringify } from "qs";
 
