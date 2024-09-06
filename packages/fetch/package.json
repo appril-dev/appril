@@ -7,7 +7,9 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": ["pkg/*"],
+  "files": [
+    "pkg/*"
+  ],
   "exports": {
     ".": {
       "types": "./pkg/fetch/index.d.ts",
@@ -31,7 +33,7 @@
     "build": "../../esbuild.mjs fetch/index node/index"
   },
   "dependencies": {
-    "follow-redirects": "^1.15.6",
+    "follow-redirects": "^1.15.9",
     "form-data": "^4.0.0",
     "qs": "catalog:"
   },
