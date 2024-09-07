@@ -21,7 +21,6 @@ export type { PluginOptions, ResolvedPluginOptions };
 export { defaults } from "./defaults";
 export * from "./define";
 export * from "./alias";
-export * from "./file-bundler";
 
 export default function apprilDevPlugin(options: PluginOptions): Plugin {
   const outDirSuffix = "client";
