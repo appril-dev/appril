@@ -4,6 +4,7 @@ import { format } from "node:util";
 import prompts from "prompts";
 import pg from "pg";
 import { format as datetimeFormat } from "date-fns";
+import { defaults } from "@appril/configs";
 import { renderToFile } from "@appril/dev-utils";
 
 import type { ResolvedConfig } from "@/@types";

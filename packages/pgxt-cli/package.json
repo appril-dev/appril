@@ -32,7 +32,7 @@
     "postbuild": "for e in *.sh; do cp --preserve=mode src/$e pkg; done"
   },
   "dependencies": {
-    "@appril/dev": "workspace:^",
+    "@appril/configs": "workspace:^",
     "@appril/dev-utils": "workspace:^",
     "chokidar": "catalog:",
     "esbuild": "catalog:",
@@ -40,7 +40,6 @@
     "smol-toml": "catalog:"
   },
   "devDependencies": {
-    "@appril/configs": "workspace:^",
     "@types/fs-extra": "catalog:",
     "@types/pg": "^8.11.8"
   },

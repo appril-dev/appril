@@ -1,7 +1,6 @@
 export const defaults = {
-  appPrefix: "@",
-
   baseDir: "base",
+  basePrefix: "@",
 
   sourceFile: "_routes.toml",
   dataSourceFile: "_data_routes.toml",

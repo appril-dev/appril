@@ -1,6 +1,6 @@
 import { join } from "node:path";
 
-import { defaults } from "@appril/dev";
+import { defaults } from "@appril/configs";
 import { renderToFile } from "@appril/dev-utils";
 
 import { mergePackageJson, copyFiles } from "@/base";

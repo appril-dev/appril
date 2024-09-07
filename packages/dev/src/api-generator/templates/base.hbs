@@ -10,7 +10,7 @@ export type ParamsT = { {{route.paramsType}} }
 export type ContextT = DefaultContext & { params: ParamsT }
 
 export { use };
-export * from "{{defaults.appPrefix}}/{{defaults.baseDir}}/api/use";
+export * from "{{defaults.basePrefix}}/api/use";
 {{#each apiMethods}}
 
 export const {{this}}: DefinitionI<

@@ -27,6 +27,7 @@
     "build": "../../esbuild.mjs index"
   },
   "dependencies": {
+    "@appril/configs": "workspace:^",
     "@appril/dev-utils": "workspace:^",
     "fs-extra": "catalog:",
     "merge": "^2.1.1",
@@ -35,10 +36,8 @@
   },
   "devDependencies": {
     "@appril/api": "workspace:^",
-    "@appril/configs": "workspace:^",
     "@appril/dbxt": "workspace:^",
     "@appril/dbxt-migrate": "workspace:^",
-    "@appril/dev": "workspace:^",
     "@appril/fetch": "workspace:^",
     "@appril/pgxt": "workspace:^",
     "@appril/pgxt-cli": "workspace:^",

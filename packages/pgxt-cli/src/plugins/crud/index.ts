@@ -4,8 +4,7 @@ import fsx from "fs-extra";
 import { stringify } from "smol-toml";
 
 import type { TableDeclaration, ColumnDeclaration } from "@appril/pgxt";
-
-import { defaults } from "@appril/dev";
+import { defaults } from "@appril/configs";
 import { fileGenerator, render, resolveCwd } from "@appril/dev-utils";
 
 import { type GeneratorPlugin, BANNER } from "@/base";

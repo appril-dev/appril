@@ -4,7 +4,7 @@ import fsx from "fs-extra";
 import glob from "fast-glob";
 import { type BuildOptions, build as esbuild } from "esbuild";
 
-import { defaults } from "@appril/dev";
+import { defaults } from "@appril/configs";
 import { renderToFile } from "@appril/dev-utils";
 
 import type { ResolvedConfig } from "@/@types";

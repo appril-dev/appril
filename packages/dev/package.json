@@ -11,9 +11,6 @@
   "files": [
     "pkg/*"
   ],
-  "directories": {
-    "bin": "pkg/bin"
-  },
   "exports": {
     ".": {
       "types": "./pkg/index.d.ts",
@@ -33,6 +30,7 @@
     "build": "../../esbuild.mjs index worker api-assets/worker"
   },
   "dependencies": {
+    "@appril/configs": "workspace:^",
     "@appril/dev-utils": "workspace:^",
     "@phenomnomnominal/tsquery": "^6.1.3",
     "chokidar": "catalog:",
@@ -48,7 +46,6 @@
     "typescript": "catalog:"
   },
   "devDependencies": {
-    "@appril/configs": "workspace:^",
     "@types/fs-extra": "catalog:",
     "@types/lodash-es": "catalog:",
     "@types/qs": "catalog:"

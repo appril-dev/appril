@@ -6,7 +6,7 @@ import fsx from "fs-extra";
 import { run as depsBump } from "npm-check-updates";
 
 import prompts, { type PromptObject } from "prompts";
-import { defaults } from "@appril/dev";
+import { defaults } from "@appril/configs";
 import { renderToFile, resolveCwd } from "@appril/dev-utils";
 
 import frameworks from "./frameworks";

@@ -18,7 +18,6 @@ import { fetchGenerator } from "./fetch-generator";
 
 export type { PluginOptions, ResolvedPluginOptions };
 
-export { defaults } from "./defaults";
 export * from "./define";
 export * from "./alias";
 

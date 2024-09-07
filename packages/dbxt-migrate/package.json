@@ -26,7 +26,7 @@
     "postbuild": "for e in *.sh; do cp --preserve=mode src/$e pkg; done"
   },
   "dependencies": {
-    "@appril/dev": "workspace:^",
+    "@appril/configs": "workspace:^",
     "@appril/dev-utils": "workspace:^",
     "ansi-escapes": "catalog:",
     "date-fns": "^3.6.0",
@@ -38,7 +38,6 @@
     "prompts": "catalog:"
   },
   "devDependencies": {
-    "@appril/configs": "workspace:^",
     "@types/fs-extra": "catalog:",
     "@types/pg": "catalog:",
     "@types/prompts": "catalog:"

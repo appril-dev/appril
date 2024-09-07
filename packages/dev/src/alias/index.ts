@@ -31,7 +31,7 @@ export const aliasPlugin = async (appRoot: string): Promise<Plugin> => {
         ) => {
           const basename = base.replace("/*", "");
 
-          if (basename === defaults.appPrefix) {
+          if (basename === defaults.basePrefix) {
             // handling { "@/*": ["./*", "./var/*"] } entry
             for (const alias of aliases) {
               if (alias.includes(`/${defaults.varDir}/`)) {
@@ -48,8 +48,8 @@ export const aliasPlugin = async (appRoot: string): Promise<Plugin> => {
                 entries.push({
                   // find ^@/
                   find: new RegExp(`^${basename}/`),
-                  // replace with appRoot/
-                  replacement: `${appRoot}/`,
+                  // replace with appRoot/base/
+                  replacement: `${appRoot}/${defaults.baseDir}/`,
                   priority: basename.length,
                 });
               }

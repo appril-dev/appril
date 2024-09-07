@@ -7,13 +7,29 @@
     "access": "public"
   },
   "files": [
-    "tsconfig*.json",
-    "biome*.json"
+    "pkg/*"
   ],
   "exports": {
-    "./tsconfig.vite-solid.json": "./tsconfig.vite-solid.json",
-    "./tsconfig.lib.json": "./tsconfig.lib.json",
-    "./biome": "./biome.json",
-    "./biome.json": "./biome.json"
+    ".": {
+      "types": "./pkg/index.d.ts",
+      "default": "./pkg/index.mjs"
+    },
+    "./tsconfig.vite-solid.json": "./pkg/tsconfig.vite-solid.json",
+    "./tsconfig.lib.json": "./pkg/tsconfig.lib.json",
+    "./biome": "./pkg/biome.json",
+    "./biome.json": "./pkg/biome.json"
+  },
+  "scripts": {
+    "// ✨ linters": "",
+    "lint": "biome lint ./src",
+    "// ✨ types": "",
+    "tsc": "tsc",
+    "// ✨ build": "",
+    "prebuild:000": "rimraf pkg",
+    "prebuild:001": "pnpm run lint",
+    "prebuild:002": "pnpm run tsc",
+    "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
+    "build": "../../esbuild.mjs index",
+    "postbuild": "rsync ./src/*.json ./pkg"
   }
 }
