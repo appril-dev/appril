@@ -5,7 +5,7 @@
       {{#each sourceFolders}}
       "{{this}}/*": ["./{{this}}/*", "./{{../defaults.varDir}}/{{this}}/*"],
       {{/each}}
-      "{{defaults.appPrefix}}/*": ["./*", "./{{defaults.varDir}}/*"]
+      "{{defaults.basePrefix}}/*": ["./base/*", "./{{defaults.varDir}}/*"]
     }
   }
 }

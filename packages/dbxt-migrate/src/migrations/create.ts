@@ -19,7 +19,7 @@ export default async (
   root: string,
   config: ResolvedConfig,
 ): Promise<void> => {
-  const { connection, migrationDir, migrationDirSuffix } = config;
+  const { connection, baseDir, migrationDir, migrationDirSuffix } = config;
 
   const db = new pg.Client(connection);
 
@@ -125,7 +125,13 @@ export default async (
     ].join("-");
 
     // relative to root
-    const outfile = join(migrationDir, migrationDirSuffix, `${name}.ts`);
+    const outfile = join(
+      defaults.baseDir,
+      baseDir,
+      migrationDir,
+      migrationDirSuffix,
+      `${name}.ts`,
+    );
 
     const table = input.table.replace("[ None ]", "");
 

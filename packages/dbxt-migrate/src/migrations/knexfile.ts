@@ -29,20 +29,22 @@ export default async (
   // absolute path
   root: string,
   {
-    // relative to root
-    outdir,
     config,
     esbuildConfig,
+    // relative to root
+    outdir,
+    transient,
   }: {
     config: ResolvedConfig;
     esbuildConfig: BuildOptions;
     outdir?: string;
+    transient?: boolean;
   },
 ): Promise<string> => {
-  const { migrationDir } = config;
+  const { baseDir, migrationDir } = config;
 
   const matches = await glob("**/*.ts", {
-    cwd: resolve(root, migrationDir),
+    cwd: resolve(root, defaults.baseDir, baseDir, migrationDir),
     onlyFiles: true,
     absolute: false,
   });
@@ -68,7 +70,13 @@ export default async (
     },
   );
 
-  const outfile = resolve(root, join(outdir || ".", "knexfile.mjs"));
+  const outfile = resolve(
+    root,
+    join(
+      outdir || ".",
+      transient ? `knexfile.${new Date().getTime()}.mjs` : "knexfile.mjs",
+    ),
+  );
 
   try {
     await esbuild({

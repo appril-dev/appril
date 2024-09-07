@@ -1,6 +1,5 @@
-import { resolve, join } from "node:path";
+import { join } from "node:path";
 
-import fsx from "fs-extra";
 import { stringify } from "smol-toml";
 
 import type { TableDeclaration, ColumnDeclaration } from "@appril/pgxt";
@@ -8,7 +7,7 @@ import { defaults } from "@appril/configs";
 import { fileGenerator, render, resolveCwd } from "@appril/dev-utils";
 
 import { type GeneratorPlugin, BANNER } from "@/base";
-import { tablePublicPath } from "@/plugins/tables";
+import { tablesDir } from "@/plugins/tables";
 
 import publicIdTpl from "./templates/public/[id].hbs";
 import publicIndexTpl from "./templates/public/index.hbs";
@@ -71,19 +70,10 @@ export default (
           typeLiterals.push(render(enumTypeTpl, col));
           declaredType = col.enumDeclaration.declaredName;
         } else if (col.importedType) {
-          const file = [
-            col.importedType.from.startsWith(`${defaults.appPrefix}/`)
-              ? col.importedType.from.replace(defaults.appPrefix, root)
-              : resolve(root, col.importedType.from),
-            ".ts",
-          ].join("");
-
-          if (await fsx.exists(file)) {
-            typeLiterals.push(render(importTypeTpl, col));
-            declaredType = col.importedType.isArray
-              ? `Array<${col.importedType.import}>`
-              : col.importedType.import;
-          }
+          typeLiterals.push(render(importTypeTpl, col));
+          declaredType = col.importedType.isArray
+            ? `Array<${col.importedType.import}>`
+            : col.importedType.import;
         }
 
         columns.push({
@@ -99,7 +89,13 @@ export default (
         columns,
         typeLiterals,
         varImportPath: `${srcFolder}/${varDir}/${table.name}`,
-        tblImportPath: `${defaults.appPrefix}/${tablePublicPath(table, pgxtConfig)}`,
+        tblImportPath: join(
+          defaults.basePrefix,
+          pgxtConfig.baseDir,
+          table.schema,
+          tablesDir,
+          table.name,
+        ),
       };
 
       for (const [file, template] of [

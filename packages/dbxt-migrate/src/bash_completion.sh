@@ -25,7 +25,7 @@ function _dbxt_migrate() {
       opts="--dir"
       ;;
     -d | --dir)
-      opts="$(find -mindepth 1 -maxdepth 1 -type d -printf '%p ')"
+      opts="$(find -mindepth 1 -maxdepth 1 -type d -printf '%f ')"
       ;;
     *) ;;
   esac

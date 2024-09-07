@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
 import { parseArgs } from "node:util";
 
 import fsx from "fs-extra";
@@ -90,9 +90,12 @@ async function run(
   // relative to root
   const configFile = resolve(
     root,
-    typeof parsedOptions.config === "string"
-      ? parsedOptions.config
-      : "./config/db.ts",
+    join(
+      defaults.baseDir,
+      typeof parsedOptions.config === "string"
+        ? parsedOptions.config
+        : "./config/db.ts",
+    ),
   );
 
   const esbuildConfig: BuildOptions = await import(
@@ -140,6 +143,7 @@ async function run(
   const knexfile = await generateKnexfile(root, {
     config,
     esbuildConfig,
+    transient: true,
   });
 
   try {

@@ -1,20 +1,15 @@
 import { join } from "node:path";
 
-import { defaults } from "@appril/dev";
+import { defaults } from "@appril/configs";
 import { fileGenerator } from "@appril/dev-utils";
-import type { TableDeclaration, ViewDeclaration } from "@appril/pgxt";
 
-import {
-  type GeneratorPlugin,
-  type GeneratorPluginConfig,
-  BANNER,
-} from "@/base";
+import { type GeneratorPlugin, BANNER } from "@/base";
 
 import baseTpl from "./templates/base.hbs";
 import tableTpl from "./templates/table.hbs";
 import indexTpl from "./templates/index.hbs";
 
-const tablesDir = "tables";
+export const tablesDir = "tables";
 
 export default (): GeneratorPlugin => {
   return async function tablesGenerator(data, { root, baseDir }) {
@@ -38,7 +33,7 @@ export default (): GeneratorPlugin => {
       );
 
       await generateFile(
-        `${tablePublicPath(table, { root, baseDir })}.ts`,
+        `${join(defaults.baseDir, baseDir, table.schema, tablesDir, table.name)}.ts`,
         { template: tableTpl, context, format: true },
         { overwrite: false },
       );
@@ -48,23 +43,21 @@ export default (): GeneratorPlugin => {
       const schemaTables = tables.filter((e) => e.schema === schema);
       const schemaViews = views.filter((e) => e.schema === schema);
 
-      await generateFile(join(baseDir, schema, "index.ts"), {
+      await generateFile(join(defaults.varDir, varDir, `${schema}.ts`), {
         template: indexTpl,
         context: {
-          BANNER,
+          importBase: `${defaults.basePrefix}/${baseDir}`,
           tablesDir,
           tables: schemaTables,
           views: schemaViews,
         },
-        format: true,
       });
+
+      await generateFile(
+        join(defaults.baseDir, baseDir, schema, "index.ts"),
+        `export * from "${defaults.basePrefix}/${varDir}/${schema}";`,
+        { overwrite: false },
+      );
     }
   };
 };
-
-export function tablePublicPath(
-  table: TableDeclaration | ViewDeclaration,
-  { baseDir }: GeneratorPluginConfig,
-) {
-  return join(baseDir, table.schema, tablesDir, table.name);
-}

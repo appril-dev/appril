@@ -1,11 +1,10 @@
-{{BANNER}}
 
 {{#each tables}}
-export { default as {{declaredName}} } from "./{{../tablesDir}}/{{name}}";
+export { default as {{declaredName}} } from "{{../importBase}}/{{schema}}/{{../tablesDir}}/{{name}}";
 
 {{/each}}
 
 {{#each views}}
-export { default as {{declaredName}} } from "./{{../tablesDir}}/{{name}}";
+export { default as {{declaredName}} } from "{{../importBase}}/{{schema}}/{{../tablesDir}}/{{name}}";
 
 {{/each}}
