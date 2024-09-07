@@ -69,13 +69,10 @@ export type Config = {
   viewNominator?: ViewNominator;
   viewFilter?: ViewFilter;
   modelNominator?: ModelNominator;
-  modulePrefix?: string;
   zod?: ZodConfig;
 };
 
-export type DefaultConfig = Required<
-  Omit<Config, "schemas" | "modulePrefix" | "zod">
->;
+export type DefaultConfig = Required<Omit<Config, "schemas" | "zod">>;
 
 export type ResolvedConfig = Required<Config>;
 

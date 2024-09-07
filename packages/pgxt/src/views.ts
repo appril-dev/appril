@@ -2,11 +2,7 @@ import type { ViewColumn, MaterializedViewColumn } from "extract-pg-schema";
 
 import { columnsIterator } from "./columns";
 
-import {
-  defaultViewNominator,
-  defaultModelNominator,
-  defaultModulePrefix,
-} from "./nominators";
+import { defaultViewNominator, defaultModelNominator } from "./nominators";
 
 import type {
   ResolvedConfig,
@@ -30,7 +26,6 @@ export function viewsMapper(
     modelNominator,
     viewSuffix,
     queryBuilderSuffix,
-    modulePrefix = defaultModulePrefix,
   } = config;
 
   return (view: ViewAssets): Array<ViewDeclaration> => {
@@ -59,9 +54,9 @@ export function viewsMapper(
       {
         schema,
         name,
-        fullName: [schema, name].join("."),
+        fullName: `${schema}.${name}`,
         modelName,
-        moduleName: `${modulePrefix}:${schema}.${name}`,
+        moduleName: `${schema}.${name}`,
         primaryKey: columns.find((e) => e.isPrimaryKey)?.name,
         declaredName,
         recordName,

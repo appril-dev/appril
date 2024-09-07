@@ -6,11 +6,7 @@ import type {
   EnumDeclaration,
 } from "./@types";
 
-import {
-  defaultTableNominator,
-  defaultModelNominator,
-  defaultModulePrefix,
-} from "./nominators";
+import { defaultTableNominator, defaultModelNominator } from "./nominators";
 
 import { columnsIterator } from "./columns";
 
@@ -27,7 +23,6 @@ export function tablesMapper(
     insertSuffix,
     updateSuffix,
     queryBuilderSuffix,
-    modulePrefix = defaultModulePrefix,
   } = config;
 
   return (table: {
@@ -61,9 +56,9 @@ export function tablesMapper(
       {
         schema,
         name,
-        fullName: [schema, name].join("."),
+        fullName: `${schema}.${name}`,
         modelName,
-        moduleName: `${modulePrefix}:${schema}.${name}`,
+        moduleName: `${schema}.${name}`,
         primaryKey: columns.find((e) => e.isPrimaryKey)?.name,
         declaredName,
         recordName,
