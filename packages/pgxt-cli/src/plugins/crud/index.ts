@@ -21,7 +21,7 @@ import importTypeTpl from "./templates/types/import.hbs";
 
 import indexTpl from "./templates/index.hbs";
 
-type TableSetup = { dataLoader?: boolean };
+type TableSetup = { dataLoader?: boolean; page?: boolean };
 
 export default (
   srcFolder: string,
@@ -122,18 +122,21 @@ export default (
     }
 
     const reducer = (map: Record<string, unknown>, table: TableDeclaration) => {
+      let page: boolean | undefined;
       let dataLoader: boolean | undefined;
 
       if (typeof tableMap?.[table.name] === "object") {
+        page = (tableMap[table.name] as TableSetup).page;
         dataLoader = (tableMap[table.name] as TableSetup).dataLoader;
       }
 
-      const baseurl = join(baseUrl, table.name);
+      const base = join(baseUrl, table.name);
 
-      map[`${baseurl}/`] = { dataLoader };
+      map[`${base}/`] = { dataLoader, page };
 
-      map[`${baseurl}/[id]`] = {
-        dataLoader: dataLoader ? { alias: baseurl } : undefined,
+      map[`${base}/[id]`] = {
+        page: false,
+        dataLoader: dataLoader ? { alias: base } : undefined,
       };
 
       return map;
