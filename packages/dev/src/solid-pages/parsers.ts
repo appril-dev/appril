@@ -71,7 +71,7 @@ export async function sourceFilesParsers(
             opt?.dataLoader === true
               ? {
                   // relative path, worker would prepend varDir
-                  datafile: join(defaults.varDataDir, originalPath),
+                  datafile: join(defaults.varPagesDir, originalPath),
                   // relative path, api generator would prepend apiDir
                   apiEndpoint: [defaults.apiDataDir, originalPath].join("/"),
                 }
@@ -84,7 +84,7 @@ export async function sourceFilesParsers(
               dataLoaderConsumer = {
                 importDatafile: [
                   sourceFolder,
-                  defaults.varDataDir,
+                  defaults.varPagesDir,
                   originalPath,
                 ].join("/"),
                 importDatafunc: "dataCache",
@@ -99,7 +99,7 @@ export async function sourceFilesParsers(
               dataLoaderConsumer = {
                 importDatafile: [
                   sourceFolder,
-                  defaults.varDataDir,
+                  defaults.varPagesDir,
                   normalizePath(opt.dataLoader.alias),
                 ].join("/"),
                 importDatafunc: "dataCache",

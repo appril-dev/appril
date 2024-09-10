@@ -22,5 +22,5 @@ export const defaults = {
   varApiDir: "{api}",
   varRouterDir: "{router}",
   varFetchDir: "{fetch}",
-  varDataDir: "{data}",
+  varPagesDir: "{pages}",
 };
