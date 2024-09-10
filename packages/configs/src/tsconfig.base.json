@@ -11,6 +11,7 @@
     "allowUnusedLabels": false,
     "useUnknownInCatchVariables": true,
     "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
     "target": "ESNext",
     "resolveJsonModule": true,
     "esModuleInterop": true,
