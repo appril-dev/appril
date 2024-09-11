@@ -4,7 +4,7 @@ import { stringify } from "smol-toml";
 
 import type { TableDeclaration, ColumnDeclaration } from "@appril/pgxt";
 import { defaults } from "@appril/configs";
-import { fileGenerator, render, resolveCwd } from "@appril/dev-utils";
+import { fileGenerator, render } from "@appril/dev-utils";
 
 import { type GeneratorPlugin, BANNER } from "@/base";
 import { tablesDir } from "@/plugins/tables";
@@ -42,11 +42,9 @@ export default (
 
   const varDir = `{${baseDir}}`;
 
-  const root = resolveCwd();
-
-  const { generateFile } = fileGenerator(root);
-
   return async function crudGenerator(data, pgxtConfig) {
+    const { generateFile } = fileGenerator(pgxtConfig.root);
+
     const tables = data.tables.flatMap((table) => {
       if (table.schema !== schema || !table.primaryKey) {
         return [];
