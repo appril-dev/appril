@@ -2,7 +2,7 @@
   "type": "module",
   "private": true,
   "nodeVersion": "22.6.0",
-  "packageManager": "pnpm@9.9.0",
+  "packageManager": "pnpm@9.10.0",
   "scripts": {
     "prepub:000": "pnpm -r run build",
     "prepub:001": "changeset add",

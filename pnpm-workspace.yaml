@@ -28,7 +28,7 @@ catalog:
   "@types/prompts": "^2.4.9"
 
   "pg": "^8.12.0"
-  "@types/pg": "^8.11.6"
+  "@types/pg": "^8.11.9"
 
   "knex": "^3.1.0"
   "extract-pg-schema": "^5.1.2"
@@ -49,7 +49,7 @@ catalogs:
     "@solidjs/router": "^0.14.3"
 
   vite:
-    "vite": "^5.4.3"
+    "vite": "^5.4.4"
     "vite-plugin-solid": "^2.10.2"
 
   zod:

@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@types/fs-extra": "catalog:",
-    "@types/pg": "^8.11.8"
+    "@types/pg": "catalog:"
   },
   "peerDependencies": {
     "@appril/pgxt": "workspace:^"
