@@ -66,7 +66,6 @@ export default (
 
         if (col.enumDeclaration) {
           typeLiterals.push(render(enumTypeTpl, col));
-          declaredType = col.enumDeclaration.declaredName;
         } else if (col.importedType) {
           typeLiterals.push(render(importTypeTpl, col));
           declaredType = col.importedType.isArray
