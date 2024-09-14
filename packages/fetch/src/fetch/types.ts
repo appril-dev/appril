@@ -1,13 +1,13 @@
-type Serialize = (v: unknown) => unknown;
-type Stringify = (o: Record<string | number, unknown>) => string;
-type ErrorHandler = (e: unknown) => void;
-
-export type Config = {
+export interface Defaults {
   responseMode: ResponseMode;
-  errorHandler?: ErrorHandler;
-};
+  headers: Record<string, string>;
+  stringify: (data: Record<string, unknown>) => string;
+  errorHandler: (e: unknown) => void;
+}
 
 export type APIMethod = "get" | "post" | "put" | "patch" | "delete";
+
+export type HTTPMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export type ResponseMode =
   | "json"
@@ -17,25 +17,21 @@ export type ResponseMode =
   | "arrayBuffer"
   | "raw";
 
-export type Options = Pick<
-  RequestInit,
-  | "cache"
-  | "credentials"
-  | "headers"
-  | "integrity"
-  | "keepalive"
-  | "mode"
-  | "redirect"
-  | "referrer"
-  | "referrerPolicy"
-  | "signal"
-  | "window"
-> & {
-  serialize?: Serialize;
-  stringify?: Stringify;
-  responseMode?: ResponseMode;
-  errorHandler?: ErrorHandler;
-};
+export type Options = Partial<Defaults> &
+  Pick<
+    RequestInit,
+    | "cache"
+    | "credentials"
+    | "headers"
+    | "integrity"
+    | "keepalive"
+    | "mode"
+    | "redirect"
+    | "referrer"
+    | "referrerPolicy"
+    | "signal"
+    | "window"
+  >;
 
 export type FetchMethod = <T = unknown>(...a: Array<unknown>) => Promise<T>;
 

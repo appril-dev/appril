@@ -1,38 +1,25 @@
-import qs from "qs";
+import type {
+  Options,
+  HTTPError,
+  FetchMethod,
+  FetchMapper,
+  HTTPMethod,
+} from "./types";
 
-import type { Options, HTTPError, FetchMethod, FetchMapper } from "./types";
+import defaults from "./defaults";
 
-import config from "./config";
-
-export { config, fetch };
+export { defaults };
 export * from "./types";
 
 type GenericObject = Record<string, unknown>;
 
 type PathEntry = string | number;
 
-type HTTPMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-
-const defaultHeaders = {
-  Accept: "application/json",
-  "Content-Type": "application/json",
-};
-
-function fetch(base: string | URL, opts?: Options): FetchMapper {
-  const {
-    serialize = (d: unknown) => d,
-    stringify = (data: unknown) => {
-      return qs.stringify(data, {
-        arrayFormat: "brackets",
-        indices: false,
-        encodeValuesOnly: true,
-      });
-    },
-    responseMode,
-    headers,
-    errorHandler,
-    ...fetchConfig
-  } = { ...config, ...opts };
+export default (base: string | URL, opts?: Options): FetchMapper => {
+  const { headers, stringify, responseMode, errorHandler, ...fetchOpts } = {
+    ...defaults,
+    ...opts,
+  };
 
   function wrapper(method: HTTPMethod): FetchMethod {
     // no path no data
@@ -62,8 +49,8 @@ function fetch(base: string | URL, opts?: Options): FetchMapper {
       let url = join(String(base), ...(path as Array<PathEntry>));
 
       const config: Options & { method: HTTPMethod; body?: string } = {
-        ...fetchConfig,
-        headers: { ...defaultHeaders, ...headers },
+        ...fetchOpts,
+        headers: { ...headers },
         method,
       };
 
@@ -112,7 +99,7 @@ function fetch(base: string | URL, opts?: Options): FetchMapper {
     delete: wrapper("DELETE"),
     del: wrapper("DELETE"),
   };
-}
+};
 
 const pathTypes: { [key: string]: boolean } = {
   "[object Number]": true,
