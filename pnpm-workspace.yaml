@@ -56,3 +56,8 @@ catalogs:
     "zod": "^3.22.4"
     "zod-validation-error": "^3.0.3"
     "ts-to-zod": "^3.11.0"
+
+  biome:
+    "@biomejs/biome": "^1.9.0"
+    "@biomejs/wasm-nodejs": "^1.9.0"
+    "@biomejs/js-api": "^0.6.2"

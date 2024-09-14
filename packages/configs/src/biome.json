@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.8.0/schema.json",
+  "$schema": "https://biomejs.dev/schemas/1.9.0/schema.json",
   "formatter": {
     "indentStyle": "space",
     "indentWidth": 2
@@ -7,7 +7,20 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "complexity": { "noUselessTernary": "off", "useLiteralKeys": "off" }
+      "complexity": { "noUselessTernary": "off", "useLiteralKeys": "off" },
+      "style": {
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "strictCase": true,
+            "requireAscii": true,
+            "filenameCases": ["kebab-case", "snake_case", "PascalCase"]
+          }
+        }
+      },
+      "suspicious": {
+        "noConsole": "error"
+      }
     }
   }
 }

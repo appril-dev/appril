@@ -14,7 +14,7 @@
     "pub": "changeset publish"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.8.3",
+    "@biomejs/biome": "catalog:biome",
     "@changesets/cli": "^2.27.8",
     "esbuild": "catalog:",
     "rimraf": "^6.0.1",
