@@ -17,7 +17,7 @@
   },
   "scripts": {
     "// ✨ linters": "",
-    "lint": "biome lint ./src",
+    "lint": "biome lint",
     "// ✨ types": "",
     "tsc": "tsc",
     "// ✨ build": "",
