@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "@biomejs/biome": "^0.0.0"
+  },
+  "scripts": {
+    "// ✨ linters": "",
+    "lint": "biome lint"
+  }
+}

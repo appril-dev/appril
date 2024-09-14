@@ -2,10 +2,7 @@ import { resolve } from "node:path";
 
 import { mergePackageJson, copyFiles } from "@/base";
 
-export default async function dbxtPreset(
-  root: string,
-  dst: string,
-): Promise<void> {
+export default async (root: string, dst: string): Promise<void> => {
   const src = resolve(root, "pgxt");
 
   await copyFiles(src, dst, {
@@ -13,4 +10,4 @@ export default async function dbxtPreset(
   });
 
   await mergePackageJson(src, dst);
-}
+};

@@ -2,6 +2,24 @@ import { resolve, basename } from "node:path";
 
 import fsx from "fs-extra";
 import merge from "merge";
+import type { Answers } from "prompts";
+
+export type Questions =
+  | "name"
+  | "framework"
+  | "sourceFolders"
+  | "distDir"
+  | "devPort"
+  | "presets";
+
+export type Context = {
+  project: Answers<Questions>;
+  solidFramework: boolean;
+  // coming from esbuild (define option)
+  NODE_VERSION: string;
+  ESBUILD_TARGET: string;
+  PACKAGE_MANAGER: string;
+};
 
 export async function mergePackageJson(
   src: string,

@@ -11,7 +11,7 @@ import { renderToFile, resolveCwd } from "@appril/dev-utils";
 
 import frameworks from "./frameworks";
 import presets from "./presets";
-import { copyFiles } from "./base";
+import { copyFiles, type Context, type Questions } from "./base";
 
 import gitignoreTpl from "./root/.gitignore.hbs";
 import npmrcTpl from "./root/.npmrc.hbs";
@@ -36,7 +36,7 @@ async function init() {
   const srcdir = (...path: Array<string>) => join(import.meta.dirname, ...path);
   const dstdir = (...path: Array<string>) => resolveCwd(project.name, ...path);
 
-  const project = await prompts([
+  const project = await prompts<Questions>([
     {
       type: "text",
       name: "name",
@@ -137,9 +137,9 @@ async function init() {
       type: "multiselect",
       name: "presets",
       message: "Presets",
-      choices: Object.keys(presets).map((title) => ({
+      choices: Object.entries(presets).map(([value, { title }]) => ({
         title,
-        value: title,
+        value,
         selected: true,
       })),
       hint: "- Space to select. Return to submit",
@@ -151,7 +151,7 @@ async function init() {
     exclude: [/.+\.hbs/],
   });
 
-  const sourceFolders: Array<string> = project.sourceFolders;
+  const sourceFolders: Array<string> = [...project.sourceFolders];
 
   const sourceFoldersMapper = (
     render: (f: string, s: string) => Array<string>,
@@ -162,20 +162,20 @@ async function init() {
     });
   };
 
-  const genericContext = {
+  const genericContext: Context = {
     project,
     solidFramework: project.framework === "solid",
-    sourceFolders,
-    defaults,
     // coming from esbuild (define option)
-    NODE_VERSION: process.env.APPRIL__NODE_VERSION,
-    ESBUILD_TARGET: process.env.APPRIL__ESBUILD_TARGET,
-    PACKAGE_MANAGER: process.env.APPRIL__PACKAGE_MANAGER,
+    NODE_VERSION: String(process.env.APPRIL__NODE_VERSION),
+    ESBUILD_TARGET: String(process.env.APPRIL__ESBUILD_TARGET),
+    PACKAGE_MANAGER: String(process.env.APPRIL__PACKAGE_MANAGER),
   };
 
   {
     const context = {
       ...genericContext,
+      defaults,
+      sourceFolders,
       excludedSourceFolders: sourceFoldersMapper((folder, suffix) => [
         `"./${folder}"${suffix}`,
       ]),
@@ -195,12 +195,12 @@ async function init() {
 
   const optedPresets: Array<keyof typeof presets> = [...project.presets];
 
-  if (optedPresets.includes("@appril/pgxt")) {
-    optedPresets.includes("@appril/dbxt") || optedPresets.push("@appril/dbxt");
+  if (optedPresets.includes("pgxt")) {
+    optedPresets.includes("dbxt") || optedPresets.push("dbxt");
   }
 
   for (const preset of optedPresets) {
-    await presets[preset](srcdir("presets"), dstdir());
+    await presets[preset].worker(srcdir("presets"), dstdir(), genericContext);
   }
 
   const port = {
@@ -218,7 +218,9 @@ async function init() {
 
     const baseContext = {
       ...genericContext,
+      defaults,
       srcFolder,
+      sourceFolders,
       excludedSourceFolders: sourceFoldersMapper(
         (folder, suffix) => [`"../${folder}"${suffix}`],
         sourceFolders.filter((f) => f !== srcFolder),

@@ -3,10 +3,7 @@ import { readFile, appendFile } from "node:fs/promises";
 
 import { mergePackageJson, copyFiles } from "@/base";
 
-export default async function dbxtPreset(
-  root: string,
-  dst: string,
-): Promise<void> {
+export default async (root: string, dst: string): Promise<void> => {
   const src = resolve(root, "dbxt");
 
   await copyFiles(src, dst, {
@@ -19,4 +16,4 @@ export default async function dbxtPreset(
   await appendFile(resolve(dst, ".env.schema"), env);
 
   await mergePackageJson(src, dst);
-}
+};
