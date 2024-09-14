@@ -10,6 +10,7 @@ catalog:
   "fast-glob": "^3.3.2"
   "smol-toml": "^1.3.0"
   "chokidar": "^4.0.0"
+  "date-fns": "^3.6.0"
   "ansi-escapes": "^7.0.0"
   "kleur": "^4.1.5"
 
@@ -19,7 +20,7 @@ catalog:
   "@types/fs-extra": "^11.0.4"
 
   "qs": "^6.13.0"
-  "@types/qs": "^6.9.15"
+  "@types/qs": "^6.9.16"
 
   "lodash-es": "^4.17.21"
   "@types/lodash-es": "^4.17.12"
@@ -28,7 +29,7 @@ catalog:
   "@types/prompts": "^2.4.9"
 
   "pg": "^8.12.0"
-  "@types/pg": "^8.11.9"
+  "@types/pg": "^8.11.10"
 
   "knex": "^3.1.0"
   "extract-pg-schema": "^5.1.2"
@@ -46,10 +47,10 @@ catalogs:
 
   solid:
     "solid-js": "^1.8.21"
-    "@solidjs/router": "^0.14.3"
+    "@solidjs/router": "^0.14.5"
 
   vite:
-    "vite": "^5.4.4"
+    "vite": "^5.4.5"
     "vite-plugin-solid": "^2.10.2"
 
   zod:

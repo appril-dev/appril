@@ -29,7 +29,7 @@
     "@appril/configs": "workspace:^",
     "@appril/dev-utils": "workspace:^",
     "ansi-escapes": "catalog:",
-    "date-fns": "^3.6.0",
+    "date-fns": "catalog:",
     "esbuild": "catalog:",
     "fast-glob": "catalog:",
     "fs-extra": "catalog:",
