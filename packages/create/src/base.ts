@@ -7,7 +7,7 @@ import type { Answers } from "prompts";
 export type Questions =
   | "name"
   | "framework"
-  | "sourceFolders"
+  | "srcFolders"
   | "distDir"
   | "devPort"
   | "presets";

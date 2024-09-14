@@ -14,10 +14,10 @@ export default async (
   appRoot: string,
   {
     devPort,
-    sourceFolder,
+    srcFolder,
   }: {
-    sourceFolder: string;
     devPort: number;
+    srcFolder: string;
   },
 ): Promise<void> => {
   {
@@ -33,7 +33,7 @@ export default async (
 
   {
     const src = join(import.meta.dirname, "frameworks/solid/src");
-    const dst = join(appRoot, sourceFolder);
+    const dst = join(appRoot, srcFolder);
 
     await copyFiles(src, dst, {
       exclude: [/.+\.hbs/],
@@ -48,7 +48,7 @@ export default async (
       await renderToFile(
         join(dst, file),
         template,
-        { devPort, defaults, sourceFolder },
+        { devPort, defaults, srcFolder },
         { format: true },
       );
     }

@@ -69,7 +69,7 @@ async function init() {
 
     {
       type: "list",
-      name: "sourceFolders",
+      name: "srcFolders",
       message: "Source Folders",
       initial: "@admin @front",
       separator: " ",
@@ -151,16 +151,7 @@ async function init() {
     exclude: [/.+\.hbs/],
   });
 
-  const sourceFolders: Array<string> = [...project.sourceFolders];
-
-  const sourceFoldersMapper = (
-    render: (f: string, s: string) => Array<string>,
-    folders: Array<string> = sourceFolders,
-  ) => {
-    return folders.flatMap((folder, i) => {
-      return render(folder, folders[i + 1] ? "," : "");
-    });
-  };
+  const srcFolders: Array<string> = [...project.srcFolders];
 
   const genericContext: Context = {
     project,
@@ -175,10 +166,7 @@ async function init() {
     const context = {
       ...genericContext,
       defaults,
-      sourceFolders,
-      excludedSourceFolders: sourceFoldersMapper((folder, suffix) => [
-        `"./${folder}"${suffix}`,
-      ]),
+      srcFolders,
     };
 
     for (const [file, template] of [
@@ -211,7 +199,7 @@ async function init() {
     },
   };
 
-  for (const srcFolder of sourceFolders) {
+  for (const srcFolder of srcFolders) {
     await copyFiles(srcdir("src"), dstdir(srcFolder), {
       exclude: [/.+\.hbs/],
     });
@@ -220,11 +208,7 @@ async function init() {
       ...genericContext,
       defaults,
       srcFolder,
-      sourceFolders,
-      excludedSourceFolders: sourceFoldersMapper(
-        (folder, suffix) => [`"../${folder}"${suffix}`],
-        sourceFolders.filter((f) => f !== srcFolder),
-      ),
+      srcFolders,
     };
 
     for (const [file, template] of [
@@ -235,7 +219,7 @@ async function init() {
       const context = {
         ...baseContext,
         baseurl:
-          sourceFolders.length === 1 || /front|src/.test(srcFolder)
+          srcFolders.length === 1 || /front|src/.test(srcFolder)
             ? "/"
             : join("/", srcFolder.replace("@", "")),
       };
@@ -246,7 +230,7 @@ async function init() {
     }
 
     await frameworks[project.framework as keyof typeof frameworks](dstdir(), {
-      sourceFolder: srcFolder,
+      srcFolder,
       devPort: port.next,
     });
   }
