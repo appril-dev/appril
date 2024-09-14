@@ -12,7 +12,7 @@ import type {
   DefinitionI,
   UseDefinitionI,
   UseDefinitionGlobalI,
-} from "./@types";
+} from "./types";
 
 import store from "./store";
 

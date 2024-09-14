@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { defaults } from "@appril/configs";
 import { fileGenerator } from "@appril/dev-utils";
 
-import { type GeneratorPlugin, BANNER } from "@/base";
+import type { GeneratorPlugin } from "@/base";
 
 import baseTpl from "./templates/base.hbs";
 import tableTpl from "./templates/table.hbs";

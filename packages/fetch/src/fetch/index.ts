@@ -1,11 +1,11 @@
 import qs from "qs";
 
-import type { Options, HTTPError, FetchMethod, FetchMapper } from "./@types";
+import type { Options, HTTPError, FetchMethod, FetchMapper } from "./types";
 
 import config from "./config";
 
 export { config, fetch };
-export * from "./@types";
+export * from "./types";
 
 type GenericObject = Record<string, unknown>;
 

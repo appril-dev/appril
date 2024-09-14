@@ -3,7 +3,7 @@ import zlib from "node:zlib";
 import IncomingForm from "formidable";
 import rawParser from "raw-body";
 
-import type { Middleware } from "@/router/@types";
+import type { Middleware } from "@/router/types";
 
 import type {
   JsonOptions,
@@ -11,7 +11,7 @@ import type {
   TrimOption,
   Trimmer,
   RawOptions,
-} from "./@types";
+} from "./types";
 
 import config from "./config";
 
@@ -19,7 +19,7 @@ export default { config, json, form, raw };
 
 export { config };
 export const bodyparser = { json, form, raw };
-export * from "./@types";
+export * from "./types";
 
 export function json(opts: JsonOptions = {}): Array<Middleware> {
   return [

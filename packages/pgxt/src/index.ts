@@ -8,14 +8,14 @@ import type {
   EnumDeclaration,
   TableDeclaration,
   ViewDeclaration,
-} from "./@types";
+} from "./types";
 
 import defaultConfig from "./config";
 import { enumsMapper } from "./enums";
 import { tablesMapper } from "./tables";
 import { viewsMapper } from "./views";
 
-export * from "./@types";
+export * from "./types";
 
 export { defaultConfig as config };
 

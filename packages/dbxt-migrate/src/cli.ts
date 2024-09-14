@@ -9,7 +9,7 @@ import { type BuildOptions, build as esbuild } from "esbuild";
 import { defaults } from "@appril/configs";
 import { resolveCwd } from "@appril/dev-utils";
 
-import type { UserConfig, ResolvedConfig } from "./@types";
+import type { UserConfig, ResolvedConfig } from "./types";
 
 import generateKnexfile from "./migrations/knexfile";
 import selectMigrations from "./migrations/select";

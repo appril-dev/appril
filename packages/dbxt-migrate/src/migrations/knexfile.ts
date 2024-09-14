@@ -7,7 +7,7 @@ import { type BuildOptions, build as esbuild } from "esbuild";
 import { defaults } from "@appril/configs";
 import { renderToFile } from "@appril/dev-utils";
 
-import type { ResolvedConfig } from "@/@types";
+import type { ResolvedConfig } from "@/types";
 
 import template from "./templates/knexfile.hbs";
 

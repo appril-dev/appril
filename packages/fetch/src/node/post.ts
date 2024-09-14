@@ -1,5 +1,9 @@
-import type { DataParams, PostOptions } from "./@types";
-import { buildRequest, stringifyData } from "./_helpers";
+import {
+  type DataParams,
+  type PostOptions,
+  buildRequest,
+  stringifyData,
+} from "./base";
 
 export default function post<T = unknown>(
   url: string | URL,

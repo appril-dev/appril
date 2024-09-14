@@ -1,4 +1,4 @@
-import type { JsonOptions, FormOptions, RawOptions } from "./@types";
+import type { JsonOptions, FormOptions, RawOptions } from "./types";
 
 export const json: JsonOptions = {
   limit: 1024 ** 2,

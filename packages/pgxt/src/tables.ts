@@ -4,7 +4,7 @@ import type {
   ResolvedConfig,
   TableDeclaration,
   EnumDeclaration,
-} from "./@types";
+} from "./types";
 
 import { defaultTableNominator, defaultModelNominator } from "./nominators";
 

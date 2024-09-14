@@ -4,11 +4,7 @@ import { columnsIterator } from "./columns";
 
 import { defaultViewNominator, defaultModelNominator } from "./nominators";
 
-import type {
-  ResolvedConfig,
-  ViewDeclaration,
-  EnumDeclaration,
-} from "./@types";
+import type { ResolvedConfig, ViewDeclaration, EnumDeclaration } from "./types";
 
 type ViewAssets = {
   name: string;

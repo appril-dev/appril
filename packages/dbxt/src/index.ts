@@ -8,14 +8,14 @@ import type {
   QueryBuilder,
   CompositeReturn,
   IdT,
-} from "./@types";
+} from "./types";
 
 import * as extend from "./extend";
-import "./@types.knex";
+import "./types.knex";
 
 const customInspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
-export * from "./@types";
+export * from "./types";
 
 export default <
   TableT extends Knex.TableNames = never,

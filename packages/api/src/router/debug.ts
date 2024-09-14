@@ -1,6 +1,6 @@
 import { green, blue, red, grey, black, bgBlue, dim } from "kleur/colors";
 
-import type { RouteEndpoint } from "./@types";
+import type { RouteEndpoint } from "./types";
 
 type Printer = (line: string) => void;
 

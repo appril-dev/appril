@@ -12,7 +12,7 @@ import type {
   ColumnDeclaration,
   ZodColumn,
   ImportedType,
-} from "./@types";
+} from "./types";
 
 import { defaultTypeMap, defaultZodTypeMap } from "./default-type-maps";
 

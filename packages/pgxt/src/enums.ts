@@ -1,4 +1,4 @@
-import type { ResolvedConfig, EnumDeclaration } from "./@types";
+import type { ResolvedConfig, EnumDeclaration } from "./types";
 
 import { defaultEnumNominator } from "./nominators";
 

@@ -1,5 +1,9 @@
-import type { DataParams, DelOptions } from "./@types";
-import { buildRequest, stringifyData } from "./_helpers";
+import {
+  type DataParams,
+  type DelOptions,
+  buildRequest,
+  stringifyData,
+} from "./base";
 
 export default function del<T = unknown>(
   url: string | URL,

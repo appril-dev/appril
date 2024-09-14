@@ -1,7 +1,7 @@
-import type { UseDefinition, UseScopeGlobal } from "./@types";
+import type { UseDefinition, UseScopeGlobal } from "./types";
 
-const _useGlobal: UseDefinition<UseScopeGlobal>[] = [];
+const useGlobal: Array<UseDefinition<UseScopeGlobal>> = [];
 
 export default {
-  useGlobal: _useGlobal,
+  useGlobal,
 };

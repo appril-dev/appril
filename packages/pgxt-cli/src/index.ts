@@ -1,6 +1,6 @@
-import type { Config } from "./@types";
+import type { Config } from "./base";
 
-export * from "./@types";
+export * from "./types";
 export { BANNER } from "./base";
 
 export { default as typesPlugin } from "./plugins/types";

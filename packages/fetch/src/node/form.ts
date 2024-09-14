@@ -1,7 +1,6 @@
 import FormData from "form-data";
 
-import type { DataParams, FormOptions } from "./@types";
-import { buildRequest } from "./_helpers";
+import { type DataParams, type FormOptions, buildRequest } from "./base";
 
 export default async function form<T = unknown>(
   url: string | URL,

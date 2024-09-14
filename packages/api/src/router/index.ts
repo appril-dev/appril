@@ -8,11 +8,11 @@ import type {
   UseDefinition,
   RouteEndpoint,
   RouteDefinition,
-} from "./@types";
+} from "./types";
 
 import store from "./store";
 
-export * from "./@types";
+export * from "./types";
 export * from "./definitions";
 export * as default from "./definitions";
 export * from "./debug";

@@ -1,5 +1,9 @@
-import type { DataParams, PutOptions } from "./@types";
-import { buildRequest, stringifyData } from "./_helpers";
+import {
+  type DataParams,
+  type PutOptions,
+  buildRequest,
+  stringifyData,
+} from "./base";
 
 export default function put<T = unknown>(
   url: string | URL,

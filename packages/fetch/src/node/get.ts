@@ -1,5 +1,9 @@
-import type { DataParams, GetOptions } from "./@types";
-import { buildRequest, objToQs } from "./_helpers";
+import {
+  type DataParams,
+  type GetOptions,
+  buildRequest,
+  objToQs,
+} from "./base";
 
 export default function get<T = unknown>(
   _url: string | URL,

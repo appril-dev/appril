@@ -5,7 +5,7 @@ import {
   defaultModelNominator,
 } from "./nominators";
 
-import type { DefaultConfig } from "./@types";
+import type { DefaultConfig } from "./types";
 
 export const config: DefaultConfig = {
   customTypes: {},
