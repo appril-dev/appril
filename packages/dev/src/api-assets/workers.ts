@@ -1,3 +1,4 @@
+import { basename, join } from "node:path";
 import { cpus } from "node:os";
 import { Worker } from "node:worker_threads";
 
@@ -60,13 +61,26 @@ export async function bootstrap(data: {
   if (data.command === "serve") {
     watcher = chokidar.watch(appRoot, {
       ...data.watchOptions,
-      ignored: [
-        "**/.git/**",
-        "**/node_modules/**",
-        `${data.outDir}/**`,
-        // excluding varDir to avoid infinite circular rebuilds
-        `${appRoot}/${defaults.varDir}/**`,
-      ],
+      ignored: (path) => {
+        if (path.startsWith(`${data.outDir}/`)) {
+          return true;
+        }
+        if (
+          path.startsWith(
+            join(
+              appRoot,
+              defaults.varDir,
+              sourceFolder,
+              `${defaults.varApiDir}/`,
+            ),
+          )
+        ) {
+          return ["@assets.ts", "@hashmap.json", "@schema.ts"].includes(
+            basename(path),
+          );
+        }
+        return ["/.git/", "/node_modules/"].some((e) => path.includes(e));
+      },
     });
 
     watcher.on("change", async (file) => {
