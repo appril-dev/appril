@@ -89,7 +89,8 @@ async function generateRouteAssets({
         route,
         typeDeclarations,
         fetchDefinitions,
-        importBase: [sourceFolder, defaults.varFetchDir, "base"].join("/"),
+        sourceFolder,
+        defaults,
       },
     },
   );

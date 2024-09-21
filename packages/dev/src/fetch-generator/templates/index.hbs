@@ -3,8 +3,10 @@
 import {{importName}} from "{{../importVarBase}}/{{importPath}}";
 {{/each}}
 
+export type FetchRoute ={{#each routes}}  {{#unless @first}}| {{/unless}}"{{originalPath}}"
+{{/each}}
+
 export default {
-  {{#each routes}}
-  "{{originalPath}}": {{importName}},
-  {{/each}}
+{{#each routes}}  "{{originalPath}}": {{importName}},
+{{/each}}
 }

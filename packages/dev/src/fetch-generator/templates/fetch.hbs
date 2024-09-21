@@ -1,24 +1,24 @@
-import {
-  baseurl, apiurl,
-  fetchFactory, fetchOptions,
-  join, withLoader, pathMaker,
-} from "{{importBase}}";
+import fetchFactory, { defaults } from "@appril/fetch";
+
+import { formatPath, join } from "{{sourceFolder}}/{{defaults.varFetchDir}}/base";
+import { baseurl, apiurl } from "{{sourceFolder}}/{{defaults.configDir}}";
+import { unref } from "{{defaults.corePrefix}}/fetch";
 
 {{#each typeDeclarations}}{{text}}
 {{/each}}
 
-function apiFactory(
+function fetchMapper(
   api: import("@appril/fetch").FetchMapper,
 ) {
 
   {{#each fetchDefinitions}}
   function {{method}}(
     params: [ {{../route.fetchParamsType}} ],
-    payload{{#unless payloadType}}?{{/unless}}: import("{{../importBase}}").MaybeRef<
+    payload{{#unless payloadType}}?{{/unless}}: import("{{../defaults.corePrefix}}/fetch").MaybeRef<
       {{#if payloadType}}
       {{payloadType}}
       {{else}}
-      Record<string|number, unknown>
+      Record<string, unknown>
       {{/if}}
     >,
   ): Promise<
@@ -29,8 +29,8 @@ function apiFactory(
     {{/if}}
   > {
     return api.{{method}}(
-      pathMaker("{{../route.originalPath}}", params),
-      payload || {},
+      formatPath("{{../route.originalPath}}", params),
+      unref(payload || {}),
     )
   }
 
@@ -43,33 +43,54 @@ function apiFactory(
   }
 }
 
-export function createApi(
+export const createFetch = (
   options?: import("@appril/fetch").Options,
-) {
-  return apiFactory(
+) => {
+  return fetchMapper(
     fetchFactory(
       join(baseurl, apiurl),
-      { ...fetchOptions, ...options },
+      options,
     )
   )
 }
 
-export const fetch = createApi()
+export const fetch = createFetch()
 
 {{#each fetchDefinitions}}
 export const {{method}} = fetch.{{method}};
 {{/each}}
 
-export { withLoader };
+export const resolve = (
+  params: [ {{route.fetchParamsType}} ],
+  query?: Record<string, unknown>,
+) => {
+  const path = join(baseurl, apiurl, formatPath("{{route.originalPath}}", params));
+  return query
+    ? [ path, defaults.stringify(query) ].join("?")
+    : path;
+}
+
+export const href = (
+  _host: string | { hostname: string; port?: number; secure?: boolean },
+  params: [ {{route.fetchParamsType}} ],
+  query?: Record<string, unknown>,
+) => {
+  const host = typeof _host === "string"
+    ? _host
+    : [
+        _host.secure ? "https://" : "http://",
+        _host.hostname,
+        _host.port ? `:${_host.port}` : "",
+      ].join("");
+  return host.replace(/\/+$/, "") + resolve(params, query);
+}
 
 export default {
   {{#each fetchDefinitions}}
   {{method}}: fetch.{{method}},
   {{/each}}
-  createApi,
+  createFetch,
   fetch,
-  withLoader,
-  resolve(params: [ {{route.fetchParamsType}} ]) {
-    return join(baseurl, apiurl, pathMaker("{{route.originalPath}}", params))
-  },
+  resolve,
+  href,
 };

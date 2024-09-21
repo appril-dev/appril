@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import type { ResolvedConfig } from "vite";
 
 import {
-  type ResolvedPluginOptions,
+  type PluginOptionsResolved,
   type ApiRoute,
   type BootstrapPayload,
   type WatchHandler,
@@ -16,7 +16,7 @@ type Workers = typeof import("./workers");
 
 export async function fetchGenerator(
   config: ResolvedConfig,
-  options: ResolvedPluginOptions,
+  options: PluginOptionsResolved,
   { workerPool }: { workerPool: Workers },
 ) {
   const { appRoot, sourceFolder } = options;
@@ -62,9 +62,15 @@ export async function fetchGenerator(
 
   for (const { file, parser } of await sourceFilesParsers(config, options)) {
     srcWatchers[file] = async () => {
-      for (const { route } of await parser()) {
+      for (const { route, alias } of await parser()) {
         if (filter(route)) {
           routeMap[route.fileFullpath] = route;
+          for (const a of alias) {
+            routeMap[a.path] = {
+              ...route,
+              ...a,
+            };
+          }
         }
       }
     };
