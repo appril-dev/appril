@@ -5,7 +5,7 @@ import fsx from "fs-extra";
 import type { ResolvedConfig } from "vite";
 
 import type {
-  ResolvedPluginOptions,
+  PluginOptionsResolved,
   ApiRoute,
   BootstrapPayload,
   WatchHandler,
@@ -79,7 +79,7 @@ type Workers = typeof import("./workers");
 
 export async function apiGenerator(
   config: ResolvedConfig,
-  options: ResolvedPluginOptions,
+  options: PluginOptionsResolved,
   { workerPool }: { workerPool: Workers },
 ) {
   const { appRoot, sourceFolder } = options;

@@ -7,7 +7,7 @@ import { parse } from "smol-toml";
 import { sanitizePath } from "@appril/dev-utils";
 
 import {
-  type ResolvedPluginOptions,
+  type PluginOptionsResolved,
   type RouteOptions,
   type ApiRoute,
   type ApiRouteAlias,
@@ -23,7 +23,7 @@ type ParsedEntry = {
 
 export async function sourceFilesParsers(
   config: import("vite").ResolvedConfig,
-  _options: ResolvedPluginOptions,
+  _options: PluginOptionsResolved,
   pattern = `*${defaults.sourceFile}`,
 ) {
   const parsers: Array<{

@@ -29,6 +29,9 @@ type RouteSetup = {
   meta?: Meta;
 }
 
+export type ApiRoute ={{#each routes}}  {{#unless @first}}| {{/unless}}"{{originalPath}}"
+{{/each}}
+
 export const routeStack: Array<RouteSetup> = [
 {{#each routes}}
   {

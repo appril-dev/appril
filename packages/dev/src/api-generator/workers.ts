@@ -5,7 +5,7 @@ import { fileGenerator } from "@appril/dev-utils";
 
 import { type ApiRoute, defaults } from "@/base";
 
-import baseTpl from "./templates/base.hbs";
+import indexTpl from "./templates/index.hbs";
 import routeTpl from "./templates/route.hbs";
 import routesTpl from "./templates/routes.hbs";
 
@@ -64,7 +64,7 @@ async function generateRouteFiles({
         "index.ts",
       ),
       {
-        template: baseTpl,
+        template: indexTpl,
         context: {
           defaults,
           apiMethods: Object.keys(APIMethods),
