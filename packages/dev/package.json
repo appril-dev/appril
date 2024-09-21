@@ -47,8 +47,10 @@
   },
   "devDependencies": {
     "@types/fs-extra": "catalog:",
+    "@types/koa": "catalog:koa",
     "@types/lodash-es": "catalog:",
-    "@types/qs": "catalog:"
+    "@types/qs": "catalog:",
+    "vite": "catalog:vite"
   },
   "peerDependencies": {
     "@appril/api": "workspace:",

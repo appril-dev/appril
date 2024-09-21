@@ -10,7 +10,7 @@ catalog:
   "fast-glob": "^3.3.2"
   "smol-toml": "^1.3.0"
   "chokidar": "^4.0.0"
-  "date-fns": "^3.6.0"
+  "date-fns": "^4.1.0"
   "ansi-escapes": "^7.0.0"
   "kleur": "^4.1.5"
 
@@ -28,7 +28,7 @@ catalog:
   "prompts": "^2.4.2"
   "@types/prompts": "^2.4.9"
 
-  "pg": "^8.12.0"
+  "pg": "^8.13.0"
   "@types/pg": "^8.11.10"
 
   "knex": "^3.1.0"
@@ -50,7 +50,7 @@ catalogs:
     "@solidjs/router": "^0.14.5"
 
   vite:
-    "vite": "^5.4.5"
+    "vite": "^5.4.7"
     "vite-plugin-solid": "^2.10.2"
 
   zod:
@@ -59,6 +59,6 @@ catalogs:
     "ts-to-zod": "^3.11.0"
 
   biome:
-    "@biomejs/biome": "^1.9.0"
-    "@biomejs/wasm-nodejs": "^1.9.0"
+    "@biomejs/biome": "^1.9.2"
+    "@biomejs/wasm-nodejs": "^1.9.2"
     "@biomejs/js-api": "^0.6.2"
