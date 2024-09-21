@@ -1,4 +1,7 @@
 export const defaults = {
+  coreDir: "core",
+  corePrefix: "~",
+
   baseDir: "base",
   basePrefix: "@",
 
