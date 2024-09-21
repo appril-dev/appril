@@ -15,80 +15,77 @@ export const aliasPlugin = async (appRoot: string): Promise<Plugin> => {
   return {
     name: PLUGIN_NAME,
 
-    async config() {
-      const alias = Object.entries({ ...tsconfig?.options?.paths } as Record<
-        string,
-        Array<string>
-      >).reduce(
-        (
-          entries: Array<
-            Alias & {
-              // mandatorily sorting by length to have longer ones checked first
-              priority: number;
-            }
-          >,
-          [base, aliases],
-        ) => {
-          const basename = base.replace("/*", "");
+    config() {
+      const aliasmap: Array<
+        Alias & {
+          // mandatorily sorting by length to have longer ones checked first
+          priority: number;
+        }
+      > = [];
 
-          if (basename === defaults.basePrefix) {
-            // handling { "@/*": ["./*", "./var/*"] } entry
-            for (const alias of aliases) {
-              if (alias.includes(`/${defaults.varDir}/`)) {
-                // handling [ "./var/*" ] entry
-                entries.push({
-                  // find ^@/{dir}/
-                  find: new RegExp(`^${basename}/(\\{[^}]+\\})/`),
-                  // replace with appRoot/var/{dir}/
-                  replacement: `${appRoot}/${defaults.varDir}/$1/`,
-                  priority: basename.length + 25,
-                });
-              } else {
-                // handling [ "./*" ] entry
-                entries.push({
-                  // find ^@/
-                  find: new RegExp(`^${basename}/`),
-                  // replace with appRoot/base/
-                  replacement: `${appRoot}/${defaults.baseDir}/`,
-                  priority: basename.length,
-                });
-              }
-            }
+      const pathEntries = Object.entries({ ...tsconfig?.options?.paths });
 
-            return entries;
-          }
+      for (const [base, paths] of pathEntries) {
+        const basename = base.replace("/*", "");
 
-          for (const alias of aliases) {
-            // handling { "@src/*": ["./@src/*", "./var/@src/*"] } entry
-            if (alias.includes(`/${defaults.varDir}/${base}`)) {
-              // handling [ "./var/@src/*" ] entry
-              entries.push({
-                // find ^@src/{dir}/
-                find: new RegExp(`^(${basename}/\\{[^}]+\\})/`),
-                // replace with appRoot/var/@src/{dir}/
+        if (basename === defaults.basePrefix) {
+          // handling { "@/*": ["./*", "./var/*"] } entry
+          for (const path of paths) {
+            if (path.includes(`/${defaults.varDir}/`)) {
+              // handling [ "./var/*" ] entry
+              aliasmap.push({
+                // find ^@/{dir}/?
+                find: new RegExp(`^${basename}/(\\{[^}]+\\})/?`),
+                // replace with appRoot/var/{dir}/
                 replacement: `${appRoot}/${defaults.varDir}/$1/`,
                 priority: basename.length + 25,
               });
             } else {
+              // handling [ "./*" ] entry
+              aliasmap.push({
+                // find ^@/
+                find: new RegExp(`^${basename}/`),
+                // replace with appRoot/base/
+                replacement: `${appRoot}/${defaults.baseDir}/`,
+                priority: basename.length,
+              });
+            }
+          }
+        } else {
+          for (const path of paths) {
+            // handling { "@src/*": ["./@src/*", "./var/@src/*"] } entry
+            if (path.includes(`/${defaults.varDir}/${base}`)) {
+              // handling [ "./var/@src/*" ] entry
+              aliasmap.push({
+                // find ^@src/{dir}/?
+                find: new RegExp(`^(${basename}/\\{[^}]+\\})/?`),
+                // replace with appRoot/var/@src/{dir}/
+                replacement: `${appRoot}/${defaults.varDir}/$1/`,
+                priority: basename.length + 25,
+              });
+            } else if (path === `./${base}`) {
               // handling [ "./@src/*" ] entry
-              entries.push({
+              aliasmap.push({
                 // find ^@src/
                 find: new RegExp(`^${basename}/`),
                 // replace with appRoot/@src/
                 replacement: `${appRoot}/${basename}/`,
                 priority: basename.length,
               });
+            } else {
+              aliasmap.push({
+                find: new RegExp(`^${basename}/`),
+                replacement: `${appRoot}/${path.replace(/\*$/, "")}`,
+                priority: basename.length,
+              });
             }
           }
-
-          return entries;
-        },
-        [],
-      );
+        }
+      }
 
       return {
         resolve: {
-          alias: alias.sort((a, b) => b.priority - a.priority),
+          alias: aliasmap.sort((a, b) => b.priority - a.priority),
         },
       };
     },
