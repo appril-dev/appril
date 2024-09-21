@@ -4,7 +4,7 @@ import type { FSWatcher, Plugin } from "vite";
 
 import type {
   PluginOptions,
-  ResolvedPluginOptions,
+  PluginOptionsResolved,
   WatchHandler,
 } from "./base";
 
@@ -16,7 +16,7 @@ import { apiAssets } from "./api-assets";
 import { solidPages } from "./solid-pages";
 import { fetchGenerator } from "./fetch-generator";
 
-export type { PluginOptions, ResolvedPluginOptions };
+export type { PluginOptions, PluginOptionsResolved };
 
 export * from "./define";
 export * from "./alias";
@@ -43,9 +43,10 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
     },
 
     async configResolved(config) {
-      const resolvedOptions: ResolvedPluginOptions = {
+      const resolvedOptions: PluginOptionsResolved = {
         apiAssets: {},
         apiGenerator: {},
+        apiMiddleware: undefined,
         fetchGenerator: {},
         solidPages: undefined,
         useWorkers: true,

@@ -6,7 +6,7 @@ import fsx from "fs-extra";
 import { parse } from "smol-toml";
 
 import {
-  type ResolvedPluginOptions,
+  type PluginOptionsResolved,
   type RouteOptions,
   type SolidPage,
   normalizeRoutePath,
@@ -16,7 +16,7 @@ import {
 
 export async function sourceFilesParsers(
   config: ResolvedConfig,
-  options: ResolvedPluginOptions,
+  options: PluginOptionsResolved,
   pattern = `*${defaults.sourceFile}`,
 ) {
   const { sourceFolder } = options;

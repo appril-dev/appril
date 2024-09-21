@@ -5,7 +5,7 @@ import fsx from "fs-extra";
 import type { ResolvedConfig } from "vite";
 
 import type {
-  ResolvedPluginOptions,
+  PluginOptionsResolved,
   SolidPage,
   BootstrapPayload,
   WatchHandler,
@@ -86,7 +86,7 @@ type Workers = typeof import("./workers");
 
 export async function solidPages(
   config: ResolvedConfig,
-  options: ResolvedPluginOptions,
+  options: PluginOptionsResolved,
   { workerPool }: { workerPool: Workers },
 ) {
   const { appRoot, sourceFolder } = options;

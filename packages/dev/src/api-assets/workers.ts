@@ -7,7 +7,7 @@ import chokidar, { type FSWatcher } from "chokidar";
 import { chunk } from "lodash-es";
 import { fileGenerator } from "@appril/dev-utils";
 
-import { defaults, type ApiRoute, type ResolvedPluginOptions } from "@/base";
+import { defaults, type ApiRoute, type PluginOptionsResolved } from "@/base";
 
 import {
   type WorkerPayload,
@@ -48,7 +48,7 @@ export async function bootstrap(data: {
   sourceFolder: string;
   outDir: string;
   command: ResolvedConfig["command"];
-  watchOptions: ResolvedPluginOptions["watchOptions"];
+  watchOptions: PluginOptionsResolved["watchOptions"];
   routes: Array<ApiRoute>;
   importZodErrorHandlerFrom?: string;
 }) {

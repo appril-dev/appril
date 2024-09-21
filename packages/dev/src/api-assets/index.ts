@@ -1,7 +1,7 @@
 import { resolve, join } from "node:path";
 
 import {
-  type ResolvedPluginOptions,
+  type PluginOptionsResolved,
   type ApiRoute,
   type BootstrapPayload,
   type WatchHandler,
@@ -14,7 +14,7 @@ type Workers = typeof import("./workers");
 
 export async function apiAssets(
   config: import("vite").ResolvedConfig,
-  options: ResolvedPluginOptions,
+  options: PluginOptionsResolved,
   { workerPool }: { workerPool: Workers },
 ) {
   const { appRoot, sourceFolder } = options;
