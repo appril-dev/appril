@@ -1,7 +1,7 @@
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
 import { readFile, appendFile } from "node:fs/promises";
 
-import { mergePackageJson, copyFiles } from "@/base";
+import { mergeJsonFiles, copyFiles } from "@/base";
 
 export default async (root: string, dst: string): Promise<void> => {
   const src = resolve(root, "dbxt");
@@ -15,5 +15,5 @@ export default async (root: string, dst: string): Promise<void> => {
   await appendFile(resolve(dst, ".env"), env);
   await appendFile(resolve(dst, ".env.schema"), env);
 
-  await mergePackageJson(src, dst);
+  await mergeJsonFiles(join(src, "package.json"), join(dst, "package.json"));
 };

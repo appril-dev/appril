@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { defaults } from "@appril/configs";
 import { renderToFile } from "@appril/dev-utils";
 
-import { mergePackageJson, copyFiles } from "@/base";
+import { mergeJsonFiles, copyFiles } from "@/base";
 
 import viteConfigTpl from "./solid/src/vite.config.hbs";
 import componentsLinkTpl from "./solid/src/components/Link.hbs";
@@ -25,10 +25,15 @@ export default async (
     const dst = appRoot;
 
     await copyFiles(src, dst, {
-      exclude: ["package.json"],
+      exclude: ["package.json", "tsconfig.json"],
     });
 
-    await mergePackageJson(src, dst);
+    await mergeJsonFiles(join(src, "package.json"), join(dst, "package.json"));
+
+    await mergeJsonFiles(
+      join(src, "tsconfig.json"),
+      join(dst, "tsconfig.json"),
+    );
   }
 
   {

@@ -21,18 +21,14 @@ export type Context = {
   PACKAGE_MANAGER: string;
 };
 
-export async function mergePackageJson(
-  src: string,
-  dst: string,
+export async function mergeJsonFiles(
+  srcFile: string,
+  dstFile: string,
 ): Promise<void> {
-  const srcFile = resolve(src, "package.json");
-  const dstFile = resolve(dst, "package.json");
-
   const json = merge.recursive(
     JSON.parse(await fsx.readFile(dstFile, "utf8")),
     JSON.parse(await fsx.readFile(srcFile, "utf8")),
   );
-
   await fsx.writeJson(dstFile, json, {
     spaces: 2,
   });

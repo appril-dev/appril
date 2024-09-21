@@ -1,11 +1,11 @@
 {
-  "extends": "@appril/configs/tsconfig.vite-solid.json",
   "compilerOptions": {
     "paths": {
       {{#each srcFolders}}
       "{{this}}/*": ["./{{this}}/*", "./{{../defaults.varDir}}/{{this}}/*"],
       {{/each}}
-      "{{defaults.basePrefix}}/*": ["./base/*", "./{{defaults.varDir}}/*"]
+      "{{defaults.corePrefix}}/*": ["./{{defaults.coreDir}}/*"],
+      "{{defaults.basePrefix}}/*": ["./{{defaults.baseDir}}/*", "./{{defaults.varDir}}/*"]
     }
   }
 }

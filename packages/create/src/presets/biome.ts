@@ -3,7 +3,7 @@ import { join, resolve } from "node:path";
 import { defaults } from "@appril/configs";
 import { renderToFile } from "@appril/dev-utils";
 
-import { mergePackageJson, type Context } from "@/base";
+import { mergeJsonFiles, type Context } from "@/base";
 
 import biomeTpl from "./biome/biome.hbs";
 
@@ -16,5 +16,5 @@ export default async (
 
   await renderToFile(join(dst, "biome.json"), biomeTpl, { ...ctx, defaults });
 
-  await mergePackageJson(src, dst);
+  await mergeJsonFiles(join(src, "package.json"), join(dst, "package.json"));
 };

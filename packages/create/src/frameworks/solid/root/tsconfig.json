@@ -1,0 +1,3 @@
+{
+  "extends": "@appril/configs/tsconfig.vite-solid.json"
+}

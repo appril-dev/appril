@@ -1,6 +1,6 @@
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
 
-import { mergePackageJson, copyFiles } from "@/base";
+import { mergeJsonFiles, copyFiles } from "@/base";
 
 export default async (root: string, dst: string): Promise<void> => {
   const src = resolve(root, "pgxt");
@@ -9,5 +9,5 @@ export default async (root: string, dst: string): Promise<void> => {
     exclude: ["package.json"],
   });
 
-  await mergePackageJson(src, dst);
+  await mergeJsonFiles(join(src, "package.json"), join(dst, "package.json"));
 };
