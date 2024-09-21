@@ -1,3 +1,5 @@
+import type { IncomingMessage, ServerResponse } from "node:http";
+
 export type PluginOptions = {
   apiurl: string;
 
@@ -10,6 +12,14 @@ export type PluginOptions = {
     // path to custom template, relative to vite.config.ts
     template?: string;
   };
+
+  apiMiddleware?: (
+    app: InstanceType<typeof import("koa")>,
+  ) => (
+    req: IncomingMessage,
+    res: ServerResponse,
+    next: () => void,
+  ) => Promise<void>;
 
   fetchGenerator?: {
     filter?: (route: ApiRoute) => boolean;
@@ -33,13 +43,13 @@ export type PluginOptions = {
   };
 };
 
-export type ResolvedPluginOptions = Required<
-  Omit<PluginOptions, "solidPages">
-> & {
+type PluginOptionsWithoutDefaults = "apiMiddleware" | "solidPages";
+
+export type PluginOptionsResolved = {
   appRoot: string;
   sourceFolder: string;
-  solidPages?: PluginOptions["solidPages"];
-};
+} & Required<Omit<PluginOptions, PluginOptionsWithoutDefaults>> &
+  Pick<PluginOptions, PluginOptionsWithoutDefaults>;
 
 export type RouteSection = {
   orig: string;

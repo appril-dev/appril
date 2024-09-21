@@ -4,13 +4,13 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { type Plugin, context, build } from "esbuild";
 import type { ResolvedConfig } from "vite";
 
-import { type ResolvedPluginOptions, defaults } from "@/base";
+import { type PluginOptionsResolved, defaults } from "@/base";
 
 export async function apiHandlerFactory(
   config: ResolvedConfig,
-  options: ResolvedPluginOptions,
+  options: PluginOptionsResolved,
 ) {
-  const { appRoot, sourceFolder, apiurl } = options;
+  const { appRoot, sourceFolder, apiurl, apiMiddleware } = options;
 
   const apiDir = join(sourceFolder, defaults.apiDir);
   const outDir = resolve(config.build.outDir, join("..", defaults.apiDir));
@@ -19,21 +19,21 @@ export async function apiHandlerFactory(
     with: { type: "json" },
   }).then((mdl) => mdl.default);
 
-  let app: {
-    callback: () => (
-      req: IncomingMessage,
-      res: ServerResponse,
-    ) => Promise<void>;
-  };
+  let app: InstanceType<typeof import("koa")>;
 
   const devMiddleware = async (
     req: IncomingMessage,
     res: ServerResponse,
     next: () => void,
   ) => {
-    req.url?.startsWith(join(config.base, apiurl))
-      ? await app?.callback()(req, res)
-      : next();
+    if (apiMiddleware) {
+      const handler = apiMiddleware(app);
+      await handler(req, res, next);
+    } else {
+      req.url?.startsWith(join(config.base, apiurl))
+        ? await app?.callback()(req, res)
+        : next();
+    }
   };
 
   if (config.command === "serve") {
