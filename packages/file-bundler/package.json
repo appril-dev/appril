@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@appril/file-bundler",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
