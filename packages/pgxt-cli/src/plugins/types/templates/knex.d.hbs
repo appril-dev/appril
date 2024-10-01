@@ -4,15 +4,15 @@ declare module "knex/types/tables" {
   interface Tables {
   {{#each tables}}
     "{{moduleName}}": import("knex").Knex.CompositeTableType<
-      import(".").{{recordName}},
-      import(".").{{insertName}},
-      import(".").{{updateName}},
-      import(".").{{queryBuilder}}
+      import("./{{../typesDir}}/{{name}}").{{recordName}},
+      import("./{{../typesDir}}/{{name}}").{{insertName}},
+      import("./{{../typesDir}}/{{name}}").{{updateName}},
+      import("./{{../typesDir}}/{{name}}").{{queryBuilder}}
     >;
   {{/each}}
   {{#each views}}
     "{{moduleName}}": import("knex").Knex.CompositeTableType<
-      import(".").{{recordName}}
+      import("./{{../typesDir}}/{{name}}").{{recordName}}
     >;
   {{/each}}
   }

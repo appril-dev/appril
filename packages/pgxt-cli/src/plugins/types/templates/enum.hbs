@@ -1,0 +1,12 @@
+{{BANNER}}
+
+/** {{enum.name}} enum */
+
+export enum {{enum.declaredName}}{{enum.enumSuffix}} {
+{{#each enum.values}}  "{{this}}" = "{{this}}",
+{{/each}}
+};
+
+export type {{enum.declaredName}} =
+{{#each enum.values}}  | "{{this}}"
+{{/each}};

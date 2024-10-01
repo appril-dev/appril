@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { format } from "node:util";
 
 import { normalizePath, type ResolvedConfig } from "vite";
 import glob from "fast-glob";
@@ -70,8 +71,8 @@ export async function sourceFilesParsers(
           const dataLoaderGenerator: SolidPage["dataLoaderGenerator"] =
             opt?.dataLoader === true
               ? {
-                  // relative path, worker would prepend varDir
-                  datafile: join(defaults.varPagesDir, originalPath),
+                  // relative path, worker would prepend libDir/pagesDir
+                  datafile: originalPath,
                   // relative path, api generator would prepend apiDir
                   apiEndpoint: [defaults.apiDataDir, originalPath].join("/"),
                 }
@@ -84,7 +85,7 @@ export async function sourceFilesParsers(
               dataLoaderConsumer = {
                 importDatafile: [
                   sourceFolder,
-                  defaults.varPagesDir,
+                  format(defaults.libDirFormat, defaults.pagesDir),
                   originalPath,
                 ].join("/"),
                 importDatafunc: "dataCache",
@@ -99,7 +100,7 @@ export async function sourceFilesParsers(
               dataLoaderConsumer = {
                 importDatafile: [
                   sourceFolder,
-                  defaults.varPagesDir,
+                  format(defaults.libDirFormat, defaults.pagesDir),
                   normalizePath(opt.dataLoader.alias),
                 ].join("/"),
                 importDatafunc: "dataCache",

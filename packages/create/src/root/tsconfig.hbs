@@ -2,10 +2,9 @@
   "compilerOptions": {
     "paths": {
       {{#each srcFolders}}
-      "{{this}}/*": ["./{{this}}/*", "./{{../defaults.varDir}}/{{this}}/*"],
+      "{{this}}/*": ["./{{this}}/*", "./{{../defaults.libDir}}/{{this}}/*"],
       {{/each}}
-      "{{defaults.corePrefix}}/*": ["./{{defaults.coreDir}}/*"],
-      "{{defaults.basePrefix}}/*": ["./{{defaults.baseDir}}/*", "./{{defaults.varDir}}/*"]
+      "{{defaults.appPrefix}}/*": ["./*", "./{{defaults.libDir}}/*"]
     }
   }
 }

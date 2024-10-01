@@ -1,7 +1,7 @@
 import knex from "knex";
 
-import { DEV } from "~/config";
-import { connection as connectionSettings, client } from "~/config/db";
+import { DEV } from "@/config";
+import { connection as connectionSettings, client } from "@/config/db";
 
 export function connect(_connectionSettings = {}) {
   const instance = knex({

@@ -1,6 +1,6 @@
 
 {{#each routes}}
-import {{importName}} from "{{../importVarBase}}/{{importPath}}";
+import {{importName}} from "{{../importPathmap.lib}}/{{importPath}}";
 {{/each}}
 
 export type FetchRoute ={{#each routes}}  {{#unless @first}}| {{/unless}}"{{originalPath}}"

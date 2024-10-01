@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { format } from "node:util";
 
 import { renderToFile } from "@appril/dev-utils";
 import crc32 from "crc/crc32";
@@ -36,27 +37,27 @@ export type DiscoveredTypeDeclaration = {
   included?: boolean;
 };
 
-export function varFileBase(
+export function libFileBase(
   route: ApiRoute,
   { appRoot, sourceFolder }: { appRoot: string; sourceFolder: string },
 ) {
   return join(
     appRoot,
-    defaults.varDir,
+    defaults.libDir,
     sourceFolder,
-    defaults.varApiDir,
+    format(defaults.libDirFormat, defaults.apiDir),
     route.importPath,
   );
 }
 
-export function varFilePath(
+export function libFilePath(
   route: ApiRoute,
   file: "assets" | "schema" | "hashmap",
   { appRoot, sourceFolder }: { appRoot: string; sourceFolder: string },
 ) {
   return join(
-    varFileBase(route, { appRoot, sourceFolder }),
-    { assets: "@assets.ts", schema: "@schema.ts", hashmap: "@hashmap.json" }[
+    libFileBase(route, { appRoot, sourceFolder }),
+    { assets: "_assets.ts", schema: "_schema.ts", hashmap: "_hashmap.json" }[
       file
     ],
   );
@@ -85,7 +86,7 @@ export function generateAssetsFile(
   },
 ) {
   return renderToFile(
-    varFilePath(route, "assets", { appRoot, sourceFolder }),
+    libFilePath(route, "assets", { appRoot, sourceFolder }),
     assetsTpl,
     {
       route,
@@ -126,8 +127,8 @@ export async function generateHashMap(
   const deps: HashMap["deps"] = {};
 
   for (const file of new Set(_deps)) {
-    const varDir = varFileBase(route, { appRoot, sourceFolder });
-    if (!file.startsWith(varDir)) {
+    const libDir = libFileBase(route, { appRoot, sourceFolder });
+    if (!file.startsWith(libDir)) {
       deps[
         // dropping root in case hashmap used in CI environment / another OS
         file.replace(`${appRoot}/`, "")

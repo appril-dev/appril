@@ -7,10 +7,15 @@ import type {
 export type Config = {
   baseDir: string;
   connection: string | import("@appril/pgxt").ConnectionConfig;
+  defaultSchema?: string;
   plugins?: Array<GeneratorPlugin>;
 } & import("@appril/pgxt").Config;
 
-export type GeneratorPluginConfig = { root: string; baseDir: string };
+export type GeneratorPluginConfig = {
+  root: string;
+  baseDir: string;
+  defaultSchema: string;
+};
 
 export type GeneratorPlugin = (
   data: {

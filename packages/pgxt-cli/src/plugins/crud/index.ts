@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { format } from "node:util";
 
 import { stringify } from "smol-toml";
 
@@ -7,7 +8,6 @@ import { defaults } from "@appril/configs";
 import { fileGenerator, render } from "@appril/dev-utils";
 
 import { type GeneratorPlugin, BANNER } from "@/base";
-import { tablesDir } from "@/plugins/tables";
 
 import publicIdTpl from "./templates/public/[id].hbs";
 import publicIndexTpl from "./templates/public/index.hbs";
@@ -40,8 +40,6 @@ export default (
 
   const { baseUrl = baseDir } = rest;
 
-  const varDir = `{${baseDir}}`;
-
   return async function crudGenerator(data, pgxtConfig) {
     const { generateFile } = fileGenerator(pgxtConfig.root);
 
@@ -52,10 +50,15 @@ export default (
       return !tableMap || tableMap[table.name] ? [table] : [];
     });
 
-    await generateFile(join(defaults.varDir, srcFolder, varDir, "index.ts"), {
-      template: indexTpl,
-      context: {},
-    });
+    const libBaseDir = format(defaults.libDirFormat, baseDir);
+
+    await generateFile(
+      join(defaults.libDir, srcFolder, libBaseDir, "index.ts"),
+      {
+        template: indexTpl,
+        context: {},
+      },
+    );
 
     for (const table of tables) {
       const typeLiterals: Array<string> = [];
@@ -85,14 +88,14 @@ export default (
         table,
         columns,
         typeLiterals,
-        varImportPath: `${srcFolder}/${varDir}/${table.name}`,
-        tblImportPath: join(
-          defaults.basePrefix,
-          pgxtConfig.baseDir,
-          table.schema,
-          tablesDir,
-          table.name,
-        ),
+        importPathmap: {
+          api: [srcFolder, libBaseDir, table.name].join("/"),
+          table: [
+            defaults.appPrefix,
+            format(defaults.libDirFormat, pgxtConfig.baseDir),
+            table.fullName,
+          ].join("/"),
+        },
       };
 
       for (const [file, template] of [
@@ -101,7 +104,7 @@ export default (
         ["typeLiterals.ts", tableTypeLiteralsTpl],
       ] as const) {
         await generateFile(
-          join(defaults.varDir, srcFolder, varDir, table.name, file),
+          join(defaults.libDir, srcFolder, libBaseDir, table.name, file),
           { template, context },
         );
       }

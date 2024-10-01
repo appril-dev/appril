@@ -1,13 +1,13 @@
 import dbxt from "@appril/dbxt";
 
-import { connection } from "{{defaults.basePrefix}}/{{baseDir}}/setup";
+import { connection } from "{{importPathmap.setup}}";
 
-export type RecordT = import("{{defaults.basePrefix}}/{{baseDir}}/{{table.schema}}/types").{{table.recordName}};
+export type RecordT = import("{{importPathmap.types}}/{{table.name}}").{{table.recordName}};
 {{#if isTable}}
-export type InsertT = import("{{defaults.basePrefix}}/{{baseDir}}/{{table.schema}}/types").{{table.insertName}};
-export type UpdateT = import("{{defaults.basePrefix}}/{{baseDir}}/{{table.schema}}/types").{{table.updateName}};
+export type InsertT = import("{{importPathmap.types}}/{{table.name}}").{{table.insertName}};
+export type UpdateT = import("{{importPathmap.types}}/{{table.name}}").{{table.updateName}};
 {{/if}}
-export type QueryT =  import("{{defaults.basePrefix}}/{{baseDir}}/{{table.schema}}/types").{{table.queryBuilder}};
+export type QueryT =  import("{{importPathmap.types}}/{{table.name}}").{{table.queryBuilder}};
 
 type ExtraMethod = (
   this: QueryT,

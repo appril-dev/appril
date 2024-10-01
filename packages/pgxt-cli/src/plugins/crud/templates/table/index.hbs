@@ -5,7 +5,7 @@ import {
   useDefinitionFactory,
 } from "@appril/api/router";
 
-import dbxtInstance from "{{tblImportPath}}";
+import dbxtInstance from "{{importPathmap.table}}";
 
 import factory, {
   type CrudContext,
@@ -32,7 +32,7 @@ export const { initMiddleware, middlewareFactory } = factory<
   "{{table.moduleName}}",
   ColumnT
 >(
-  dbxtInstance,
+  dbxtInstance(),
   columns,
   {
     primaryKey: "{{table.primaryKey}}",

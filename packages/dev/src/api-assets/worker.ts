@@ -12,7 +12,7 @@ import { extractApiAssets, extractTypeReferences } from "@/ast";
 import {
   generateAssetsFile,
   generateHashMap,
-  varFilePath,
+  libFilePath,
   type DiscoveredTypeDeclaration,
   type PayloadType,
   type WorkerPayload,
@@ -40,7 +40,7 @@ async function worker({
 }: WorkerPayload) {
   console.log([route.file, "rebuilding assets"]);
 
-  const schemaFile = varFilePath(route, "schema", { appRoot, sourceFolder });
+  const schemaFile = libFilePath(route, "schema", { appRoot, sourceFolder });
 
   const generateZodSchema = async (): Promise<{
     zodSchema?: string | undefined;
@@ -190,7 +190,7 @@ async function worker({
 
   // generating hashmap file for comparison on next rebuild
   await fsx.writeJson(
-    varFilePath(route, "hashmap", { appRoot, sourceFolder }),
+    libFilePath(route, "hashmap", { appRoot, sourceFolder }),
     await generateHashMap(
       route,
       // even if zod schema generation failed, writing an empty hashmap file

@@ -5,13 +5,13 @@ import {
   routeMapper,
 } from "@appril/api/router";
 
-import { baseurl, apiurl } from "{{importPathCfg}}";
-import router from "{{importPathApi}}/router";
+import { baseurl, apiurl } from "{{importPathmap.config}}";
+import router from "{{importPathmap.api}}/router";
 
 {{#each routes}}
-import {{importName}} from "{{../importPathApi}}/{{importPath}}";
+import {{importName}} from "{{../importPathmap.api}}/{{importPath}}";
 {{#unless optedFile}}
-import {{importName}}$assets from "{{../importPathVar}}/{{importPath}}/@assets";
+import {{importName}}$assets from "{{../importPathmap.lib}}/{{importPath}}/_assets";
 {{/unless}}
 
 {{/each}}

@@ -1,4 +1,5 @@
 import { join, dirname } from "node:path";
+import { format } from "node:util";
 
 import { fileGenerator } from "@appril/dev-utils";
 
@@ -12,6 +13,8 @@ import indexTpl from "./templates/index.hbs";
 let sourceFolder: string;
 let generateFile: ReturnType<typeof fileGenerator>["generateFile"];
 
+const libFetchDir = format(defaults.libDirFormat, defaults.fetchDir);
+
 export async function bootstrap(data: {
   appRoot: string;
   sourceFolder: string;
@@ -24,7 +27,7 @@ export async function bootstrap(data: {
   generateFile = fileGenerator(data.appRoot).generateFile;
 
   await generateFile(
-    join(defaults.varDir, sourceFolder, defaults.varFetchDir, "base.ts"),
+    join(defaults.libDir, sourceFolder, libFetchDir, "base.ts"),
     {
       template: baseTpl,
       context: { defaults, sourceFolder },
@@ -77,9 +80,9 @@ async function generateRouteAssets({
 
   await generateFile(
     join(
-      defaults.varDir,
+      defaults.libDir,
       sourceFolder,
-      defaults.varFetchDir,
+      libFetchDir,
       defaults.apiDir,
       route.file,
     ),
@@ -89,8 +92,11 @@ async function generateRouteAssets({
         route,
         typeDeclarations,
         fetchDefinitions,
-        sourceFolder,
-        defaults,
+        importPathmap: {
+          config: [sourceFolder, defaults.configDir].join("/"),
+          fetchBase: [sourceFolder, libFetchDir, "base"].join("/"),
+          fetchFile: [defaults.appPrefix, defaults.coreDir, "fetch"].join("/"),
+        },
       },
     },
   );
@@ -102,16 +108,14 @@ async function generateIndexFiles({
   routes: Array<ApiRoute>;
 }) {
   await generateFile(
-    join(defaults.varDir, sourceFolder, defaults.varFetchDir, "index.ts"),
+    join(defaults.libDir, sourceFolder, libFetchDir, "index.ts"),
     {
       template: indexTpl,
       context: {
-        importVarBase: [
-          sourceFolder,
-          defaults.varFetchDir,
-          defaults.apiDir,
-        ].join("/"),
         routes: routes.sort((a, b) => a.path.localeCompare(b.path)),
+        importPathmap: {
+          lib: [sourceFolder, libFetchDir, defaults.apiDir].join("/"),
+        },
       },
     },
   );

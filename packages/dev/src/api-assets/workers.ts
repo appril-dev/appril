@@ -16,8 +16,9 @@ import {
   extractDepFiles,
   identicalHashMap,
   generateAssetsFile,
-  varFilePath,
+  libFilePath,
 } from "./base";
+import { format } from "node:util";
 
 let appRoot: string;
 let sourceFolder: string;
@@ -69,13 +70,13 @@ export async function bootstrap(data: {
           path.startsWith(
             join(
               appRoot,
-              defaults.varDir,
+              defaults.libDir,
               sourceFolder,
-              `${defaults.varApiDir}/`,
+              `${format(defaults.libDirFormat, defaults.apiDir)}/`,
             ),
           )
         ) {
-          return ["@assets.ts", "@hashmap.json", "@schema.ts"].includes(
+          return ["_assets.ts", "_hashmap.json", "_schema.ts"].includes(
             basename(path),
           );
         }
@@ -137,7 +138,7 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
       overwrite: false, // skip if exists
     });
 
-    const hashmapFile = varFilePath(route, "hashmap", {
+    const hashmapFile = libFilePath(route, "hashmap", {
       appRoot,
       sourceFolder,
     });
@@ -149,7 +150,7 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
   const staleRoutes: Array<ApiRoute> = [];
 
   for (const route of routes) {
-    const hashmapFile = varFilePath(route, "hashmap", {
+    const hashmapFile = libFilePath(route, "hashmap", {
       appRoot,
       sourceFolder,
     });

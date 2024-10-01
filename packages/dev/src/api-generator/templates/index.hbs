@@ -7,13 +7,10 @@ import {
 
 export type ParamsT = { {{route.paramsType}} }
 export type ContextT = DefaultContext & { params: ParamsT }
-
 export { use } from "@appril/api/router";
-export * from "{{defaults.corePrefix}}/api/use";
-{{#each apiMethods}}
 
-export const {{this}}: DefinitionI<
+{{#each apiMethods}}export const {{this}}: DefinitionI<
   DefaultState,
   ContextT
-> = (a) => definitionFactory("{{this}}", a)
+> = (a) => definitionFactory("{{this}}", a);
 {{/each}}

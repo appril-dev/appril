@@ -1,0 +1,19 @@
+{{BANNER}}
+
+{{#each enums}}import type { {{declaredName}} } from "../{{../enumsDir}}/{{name}}";
+{{/each}}
+
+/** {{view.name}} view */
+
+export type {{view.recordName}} = {
+{{#each view.columns}}
+
+{{#each comments}}  /** {{this}} */
+{{/each}}
+  {{name}}: {{declaredType}};
+{{/each}}
+}
+
+export type {{view.queryBuilder}} = import("@appril/dbxt").QueryBuilder<
+  "{{view.moduleName}}"
+>;

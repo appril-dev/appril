@@ -1,6 +1,7 @@
 #!/usr/bin/env -S node --enable-source-maps --no-warnings=ExperimentalWarning
 
 import { join } from "node:path";
+import { format } from "node:util";
 
 import fsx from "fs-extra";
 import { run as depsBump } from "npm-check-updates";
@@ -211,6 +212,8 @@ async function init() {
       srcFolders,
     };
 
+    const libApiDir = format(defaults.libDirFormat, defaults.apiDir);
+
     for (const [file, template] of [
       ["config/index.ts", srcConfigTpl],
       ["api/app.ts", srcApiAppTpl],
@@ -218,6 +221,15 @@ async function init() {
     ]) {
       const context = {
         ...baseContext,
+        importPathmap: {
+          app: [
+            defaults.appPrefix,
+            defaults.coreDir,
+            defaults.apiDir,
+            "app",
+          ].join("/"),
+          routes: [srcFolder, libApiDir, "routes"].join("/"),
+        },
         baseurl:
           srcFolders.length === 1 || /front|src/.test(srcFolder)
             ? "/"

@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { format } from "node:util";
 
 import { stringify } from "smol-toml";
 import { fileGenerator } from "@appril/dev-utils";
@@ -60,20 +61,23 @@ async function generatePageFiles({
   if (page.dataLoaderGenerator) {
     await generateFile(
       join(
-        defaults.varDir,
+        defaults.libDir,
         sourceFolder,
+        format(defaults.libDirFormat, defaults.pagesDir),
         `${page.dataLoaderGenerator.datafile}.ts`,
       ),
       {
         template: dataTpl,
         context: {
           page,
-          importBase: [
-            sourceFolder,
-            defaults.varFetchDir,
-            defaults.apiDir,
-            defaults.apiDataDir,
-          ].join("/"),
+          importPathmap: {
+            api: [
+              sourceFolder,
+              format(defaults.libDirFormat, defaults.fetchDir),
+              defaults.apiDir,
+              defaults.apiDataDir,
+            ].join("/"),
+          },
         },
       },
     );
@@ -88,12 +92,19 @@ async function generateIndexFiles(data: { pages: Array<SolidPage> }) {
     [defaults.routerAssetsFile, assetsTpl],
   ]) {
     await generateFile(
-      join(defaults.varDir, sourceFolder, defaults.varRouterDir, outfile),
+      join(
+        defaults.libDir,
+        sourceFolder,
+        format(defaults.libDirFormat, defaults.routerDir),
+        outfile,
+      ),
       {
         template,
         context: {
           pages,
-          importComponentsPath: [sourceFolder, defaults.pagesDir].join("/"),
+          importPathmap: {
+            components: [sourceFolder, defaults.pagesDir].join("/"),
+          },
         },
       },
     );

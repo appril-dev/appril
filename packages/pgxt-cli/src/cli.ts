@@ -73,14 +73,20 @@ async function run(
       assertKeys: ["connection", "baseDir"],
     });
 
-    const { connection, baseDir, plugins, ...pgxtConfig } = config;
+    const {
+      connection,
+      baseDir,
+      defaultSchema = "public",
+      plugins,
+      ...pgxtConfig
+    } = config;
 
     const data = await pgxt(connection, pgxtConfig);
 
     try {
       for (const plugin of plugins || []) {
         process.stdout.write(`  ➜ Running ${plugin.name} plugin ... `);
-        await plugin(data, { root, baseDir });
+        await plugin(data, { root, baseDir, defaultSchema });
         console.log("Done ✨");
       }
 

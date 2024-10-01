@@ -1,8 +1,8 @@
 import fetchFactory, { defaults } from "@appril/fetch";
 
-import { formatPath, join } from "{{sourceFolder}}/{{defaults.varFetchDir}}/base";
-import { baseurl, apiurl } from "{{sourceFolder}}/{{defaults.configDir}}";
-import { unref } from "{{defaults.corePrefix}}/fetch";
+import { baseurl, apiurl } from "{{importPathmap.config}}";
+import { formatPath, join } from "{{importPathmap.fetchBase}}";
+import { unref } from "{{importPathmap.fetchFile}}";
 
 {{#each typeDeclarations}}{{text}}
 {{/each}}
@@ -14,7 +14,9 @@ function fetchMapper(
   {{#each fetchDefinitions}}
   function {{method}}(
     params: [ {{../route.fetchParamsType}} ],
-    payload{{#unless payloadType}}?{{/unless}}: import("{{../defaults.corePrefix}}/fetch").MaybeRef<
+    payload{{#unless payloadType}}?{{/unless}}: import(
+      "{{../importPathmap.fetchFile}}"
+    ).MaybeRef<
       {{#if payloadType}}
       {{payloadType}}
       {{else}}

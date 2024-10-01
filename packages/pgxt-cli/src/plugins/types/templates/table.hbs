@@ -1,0 +1,39 @@
+{{BANNER}}
+
+{{#each enums}}import type { {{declaredName}} } from "../{{../enumsDir}}/{{name}}";
+{{/each}}
+
+/** {{table.name}} table */
+
+export type {{table.recordName}} = {
+{{#each table.columns}}
+
+{{#each table.comments}}  /** {{this}} */
+{{/each}}
+  {{name}}: {{declaredType}};
+{{/each}}
+}
+
+export type {{table.insertName}} = {
+{{#each table.columns}}
+
+{{#each comments}}  /** {{this}} */
+{{/each}}
+{{#unless isGenerated}}  {{name}}{{#if isOptional}}?{{/if}}: {{declaredType}};
+{{/unless}}
+{{/each}}
+}
+
+export type {{table.updateName}} = {
+{{#each table.columns}}
+
+{{#each comments}}  /** {{this}} */
+{{/each}}
+{{#unless isGenerated}}  {{name}}?: {{declaredType}};
+{{/unless}}
+{{/each}}
+}
+
+export type {{table.queryBuilder}} = import("@appril/dbxt").QueryBuilder<
+  "{{table.moduleName}}"
+>;

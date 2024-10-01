@@ -1,12 +1,14 @@
 export const defaults = {
+  appPrefix: "@",
+
   coreDir: "core",
-  corePrefix: "~",
 
-  baseDir: "base",
-  basePrefix: "@",
+  libDir: "lib",
+  libDirFormat: "{%s}",
 
-  sourceFile: "_routes.toml",
-  dataSourceFile: "_data_routes.toml",
+  configDir: "config",
+  pagesDir: "pages",
+  fetchDir: "fetch",
 
   apiDir: "api",
   apiDataDir: "@data",
@@ -16,14 +18,6 @@ export const defaults = {
   routerRoutesFile: "routes.ts",
   routerAssetsFile: "assets.ts",
 
-  configDir: "config",
-  pagesDir: "pages",
-  storesDir: "stores",
-  fetchDir: "fetch",
-
-  varDir: "var",
-  varApiDir: "{api}",
-  varRouterDir: "{router}",
-  varFetchDir: "{fetch}",
-  varPagesDir: "{pages}",
+  sourceFile: "_routes.toml",
+  dataSourceFile: "_data_routes.toml",
 };

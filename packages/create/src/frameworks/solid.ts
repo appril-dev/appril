@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { format } from "node:util";
 
 import { defaults } from "@appril/configs";
 import { renderToFile } from "@appril/dev-utils";
@@ -53,7 +54,17 @@ export default async (
       await renderToFile(
         join(dst, file),
         template,
-        { devPort, defaults, srcFolder },
+        {
+          devPort,
+          defaults,
+          srcFolder,
+          importPathmap: {
+            router: [
+              srcFolder,
+              format(defaults.libDirFormat, defaults.routerDir),
+            ].join("/"),
+          },
+        },
         { format: true },
       );
     }
