@@ -69,7 +69,7 @@ for (const [base, _entry] of Object.entries(entries)) {
     pattern: "**/*.ts",
     folders: [],
     ignore: [],
-    defaultIgnore: ["**/_*", "**/@*"],
+    defaultIgnore: ["**/_*"],
     context: (data) => data,
     ..._entry,
   };
