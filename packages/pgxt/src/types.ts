@@ -90,6 +90,8 @@ export type ColumnDeclaration = {
   name: string;
   isPrimaryKey?: boolean;
   isOptional: boolean;
+  isNullable: boolean;
+  isArray: boolean;
   isGenerated: boolean;
   isRegular: boolean;
   defaultValue: unknown;

@@ -70,7 +70,7 @@ function columnsMapper(
 
     const { fullName: type, kind } = column.type;
 
-    let { isArray, isNullable } = column;
+    let { isArray, isNullable = false } = column;
     let isGenerated = false;
 
     let declaredType = "unknown";
@@ -210,6 +210,8 @@ function columnsMapper(
         name,
         isPrimaryKey,
         isOptional,
+        isNullable,
+        isArray,
         isGenerated,
         isRegular: !(isPrimaryKey || isGenerated),
         defaultValue,
