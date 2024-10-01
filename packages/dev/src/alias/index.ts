@@ -1,5 +1,6 @@
 import type { Alias, Plugin } from "vite";
 import ts from "typescript";
+import glob from "fast-glob";
 
 import { defaults } from "@/base";
 
@@ -16,76 +17,48 @@ export const aliasPlugin = async (appRoot: string): Promise<Plugin> => {
     name: PLUGIN_NAME,
 
     config() {
-      const aliasmap: Array<
-        Alias & {
-          // mandatorily sorting by length to have longer ones checked first
-          priority: number;
-        }
-      > = [];
+      const aliasmap: Array<Alias> = [];
 
       const pathEntries = Object.entries({ ...tsconfig?.options?.paths });
 
-      for (const [base, paths] of pathEntries) {
-        const basename = base.replace("/*", "");
+      for (const [aliasPattern, pathPatterns] of pathEntries) {
+        const alias = aliasPattern.replace("/*", "");
+        const paths = pathPatterns.map((e) => e.replace("/*", ""));
 
-        if (basename === defaults.basePrefix) {
-          // handling { "@/*": ["./*", "./var/*"] } entry
-          for (const path of paths) {
-            if (path.includes(`/${defaults.varDir}/`)) {
-              // handling [ "./var/*" ] entry
-              aliasmap.push({
-                // find ^@/{dir}/?
-                find: new RegExp(`^${basename}/(\\{[^}]+\\})/?`),
-                // replace with appRoot/var/{dir}/
-                replacement: `${appRoot}/${defaults.varDir}/$1/`,
-                priority: basename.length + 25,
+        if (paths.length === 1) {
+          aliasmap.push({
+            find: new RegExp(`^${alias}/`),
+            replacement: `${appRoot}/${paths[0]}/`,
+          });
+        } else if (paths.length > 1) {
+          aliasmap.push({
+            find: new RegExp(`^${alias}/`),
+            replacement: "",
+            async customResolver(src) {
+              const patterns = paths
+                .sort((a, b) => a.split(/\/+/).length - b.split(/\/+/).length)
+                .flatMap((e) => [`${e}/${src}.*`, `${e}/${src}/index.*`]);
+
+              const [file] = await glob(patterns, {
+                cwd: appRoot,
+                onlyFiles: true,
+                absolute: true,
+                dot: true,
+                followSymbolicLinks: false,
+                braceExpansion: false,
+                globstar: false,
+                ignore: ["**/node_modules/**"],
               });
-            } else {
-              // handling [ "./*" ] entry
-              aliasmap.push({
-                // find ^@/
-                find: new RegExp(`^${basename}/`),
-                // replace with appRoot/base/
-                replacement: `${appRoot}/${defaults.baseDir}/`,
-                priority: basename.length,
-              });
-            }
-          }
-        } else {
-          for (const path of paths) {
-            // handling { "@src/*": ["./@src/*", "./var/@src/*"] } entry
-            if (path.includes(`/${defaults.varDir}/${base}`)) {
-              // handling [ "./var/@src/*" ] entry
-              aliasmap.push({
-                // find ^@src/{dir}/?
-                find: new RegExp(`^(${basename}/\\{[^}]+\\})/?`),
-                // replace with appRoot/var/@src/{dir}/
-                replacement: `${appRoot}/${defaults.varDir}/$1/`,
-                priority: basename.length + 25,
-              });
-            } else if (path === `./${base}`) {
-              // handling [ "./@src/*" ] entry
-              aliasmap.push({
-                // find ^@src/
-                find: new RegExp(`^${basename}/`),
-                // replace with appRoot/@src/
-                replacement: `${appRoot}/${basename}/`,
-                priority: basename.length,
-              });
-            } else {
-              aliasmap.push({
-                find: new RegExp(`^${basename}/`),
-                replacement: `${appRoot}/${path.replace(/\*$/, "")}`,
-                priority: basename.length,
-              });
-            }
-          }
+
+              return file;
+            },
+          });
         }
       }
 
       return {
         resolve: {
-          alias: aliasmap.sort((a, b) => b.priority - a.priority),
+          alias: aliasmap,
         },
       };
     },
