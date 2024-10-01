@@ -22,8 +22,6 @@ export default async (srcFolderPath: string, config: UserConfig) => {
       },
     },
 
-    cacheDir: join(import.meta.dirname, "{{defaults.varDir}}", `${srcFolder}.vite`),
-
     plugins: [
       aliasPlugin(import.meta.dirname),
       definePlugin([
