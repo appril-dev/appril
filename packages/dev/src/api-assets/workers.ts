@@ -185,8 +185,10 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
             (msg: {
               discoveredTypeDeclarations?: Array<DiscoveredTypeDeclaration>;
             }) => {
-              for (const { file } of msg.discoveredTypeDeclarations || []) {
-                watchDepFile(file, route);
+              for (const t of msg.discoveredTypeDeclarations || []) {
+                if (t.included) {
+                  watchDepFile(t.file, route);
+                }
               }
             },
           );

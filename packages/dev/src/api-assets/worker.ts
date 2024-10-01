@@ -195,7 +195,11 @@ async function worker({
       route,
       // even if zod schema generation failed, writing an empty hashmap file
       // to be sure next rebuild will run regardless
-      discoveredTypeDeclarations?.map((e) => e.file) || [],
+      discoveredTypeDeclarations
+        ? discoveredTypeDeclarations.flatMap((e) => {
+            return e.included ? [e.file] : [];
+          })
+        : [],
       { appRoot, sourceFolder },
     ),
   );
