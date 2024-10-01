@@ -1,4 +1,4 @@
-import { resolve, join } from "node:path";
+import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 
 import fsx from "fs-extra";
@@ -6,7 +6,6 @@ import colors from "kleur";
 import initKnex, { type Knex } from "knex";
 import { type BuildOptions, build as esbuild } from "esbuild";
 
-import { defaults } from "@appril/configs";
 import { resolveCwd } from "@appril/dev-utils";
 
 import type { UserConfig, ResolvedConfig } from "./types";
@@ -90,12 +89,9 @@ async function run(
   // relative to root
   const configFile = resolve(
     root,
-    join(
-      defaults.baseDir,
-      typeof parsedOptions.config === "string"
-        ? parsedOptions.config
-        : "./config/db.ts",
-    ),
+    typeof parsedOptions.config === "string"
+      ? parsedOptions.config
+      : "config/db.ts",
   );
 
   const esbuildConfig: BuildOptions = await import(

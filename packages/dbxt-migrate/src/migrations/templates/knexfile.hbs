@@ -1,7 +1,7 @@
-import * as config from "{{defaults.basePrefix}}/config/db";
+import * as config from "{{importPathmap.configDir}}/db";
 
 {{#each files}}
-import * as {{const}} from "{{../defaults.basePrefix}}/{{../baseDir}}/{{../migrationDir}}/{{path}}";
+import * as {{const}} from "{{../importPathmap.migrationDir}}/{{path}}";
 {{/each}}
 
 const imports = {

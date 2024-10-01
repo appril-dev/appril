@@ -4,7 +4,6 @@ import { format } from "node:util";
 import prompts from "prompts";
 import pg from "pg";
 import { format as datetimeFormat } from "date-fns";
-import { defaults } from "@appril/configs";
 import { renderToFile } from "@appril/dev-utils";
 
 import type { ResolvedConfig } from "@/types";
@@ -122,11 +121,10 @@ export default async (
     const name = [
       datetimeFormat(new Date(), "yyyyMMddHHmmss"),
       input.name,
-    ].join("-");
+    ].join("_");
 
     // relative to root
     const outfile = join(
-      defaults.baseDir,
       baseDir,
       migrationDir,
       migrationDirSuffix,

@@ -21,7 +21,10 @@ type MigrationsSourceFile = {
 };
 
 type MigrationsSourceRenderContext = ResolvedConfig & {
-  defaults: Record<string, unknown>;
+  importPathmap: {
+    configDir: string;
+    migrationDir: string;
+  };
   files: Array<MigrationsSourceFile>;
 };
 
@@ -44,7 +47,7 @@ export default async (
   const { baseDir, migrationDir } = config;
 
   const matches = await glob("**/*.ts", {
-    cwd: resolve(root, defaults.baseDir, baseDir, migrationDir),
+    cwd: resolve(root, baseDir, migrationDir),
     onlyFiles: true,
     absolute: false,
   });
@@ -65,7 +68,10 @@ export default async (
     BANNER + template,
     {
       ...config,
-      defaults,
+      importPathmap: {
+        configDir: [defaults.appPrefix, defaults.configDir].join("/"),
+        migrationDir: [defaults.appPrefix, baseDir, migrationDir].join("/"),
+      },
       files: files.sort((a, b) => a.path.localeCompare(b.path)),
     },
   );
