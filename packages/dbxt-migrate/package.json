@@ -28,21 +28,22 @@
   "dependencies": {
     "@appril/configs": "workspace:^",
     "@appril/dev-utils": "workspace:^",
-    "ansi-escapes": "catalog:",
-    "date-fns": "catalog:",
-    "esbuild": "catalog:",
-    "fast-glob": "catalog:",
-    "fs-extra": "catalog:",
-    "kleur": "catalog:",
-    "pg": "catalog:",
-    "prompts": "catalog:"
+    "ansi-escapes": "^7.0.0",
+    "date-fns": "^4.1.0",
+    "esbuild": "^0.24.0",
+    "fast-glob": "^3.3.2",
+    "fs-extra": "^11.2.0",
+    "kleur": "^4.1.5",
+    "pg": "^8.13.0",
+    "prompts": "^2.4.2"
   },
   "devDependencies": {
-    "@types/fs-extra": "catalog:",
-    "@types/pg": "catalog:",
-    "@types/prompts": "catalog:"
+    "@types/fs-extra": "^11.0.4",
+    "@types/pg": "^8.11.10",
+    "@types/prompts": "^2.4.9",
+    "knex": "^3.1.0"
   },
   "peerDependencies": {
-    "knex": "catalog:"
+    "@appril/dbxt": "workspace:^"
   }
 }

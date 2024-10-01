@@ -28,18 +28,16 @@
     "build": "../../esbuild.mjs index"
   },
   "dependencies": {
-    "extract-pg-schema": "catalog:",
-    "lodash-es": "catalog:",
+    "extract-pg-schema": "^5.1.2",
+    "lodash-es": "^4.17.21",
+    "pg": "^8.13.0",
     "pluralize": "^8.0.0",
-    "zod": "catalog:zod"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@appril/configs": "workspace:^",
-    "@types/lodash-es": "catalog:",
-    "@types/pg": "catalog:",
+    "@types/lodash-es": "^4.17.12",
+    "@types/pg": "^8.11.10",
     "@types/pluralize": "^0.0.33"
-  },
-  "peerDependencies": {
-    "pg": "catalog:"
   }
 }

@@ -34,16 +34,14 @@
   "dependencies": {
     "@appril/configs": "workspace:^",
     "@appril/dev-utils": "workspace:^",
-    "chokidar": "catalog:",
-    "esbuild": "catalog:",
-    "fs-extra": "catalog:",
-    "smol-toml": "catalog:"
+    "@appril/pgxt": "workspace:^",
+    "chokidar": "^4.0.1",
+    "esbuild": "^0.24.0",
+    "fs-extra": "^11.2.0",
+    "smol-toml": "^1.3.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "catalog:",
-    "@types/pg": "catalog:"
-  },
-  "peerDependencies": {
-    "@appril/pgxt": "workspace:^"
+    "@types/fs-extra": "^11.0.4",
+    "@types/pg": "^8.11.10"
   }
 }

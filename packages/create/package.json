@@ -29,10 +29,10 @@
   "dependencies": {
     "@appril/configs": "workspace:^",
     "@appril/dev-utils": "workspace:^",
-    "fs-extra": "catalog:",
+    "fs-extra": "^11.2.0",
     "merge": "^2.1.1",
-    "npm-check-updates": "^17.1.2",
-    "prompts": "catalog:"
+    "npm-check-updates": "^17.1.3",
+    "prompts": "^2.4.2"
   },
   "devDependencies": {
     "@appril/api": "workspace:^",
@@ -41,17 +41,17 @@
     "@appril/fetch": "workspace:^",
     "@appril/pgxt": "workspace:^",
     "@appril/pgxt-cli": "workspace:^",
-    "@solidjs/router": "catalog:solid",
-    "@types/fs-extra": "catalog:",
-    "@types/koa": "catalog:koa",
-    "@types/koa-logger": "catalog:koa",
-    "@types/koa__router": "catalog:koa",
-    "@types/prompts": "catalog:",
-    "knex": "catalog:",
-    "koa": "catalog:koa",
-    "koa-logger": "catalog:koa",
-    "solid-js": "catalog:solid",
-    "vite": "catalog:vite",
-    "vite-plugin-solid": "catalog:vite"
+    "@solidjs/router": "^0.14.7",
+    "@types/fs-extra": "^11.0.4",
+    "@types/koa": "^2.15.0",
+    "@types/koa-logger": "^3.1.5",
+    "@types/koa__router": "^12.0.4",
+    "@types/prompts": "^2.4.9",
+    "knex": "^3.1.0",
+    "koa": "^2.15.3",
+    "koa-logger": "^3.2.1",
+    "solid-js": "^1.9.1",
+    "vite": "^5.4.8",
+    "vite-plugin-solid": "^2.10.2"
   }
 }

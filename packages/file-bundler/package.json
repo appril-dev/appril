@@ -27,12 +27,12 @@
   },
   "dependencies": {
     "@appril/dev-utils": "workspace:^",
-    "fast-glob": "catalog:",
-    "fs-extra": "catalog:",
-    "smol-toml": "catalog:"
+    "fast-glob": "^3.3.2",
+    "fs-extra": "^11.2.0",
+    "smol-toml": "^1.3.0"
   },
   "devDependencies": {
     "@appril/configs": "workspace:^",
-    "@types/fs-extra": "catalog:"
+    "@types/fs-extra": "^11.0.4"
   }
 }

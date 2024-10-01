@@ -28,10 +28,10 @@
     "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
     "build": "../../esbuild.mjs index"
   },
-  "peerDependencies": {
-    "knex": "catalog:"
-  },
   "devDependencies": {
     "@appril/configs": "workspace:^"
+  },
+  "peerDependencies": {
+    "knex": "^3.1.0"
   }
 }

@@ -34,13 +34,13 @@
   },
   "dependencies": {
     "@appril/configs": "workspace:^",
-    "@biomejs/js-api": "catalog:biome",
-    "@biomejs/wasm-nodejs": "catalog:biome",
-    "crc": "catalog:",
-    "fs-extra": "catalog:",
+    "@biomejs/js-api": "^0.6.2",
+    "@biomejs/wasm-nodejs": "^1.9.2",
+    "crc": "^4.3.2",
+    "fs-extra": "^11.2.0",
     "handlebars": "^4.7.8"
   },
   "devDependencies": {
-    "@types/fs-extra": "catalog:"
+    "@types/fs-extra": "^11.0.4"
   }
 }

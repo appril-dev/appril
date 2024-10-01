@@ -35,11 +35,11 @@
   "dependencies": {
     "follow-redirects": "^1.15.9",
     "form-data": "^4.0.0",
-    "qs": "catalog:"
+    "qs": "^6.13.0"
   },
   "devDependencies": {
     "@appril/configs": "workspace:^",
     "@types/follow-redirects": "^1.14.4",
-    "@types/qs": "catalog:"
+    "@types/qs": "^6.9.16"
   }
 }
