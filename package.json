@@ -3,6 +3,9 @@
   "private": true,
   "nodeVersion": "22.6.0",
   "packageManager": "pnpm@9.11.0",
+  "pnpm": {
+    "requiredScripts": ["build"]
+  },
   "scripts": {
     "prepub:000": "pnpm -r run build",
     "prepub:001": "changeset add",
