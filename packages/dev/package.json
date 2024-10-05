@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@appril/dev",
-  "version": "0.0.59",
+  "version": "0.0.60",
   "description": "Appril Dev",
   "author": "Slee Woo",
   "license": "MIT",

@@ -1,6 +1,6 @@
 {
   "name": "@appril/dbxt-migrate",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {

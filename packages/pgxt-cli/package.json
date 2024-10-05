@@ -1,6 +1,6 @@
 {
   "name": "@appril/pgxt-cli",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "author": "Slee Woo",
   "license": "MIT",
   "publishConfig": {
