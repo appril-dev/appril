@@ -1,6 +1,6 @@
 import { type Params, cache, createAsync, createAsyncStore, useParams } from "@solidjs/router";
 
-import fetch from "{{importPathmap.api}}/{{page.importPath}}";
+import fetch from "{{importPathmap.apiEndpoint}}";
 
 export type DataT = Awaited<ReturnType<typeof fetch["get"]>>;
 

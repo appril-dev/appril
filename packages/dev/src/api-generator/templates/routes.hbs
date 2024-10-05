@@ -57,7 +57,7 @@ for (const { path, originalPath, exports } of routeStack) {
   if ("endpoints" in exports) {
     for (const { method, middleware } of exports.endpoints) {
       router.register(
-        path,
+        path.replace(/\+/g, "\\+"),
         [method],
         middleware as unknown as Array<import("koa__router").Middleware>,
         { name: originalPath },

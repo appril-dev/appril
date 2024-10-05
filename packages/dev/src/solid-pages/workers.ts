@@ -71,11 +71,12 @@ async function generatePageFiles({
         context: {
           page,
           importPathmap: {
-            api: [
+            apiEndpoint: [
               sourceFolder,
               format(defaults.libDirFormat, defaults.fetchDir),
               defaults.apiDir,
-              defaults.apiDataDir,
+              page.importPath,
+              defaults.apiDataEndpoint,
             ].join("/"),
           },
         },

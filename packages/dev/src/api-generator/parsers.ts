@@ -78,11 +78,18 @@ export async function sourceFilesParsers(
 
           const base = opt?.base;
 
-          const suffix = opt?.file
-            ? sanitizePath(opt.file).replace(/.+(\.[^.]+)$/, "$1")
-            : /\/$/.test(_path) || !path.includes("/")
-              ? "/index.ts"
-              : ".ts";
+          const suffix = [
+            // place file in a folder
+            // if it's a base route
+            path.includes("/") === false,
+            // or path explicitly ends in a slash
+            /\/$/.test(_path),
+            // or route has dataLoader explicitly enabled
+            // (e.g. not as a custom path and not as an alias)
+            opt?.dataLoader === true,
+          ].some((e) => e)
+            ? "/index.ts"
+            : ".ts";
 
           const file = importPath + suffix;
 

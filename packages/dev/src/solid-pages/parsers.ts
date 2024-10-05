@@ -74,7 +74,9 @@ export async function sourceFilesParsers(
                   // relative path, worker would prepend libDir/pagesDir
                   datafile: originalPath,
                   // relative path, api generator would prepend apiDir
-                  apiEndpoint: [defaults.apiDataDir, originalPath].join("/"),
+                  apiEndpoint: [originalPath, defaults.apiDataEndpoint].join(
+                    "/",
+                  ),
                 }
               : undefined;
 
