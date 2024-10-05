@@ -11,7 +11,7 @@ export const defaults = {
   fetchDir: "fetch",
 
   apiDir: "api",
-  apiDataDir: "@data",
+  apiDataEndpoint: "+data",
   apiRoutesFile: "routes.ts",
 
   routerDir: "router",
