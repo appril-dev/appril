@@ -17,7 +17,7 @@ import ts, {
 } from "typescript";
 import { httpMethodByApi } from "./base";
 
-export type MiddleworkerPayloadTypes = Record<
+export type ManagedMiddlewarePayloadTypes = Record<
   number,
   { method: string; payloadType: string }
 >;
@@ -258,7 +258,7 @@ export async function extractApiAssets(
   },
 ): Promise<{
   typeDeclarations: Array<TypeDeclaration>;
-  middleworkerPayloadTypes: MiddleworkerPayloadTypes;
+  managedMiddlewarePayloadTypes: ManagedMiddlewarePayloadTypes;
   fetchDefinitions: Array<FetchDefinition>;
 }> {
   const fileContent = (await fsx.exists(file))
@@ -281,12 +281,12 @@ export async function extractApiAssets(
     },
   );
 
-  const middleworkerPayloadTypes: MiddleworkerPayloadTypes = {};
+  const managedMiddlewarePayloadTypes: ManagedMiddlewarePayloadTypes = {};
   const fetchDefinitions: Record<string, FetchDefinition> = {};
 
   for (const { method, index, payloadType, returnType } of methods) {
     if (payloadType) {
-      middleworkerPayloadTypes[index] = { method, payloadType };
+      managedMiddlewarePayloadTypes[index] = { method, payloadType };
     }
 
     fetchDefinitions[method] = {
@@ -299,7 +299,7 @@ export async function extractApiAssets(
 
   return {
     typeDeclarations,
-    middleworkerPayloadTypes,
+    managedMiddlewarePayloadTypes,
     fetchDefinitions: Object.values(fetchDefinitions),
   };
 }

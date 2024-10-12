@@ -64,9 +64,9 @@ export type MiddlewareDefinition<
 // throw [ 404, "Not Found" ]
 // throw [ 400, "Bad Request" ]
 /** biome-ignore lint: */
-type MiddleworkerReturn = any | Promise<any>;
+type ManagedMiddlewareReturn = any | Promise<any>;
 
-export type MiddleworkerContext<
+export type ManagedMiddlewareContext<
   StateT = DefaultState,
   ContextT = DefaultContext,
 > = import("koa").ParameterizedContext<
@@ -79,10 +79,13 @@ export type MiddleworkerContext<
     >
 >;
 
-export type Middleworker<StateT = DefaultState, ContextT = DefaultContext> = (
-  ctx: MiddleworkerContext<StateT, ContextT>,
+export type ManagedMiddleware<
+  StateT = DefaultState,
+  ContextT = DefaultContext,
+> = (
+  ctx: ManagedMiddlewareContext<StateT, ContextT>,
   payload: never,
-) => MiddleworkerReturn;
+) => ManagedMiddlewareReturn;
 
 export type UseScope = APIMethod | Array<APIMethod>;
 export type UseScopeGlobal = APIMethod;
@@ -113,7 +116,7 @@ type UseMiddleware<StateT, ContextT> =
 
 export interface DefinitionI<StateT = DefaultState, ContextT = DefaultContext> {
   <StateB = object, ContextB = object>(
-    a: Middleworker<StateT & StateB, ContextT & ContextB>,
+    a: ManagedMiddleware<StateT & StateB, ContextT & ContextB>,
   ): MiddlewareDefinition<StateT & StateB, ContextT & ContextB>;
 
   <StateB = object, ContextB = object>(

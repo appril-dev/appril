@@ -3,8 +3,8 @@ import type {
   DefaultContext,
   Middleware,
   MiddlewareDefinition,
-  Middleworker,
-  MiddleworkerContext,
+  ManagedMiddleware,
+  ManagedMiddlewareContext,
   UseDefinition,
 } from "@appril/api/router";
 
@@ -29,7 +29,7 @@ export type CrudContext<
 export type HandlerContext<
   StateT,
   ContextT
-> = DefaultContext & MiddleworkerContext<StateT, ContextT>;
+> = DefaultContext & ManagedMiddlewareContext<StateT, ContextT>;
 
 export type Handler<StateT, ContextT> = (
   ctx: HandlerContext<StateT, ContextT>,
@@ -90,7 +90,7 @@ export default <
     CrudContext<TableName, Columns> & { params: { id: string } }
   >
 
-  type HandlerT = Middleworker<DefaultState, ContextT>;
+  type HandlerT = ManagedMiddleware<DefaultState, ContextT>;
 
   const { primaryKey, itemsPerPage, sidePages } = {
     ...config,

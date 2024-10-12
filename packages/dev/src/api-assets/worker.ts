@@ -154,16 +154,14 @@ async function worker({
     return discoveredTypeDeclarations;
   };
 
-  const { typeDeclarations, middleworkerPayloadTypes } = await extractApiAssets(
-    route.fileFullpath,
-    {
+  const { typeDeclarations, managedMiddlewarePayloadTypes } =
+    await extractApiAssets(route.fileFullpath, {
       relpathResolver(path) {
         return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
       },
-    },
-  );
+    });
 
-  const payloadTypes = Object.entries(middleworkerPayloadTypes).map(
+  const payloadTypes = Object.entries(managedMiddlewarePayloadTypes).map(
     ([index, { method, payloadType }]): PayloadType => {
       return {
         id: `PayloadValidation$${method.toUpperCase() + padStart(index, 3)}`,
