@@ -19,48 +19,26 @@ export * from "./debug";
 
 export function routeMapper(
   definitions: Array<RouteDefinition>,
-  assets?: {
-    payloadValidation?: Record<number, Array<Middleware>>;
-  },
 ): Array<RouteEndpoint> {
-  const { payloadValidation } = assets || {};
-
   const endpoints: Array<RouteEndpoint> = [];
-
   const useDefinitions: Array<UseDefinition> = [];
+  const middlewareDefinitions: Array<MiddlewareDefinition> = [];
 
-  const middlewareDefinitions: Array<
-    MiddlewareDefinition & {
-      payloadValidation?: Array<Middleware>;
-    }
-  > = [];
-
-  for (const [i, definition] of definitions.entries()) {
+  for (const definition of definitions) {
     if ("use" in definition) {
       useDefinitions.push(definition);
     } else if ("middleware" in definition) {
       middlewareDefinitions.push({
         ...definition,
-        payloadValidation: payloadValidation?.[i],
       });
     }
   }
 
-  for (const {
-    method,
-    middleware,
-    payloadValidation,
-  } of middlewareDefinitions) {
+  for (const { method, middleware } of middlewareDefinitions) {
     const [before, after] = usePartitioner(useDefinitions, method);
     endpoints.push({
       method: httpMethodByApi(method),
-      middleware: [
-        ...before,
-        ...(payloadValidation || []),
-        ...middleware,
-        ...after,
-        () => true,
-      ],
+      middleware: [...before, ...middleware, ...after, () => true],
     });
   }
 

@@ -49,9 +49,8 @@ export async function sourceFilesParsers(
             continue;
           }
 
-          const originalPath = normalizeRoutePath(_path);
-
-          const sections = routeSections(originalPath);
+          const sections = routeSections(normalizeRoutePath(_path));
+          const originalPath = sections.map((e) => e.orig).join("/");
 
           const path = sections
             .map(({ param, orig, ext }) => {

@@ -57,6 +57,7 @@ export type RouteSection = {
   ext: string;
   param?: {
     name: string;
+    type: string;
     isOpt?: boolean;
     isRest?: boolean;
   };
@@ -124,6 +125,7 @@ export type ApiRoute = {
   path: string;
   originalPath: string;
   paramsType: string;
+  paramsTypeConst: string;
   fetchParamsType: string;
   // relative file path
   file: string;

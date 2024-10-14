@@ -59,13 +59,14 @@ async function worker({
       : [];
 
     // rewriting schemaFile, inserting discovered type declarations
-    const sourceText = discoveredTypeDeclarations
-      .flatMap((e) => (e.included ? [e.text] : []))
-      .join("\n\n");
+    const sourceText = Array(
+      discoveredTypeDeclarations.flatMap((e) => (e.included ? [e.text] : [])),
+      [`export type ${route.paramsTypeConst} = { ${route.paramsType} }`],
+    ).join("\n\n");
 
     // it is important to write sourceText to schemaFile
     // as ts-to-zod api may use it to import circular references
-    fsx.writeFile(schemaFile, sourceText);
+    await fsx.writeFile(schemaFile, sourceText);
 
     // feeding schemaFile content to ts-to-zod api to get zod schema
     const { getZodSchemasFile, errors: zodErrors } = generate({

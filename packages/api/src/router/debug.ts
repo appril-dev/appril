@@ -22,7 +22,7 @@ export function routePrinter(
   route: {
     path: string;
     file: string;
-    exports: { endpoints: Array<RouteEndpoint> } | { router: unknown };
+    exports: Array<RouteEndpoint> | InstanceType<typeof import("@koa/router")>;
   },
   printer: Printer | boolean = false,
 ) {
@@ -39,8 +39,8 @@ export function routePrinter(
 
   const methMaxlength = 7;
 
-  if ("endpoints" in exports) {
-    for (const { method, middleware } of exports.endpoints) {
+  if (Array.isArray(exports)) {
+    for (const { method, middleware } of exports) {
       const stackLengthText = ` (stack size: ${middleware.length}) `;
 
       const coloredMethod = colorizeMethod(method);

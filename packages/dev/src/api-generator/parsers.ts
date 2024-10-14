@@ -53,9 +53,8 @@ export async function sourceFilesParsers(
             continue;
           }
 
-          const originalPath = normalizeRoutePath(_path);
-
-          const sections = routeSections(originalPath);
+          const sections = routeSections(normalizeRoutePath(_path));
+          const originalPath = sections.map((e) => e.orig).join("/");
 
           const path = sections
             .map(({ orig, param, ext }) => {
@@ -98,34 +97,37 @@ export async function sourceFilesParsers(
             .flatMap(({ param }) => {
               if (param) {
                 if (param.isRest) {
-                  return [`${param.name}?: Array<string>`];
+                  return [`${param.name}?: Array<${param.type}>`];
                 }
                 const suffix = param.isOpt ? "?" : "";
-                return [`${param.name + suffix}: string`];
+                return [`${param.name + suffix}: ${param.type}`];
               }
               return [];
             })
-            .join(", ");
+            .join("; ");
 
           const fetchParamsType = sections
             .slice(1)
             .flatMap(({ param }) => {
               if (param) {
                 if (param.isRest) {
-                  return [`...${param.name}: Array<string | number>`];
+                  return [`...${param.name}: Array<${param.type}>`];
                 }
                 const suffix = param.isOpt ? "?" : "";
-                return [`${param.name + suffix}: string | number`];
+                return [`${param.name + suffix}: ${param.type}`];
               }
               return [];
             })
-            .join(", ");
+            .join(
+              ", ", // intentionally using comma, do not use semicolon!
+            );
 
           const route: ApiRoute = {
             base,
             path: path === "index" ? "/" : join("/", path),
             originalPath,
             paramsType,
+            paramsTypeConst: `ParamsT${crc32(path)}`,
             fetchParamsType,
             importName,
             importPath,

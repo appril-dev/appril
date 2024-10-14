@@ -1,4 +1,5 @@
 import { basename, join } from "node:path";
+import { format } from "node:util";
 import { cpus } from "node:os";
 import { Worker } from "node:worker_threads";
 
@@ -18,7 +19,6 @@ import {
   generateAssetsFile,
   libFilePath,
 } from "./base";
-import { format } from "node:util";
 
 let appRoot: string;
 let sourceFolder: string;
