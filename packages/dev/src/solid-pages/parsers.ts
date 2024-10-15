@@ -49,7 +49,7 @@ export async function sourceFilesParsers(
             continue;
           }
 
-          const sections = routeSections(normalizeRoutePath(_path));
+          const sections = routeSections(normalizeRoutePath(_path), srcFile);
           const originalPath = sections.map((e) => e.orig).join("/");
 
           const path = sections
@@ -141,7 +141,7 @@ export async function sourceFilesParsers(
             dataLoaderGenerator,
             dataLoaderConsumer,
             link: {
-              base: originalPath.replace(/^index\/?/, "/"),
+              base: originalPath.replace(/^index\/?\b/, "/"),
               props: linkProps,
               replacements: JSON.stringify(linkReplcements),
             },
