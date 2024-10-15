@@ -36,12 +36,12 @@ export enum APIMethods {
 // biome-ignore lint:
 export interface DefaultState {}
 
-export interface DefaultContext {
-  payload: Record<string, unknown>;
-}
-
 // biome-ignore lint:
-export interface UseIdentities {}
+export interface DefaultContext {}
+
+export interface UseIdentities {
+  bodyparser: string;
+}
 
 // biome-ignore lint:
 export interface Meta {}
@@ -84,7 +84,6 @@ export type ManagedMiddleware<
   ContextT = DefaultContext,
 > = (
   ctx: ManagedMiddlewareContext<StateT, ContextT>,
-  payload: never,
 ) => ManagedMiddlewareReturn;
 
 export type UseScope = APIMethod | Array<APIMethod>;

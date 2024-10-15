@@ -1,4 +1,5 @@
 import fsx from "fs-extra";
+// TODO: switch to ts-morph
 import tsquery from "@phenomnomnominal/tsquery";
 
 import ts from "typescript";
@@ -81,7 +82,7 @@ export function extractDefaultExportedArrayMethods<
       continue;
     }
 
-    const payloadType = extractPayloadType(firstArg.parameters);
+    const payloadType = extractPayloadType(node);
 
     const returnType = extractReturnType(firstArg);
 
@@ -180,23 +181,45 @@ export function extractTypeDeclarations(
 }
 
 export function extractPayloadType(
-  parameters: ts.NodeArray<ts.ParameterDeclaration>,
+  callExpression: ts.CallExpression,
 ): string | undefined {
-  // payload provided as second argument
-  const payloadParameter = parameters[1];
+  const [syntaxList] = tsquery
+    .match(callExpression, "SyntaxList")
+    .filter((e) => e.parent === callExpression);
 
-  if (!payloadParameter) {
+  if (!syntaxList) {
     return;
   }
 
-  const [typeNode] = tsquery
-    .match(
-      payloadParameter,
-      "IntersectionType,TypeReference,TypeLiteral,AnyKeyword",
-    )
-    .filter((e) => e.parent === payloadParameter);
+  const [_, ctxType] =
+    syntaxList
+      .getChildren()
+      .filter((e) => e.kind !== ts.SyntaxKind.CommaToken) || [];
 
-  return typeNode?.getText();
+  if (ctxType?.kind !== ts.SyntaxKind.TypeLiteral) {
+    // handling only type literals
+    // get<never, { payload: { id: number } }>(...) - good
+    // get<never, { payload: Payload }>(...) - good
+    // get<never, Payload>(...) - bad
+    // also generics wont work, ts-to-zod will fail
+    // get<never, { payload: SomeGeneric<...> }>(...) - bad
+    return;
+  }
+
+  const [propertySignature] = tsquery
+    .match(ctxType, `PropertySignature > Identifier[name="payload"]`)
+    .flatMap((e) => (e.parent?.parent === ctxType ? [e.parent] : []));
+
+  if (!propertySignature) {
+    return;
+  }
+
+  const [payloadType] = tsquery.match(
+    propertySignature,
+    "TypeLiteral,TypeReference",
+  );
+
+  return payloadType?.getText();
 }
 
 export function extractReturnType(

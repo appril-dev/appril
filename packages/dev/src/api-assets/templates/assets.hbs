@@ -13,7 +13,7 @@ function zodErrorHandler(error: any) {
 
 {{zodSchema}}
 
-export const paramsValidation: Array<import("koa").Middleware> = [
+const paramsValidation: Array<import("koa").Middleware> = [
   (ctx, next) => {
     try {
       {{route.params.id}}Schema.parse(ctx.params)
@@ -24,7 +24,7 @@ export const paramsValidation: Array<import("koa").Middleware> = [
   },
 ]
 
-export const payloadValidation: Array<[
+const payloadValidation: Array<[
   import("@appril/api/router").APIMethod,
   import("koa").Middleware
 ]> = [
@@ -51,3 +51,5 @@ console.error("\n[ \x1b[31m{{route.file}}\x1b[0m ]: failed building zod schema(s
 console.error(`{{this}}`)
 {{/each}}
 {{/if}}
+
+export default { paramsValidation, payloadValidation };

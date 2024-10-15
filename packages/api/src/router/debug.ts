@@ -22,7 +22,7 @@ export function routePrinter(
   route: {
     path: string;
     file: string;
-    exports: Array<RouteEndpoint> | InstanceType<typeof import("@koa/router")>;
+    endpoints: Array<RouteEndpoint>;
   },
   printer: Printer | boolean = false,
 ) {
@@ -30,7 +30,7 @@ export function routePrinter(
     return;
   }
 
-  const { file, path, exports } = route;
+  const { file, path, endpoints } = route;
   const lines: Array<string> = ["\n"];
 
   lines.push(
@@ -39,34 +39,32 @@ export function routePrinter(
 
   const methMaxlength = 7;
 
-  if (Array.isArray(exports)) {
-    for (const { method, middleware } of exports) {
-      const stackLengthText = ` (stack size: ${middleware.length}) `;
+  for (const { method, middleware } of endpoints) {
+    const stackLengthText = ` (stack size: ${middleware.length}) `;
 
-      const coloredMethod = colorizeMethod(method);
+    const coloredMethod = colorizeMethod(method);
 
-      const methodText =
-        method === "GET"
-          ? `  ${coloredMethod}${grey("|HEAD")}`
-          : `  ${coloredMethod}`;
+    const methodText =
+      method === "GET"
+        ? `  ${coloredMethod}${grey("|HEAD")}`
+        : `  ${coloredMethod}`;
 
-      const spacesCount = method === "GET" ? 6 : 14 - method.length;
+    const spacesCount = method === "GET" ? 6 : 14 - method.length;
 
-      const spaces = Array(spacesCount).fill(" ").join("");
+    const spaces = Array(spacesCount).fill(" ").join("");
 
-      const dotsCount =
-        Number(process.stdout.columns) -
-        8 -
-        methMaxlength -
-        stackLengthText.length -
-        4;
+    const dotsCount =
+      Number(process.stdout.columns) -
+      8 -
+      methMaxlength -
+      stackLengthText.length -
+      4;
 
-      const dots = dotsCount > 0 ? Array(dotsCount).fill(dot).join("") : 0;
+    const dots = dotsCount > 0 ? Array(dotsCount).fill(dot).join("") : 0;
 
-      lines.push(
-        [methodText, spaces, grey(stackLengthText), dim(grey(dots))].join(""),
-      );
-    }
+    lines.push(
+      [methodText, spaces, grey(stackLengthText), dim(grey(dots))].join(""),
+    );
   }
 
   if (typeof printer === "function") {

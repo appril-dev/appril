@@ -3,6 +3,7 @@ import { dirname, parse, join } from "node:path";
 
 import fsx from "fs-extra";
 import ts from "typescript";
+import crc32 from "crc/crc32";
 import { generate } from "ts-to-zod";
 
 import { renderToFile } from "@appril/dev-utils";
@@ -169,7 +170,7 @@ async function worker({
   const payloadTypes = Object.entries(apiAssets.payloadTypes).map(
     ([method, text]: [m: string, t: string]): PayloadType => {
       return {
-        id: ["PayloadT", route.importName, method].join("_"),
+        id: ["PayloadT", crc32(route.importName + method)].join(""),
         method,
         text,
       };

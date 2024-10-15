@@ -44,7 +44,7 @@ export function definitionFactory<
       method,
       middleware: [
         async (ctx, next) => {
-          ctx.body = await arg(ctx, ctx.payload as never);
+          ctx.body = await arg(ctx);
           return next();
         },
       ],

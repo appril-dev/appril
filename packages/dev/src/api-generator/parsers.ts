@@ -119,7 +119,7 @@ export async function sourceFilesParsers(
             path: join("/", path.replace(/^index\/?\b/, "")),
             originalPath,
             params: {
-              id: ["ParamsT", importName].join("_"),
+              id: ["ParamsT", crc32(importName)].join(""),
               schema: JSON.stringify(paramsSections),
               literal: paramsLiteral,
             },
@@ -193,5 +193,11 @@ export async function sourceFilesParsers(
 }
 
 function importNameFromPath(path: string): string {
-  return [path.replace(/\W/g, "_"), crc32(path)].join("_");
+  return [
+    path
+      .split(/\[/)[0]
+      .replace(/^\W+|\W+$/g, "")
+      .replace(/\W+/g, "_"),
+    crc32(path),
+  ].join("_");
 }

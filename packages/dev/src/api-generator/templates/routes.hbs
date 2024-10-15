@@ -1,54 +1,56 @@
 import { join } from "node:path";
 
-import { type Meta, type RouteEndpoint, routeMapper } from "@appril/api/router";
+import { type Meta, type RouteEndpoint, use, routeMapper } from "@appril/api/router";
 
 import { baseurl, apiurl } from "{{importPathmap.config}}";
+import { paramsHandlers, payloadHandlers } from "{{importPathmap.lib}}/base";
 import router from "{{importPathmap.api}}/router";
 
 {{#each routes}}
-{{#if optedFile}}
 import {{importName}} from "{{../importPathmap.api}}/{{importPath}}";
-{{else}}
-import "{{../importPathmap.api}}/{{importPath}}";
-import {{importName}} from "{{../importPathmap.lib}}/{{importPath}}";
-{{/if}}
-
+{{#unless optedFile}}
+import {{importName}}_assets from "{{../importPathmap.lib}}/{{importPath}}/_assets";
+{{/unless}}
 {{/each}}
-
-type RouteSetup = {
-  path: string;
-  originalPath: string;
-  file: string;
-  exports: Array<RouteEndpoint> | InstanceType<typeof import("@koa/router")>;
-  meta?: Meta;
-}
 
 export type ApiRoute ={{#each routes}}  {{#unless @first}}| {{/unless}}"{{originalPath}}"
 {{/each}}
 
-export const routeStack: Array<RouteSetup> = [
-{{#each routes}}
-  {
-    path: join(baseurl, {{#if base}}"{{base}}"{{else}}apiurl{{/if}}, "{{path}}"),
-    originalPath: "{{originalPath}}",
-    file: "{{file}}",
-    {{#if meta}}
-    meta: {{meta}},
-    {{/if}}
-    {{#if optedFile}}
-    exports: {{importName}},
-    {{else}}
-    exports: routeMapper({{importName}}),
-    {{/if}}
-  },
-{{/each}}
-]
+export const routeStack: Array<{
+  path: string;
+  originalPath: string;
+  file: string;
+  endpoints: Array<RouteEndpoint>;
+  meta?: Meta;
+}> = []
 
-for (const { path, originalPath, exports } of routeStack) {
-  {{#if optedFile}}
-  router.use(path, exports.routes())
-  {{else}}
-  for (const { method, middleware } of exports as Array<RouteEndpoint>) {
+{{#each routes}}
+routeStack.push({
+  path: join(
+    baseurl,
+    {{#if base}}"{{base}}"{{else}}apiurl{{/if}},
+    "{{path}}"
+  ),
+  originalPath: "{{originalPath}}",
+  file: "{{file}}",
+  endpoints: routeMapper([
+    {{#unless optedFile}}
+    use(paramsHandlers({{params.schema}})),
+    use({{importName}}_assets.paramsValidation),
+    use(payloadHandlers()),
+    ...{{importName}}_assets.payloadValidation.map(([m,h]) => use(h).before(m)),
+    {{/unless}}
+    ...{{importName}},
+  ] as Array<never>),
+  {{#if meta}}
+  meta: {{meta}},
+  {{/if}}
+})
+
+{{/each}}
+
+for (const { path, originalPath, endpoints } of routeStack) {
+  for (const { method, middleware } of endpoints) {
     router.register(
       path.replace(/\+/g, "\\+"),
       [method],
@@ -56,7 +58,6 @@ for (const { path, originalPath, exports } of routeStack) {
       { name: originalPath },
     );
   }
-  {{/if}}
 }
 
 export default router.routes();
