@@ -2,8 +2,6 @@ import type { Alias, Plugin } from "vite";
 import ts from "typescript";
 import glob from "fast-glob";
 
-import { defaults } from "@/base";
-
 const PLUGIN_NAME = "@appril:aliasPlugin";
 
 export const aliasPlugin = async (appRoot: string): Promise<Plugin> => {
@@ -34,7 +32,9 @@ export const aliasPlugin = async (appRoot: string): Promise<Plugin> => {
           aliasmap.push({
             find: new RegExp(`^${alias}/`),
             replacement: "",
-            async customResolver(src) {
+            async customResolver(_src) {
+              const src = _src.replace(/(\$|\^|\+|\(|\)|\[|\])/g, "\\$1");
+
               const patterns = paths
                 .sort((a, b) => a.split(/\/+/).length - b.split(/\/+/).length)
                 .flatMap((e) => [`${e}/${src}.*`, `${e}/${src}/index.*`]);
