@@ -1,24 +1,9 @@
 /// <reference path="./env.d.ts" />
 
-import {
-  type Middleware,
-  type DefaultContext,
-  useGlobal,
-} from "@appril/api/router";
-
+import { type Middleware, useGlobal } from "@appril/api/router";
 import { bodyparser } from "@appril/api/bodyparser";
-import { DEV } from "@/config";
 
 useGlobal("bodyparser", bodyparser.json()).before("post", "put", "patch");
-
-useGlobal("payload", (ctx, next) => {
-  defineProperty(ctx, "payload", () => {
-    return (
-      "body" in ctx.request ? ctx.request.body || {} : ctx.query
-    ) as DefaultContext["payload"];
-  });
-  return next();
-});
 
 export const errorHandler: Middleware = async (ctx, next) => {
   try {
@@ -50,14 +35,3 @@ function extractCodeWithMessage(error: unknown): [number, string] {
 
   return [500, "Unknown Error Occurred"];
 }
-
-const defineProperty = <K extends keyof DefaultContext>(
-  ctx: import("koa").Context,
-  key: keyof DefaultContext,
-  get: () => DefaultContext[K],
-): void => {
-  Object.defineProperty(ctx, key, {
-    get,
-    configurable: DEV, // should be swapable for hmr to work
-  });
-};
