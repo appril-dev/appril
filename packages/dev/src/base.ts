@@ -15,12 +15,12 @@ export function normalizeRoutePath(path: string): string {
     .replace(/^\/|\/$/g, "");
 }
 
-export function routeSections(path: string): Array<RouteSection> {
+export function routeSections(path: string, file: string): Array<RouteSection> {
   // use only normalized paths here
 
   const requiredParamRegex = /^\[([^\]]+)\]$/;
   const optionalParamRegex = /^\[\[([^\]]+)\]\]$/;
-  const restParamRegex = /^\[\.\.\.([^\]]+)]$/;
+  const restParamRegex = /^\[\.\.\.([^\]]+)\]$/;
 
   return path.split("/").map((orig, i) => {
     const [base, ext] = orig.split(/(\.([\w\d-]+)$)/);
@@ -32,6 +32,11 @@ export function routeSections(path: string): Array<RouteSection> {
         .replace(regex, "$1")
         .split(":")
         .map((e) => e?.replace(/\s+/g, ""));
+
+      if (!name) {
+        throw new Error(`Invalid path detected: ${path}\n${file}`);
+      }
+
       return [
         name,
         type
@@ -46,15 +51,16 @@ export function routeSections(path: string): Array<RouteSection> {
     };
 
     if (base.startsWith("[")) {
-      if (requiredParamRegex.test(base)) {
-        const [name, type] = paramSplitter(requiredParamRegex);
-        param = { name, type };
+      // order is highly important!
+      if (restParamRegex.test(base)) {
+        const [name, type] = paramSplitter(restParamRegex);
+        param = { name, type, isRest: true, isOpt: false };
       } else if (optionalParamRegex.test(base)) {
         const [name, type] = paramSplitter(optionalParamRegex);
-        param = { name, type, isOpt: true };
-      } else if (restParamRegex.test(base)) {
-        const [name, type] = paramSplitter(restParamRegex);
-        param = { name, type, isRest: true };
+        param = { name, type, isRest: false, isOpt: true };
+      } else if (requiredParamRegex.test(base)) {
+        const [name, type] = paramSplitter(requiredParamRegex);
+        param = { name, type, isRest: false, isOpt: false };
       }
     }
 

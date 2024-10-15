@@ -124,9 +124,14 @@ export type ApiRoute = {
   base?: string;
   path: string;
   originalPath: string;
-  paramsType: string;
-  paramsTypeConst: string;
-  fetchParamsType: string;
+  params: {
+    id: string;
+    schema: string;
+    literal: string;
+  };
+  fetchParams: {
+    literal: string;
+  };
   // relative file path
   file: string;
   fileFullpath: string;

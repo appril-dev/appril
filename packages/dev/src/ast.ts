@@ -1,26 +1,8 @@
 import fsx from "fs-extra";
-import * as tsquery from "@phenomnomnominal/tsquery";
+import tsquery from "@phenomnomnominal/tsquery";
 
-import ts, {
-  type Node,
-  type NodeArray,
-  type Expression,
-  type CallExpression,
-  type ImportSpecifier,
-  type ImportDeclaration,
-  type ArrowFunction,
-  type FunctionExpression,
-  type TypeAliasDeclaration,
-  type InterfaceDeclaration,
-  type ParameterDeclaration,
-  type TypeReferenceNode,
-} from "typescript";
+import ts from "typescript";
 import { httpMethodByApi } from "./base";
-
-export type ManagedMiddlewarePayloadTypes = Record<
-  number,
-  { method: string; payloadType: string }
->;
 
 export type FetchDefinition = {
   method: string;
@@ -62,7 +44,6 @@ export function extractDefaultExportedArrayMethods<
   typeDeclarations: Array<TypeDeclaration>;
   methods: Array<{
     method: MethodsOfInterest[number];
-    index: number;
     payloadType: string | undefined;
     returnType: string | undefined;
   }>;
@@ -73,11 +54,13 @@ export function extractDefaultExportedArrayMethods<
 
   const callExpressions = tsquery
     .match(ast, "ExportAssignment ArrayLiteralExpression > CallExpression")
-    .filter((e) => e.parent?.parent?.parent === ast) as Array<CallExpression>;
+    .filter(
+      (e) => e.parent?.parent?.parent === ast,
+    ) as Array<ts.CallExpression>;
 
   const methods = [];
 
-  for (const [index, node] of callExpressions.entries()) {
+  for (const node of callExpressions) {
     const method = node.expression.getText();
 
     if (!methodsOfInterest.includes(method)) {
@@ -85,8 +68,8 @@ export function extractDefaultExportedArrayMethods<
     }
 
     const firstArg = node.arguments?.[0] as
-      | ArrowFunction
-      | FunctionExpression
+      | ts.ArrowFunction
+      | ts.FunctionExpression
       | undefined;
 
     if (
@@ -104,7 +87,6 @@ export function extractDefaultExportedArrayMethods<
 
     methods.push({
       method,
-      index,
       payloadType,
       returnType,
     });
@@ -121,17 +103,17 @@ export function extractTypeDeclarations(
     relpathResolver: RelpathResolver;
   },
 ): Array<TypeDeclaration> {
-  const importDeclarations: Array<ImportDeclaration> = tsquery.match(
+  const importDeclarations: Array<ts.ImportDeclaration> = tsquery.match(
     ast,
     "ImportDeclaration",
   );
 
-  const interfaceDeclarations: Array<InterfaceDeclaration> = tsquery.match(
+  const interfaceDeclarations: Array<ts.InterfaceDeclaration> = tsquery.match(
     ast,
     "InterfaceDeclaration",
   );
 
-  const typeAliasDeclarations: Array<TypeAliasDeclaration> = tsquery.match(
+  const typeAliasDeclarations: Array<ts.TypeAliasDeclaration> = tsquery.match(
     ast,
     "TypeAliasDeclaration",
   );
@@ -148,7 +130,7 @@ export function extractTypeDeclarations(
     for (const spec of tsquery.match(
       node,
       "ImportSpecifier",
-    ) as Array<ImportSpecifier>) {
+    ) as Array<ts.ImportSpecifier>) {
       const name = spec.getText();
       let text: string;
       if (node.importClause?.isTypeOnly) {
@@ -198,7 +180,7 @@ export function extractTypeDeclarations(
 }
 
 export function extractPayloadType(
-  parameters: NodeArray<ParameterDeclaration>,
+  parameters: ts.NodeArray<ts.ParameterDeclaration>,
 ): string | undefined {
   // payload provided as second argument
   const payloadParameter = parameters[1];
@@ -217,7 +199,9 @@ export function extractPayloadType(
   return typeNode?.getText();
 }
 
-export function extractReturnType(node: Expression | Node): string | undefined {
+export function extractReturnType(
+  node: ts.Expression | ts.Node,
+): string | undefined {
   let [typeNode] = tsquery
     .match(node, "IntersectionType,TypeReference,TypeLiteral,AnyKeyword")
     .filter((e) => e.parent === node);
@@ -243,9 +227,9 @@ export function extractReturnType(node: Expression | Node): string | undefined {
   return typeNode?.getText();
 }
 
-export function extractTypeReferences(node: Node) {
+export function extractTypeReferences(node: ts.Node) {
   return tsquery
-    .match<TypeReferenceNode>(node, "TypeReference")
+    .match<ts.TypeReferenceNode>(node, "TypeReference")
     .map((e) => e.typeName.getText());
 }
 
@@ -258,7 +242,7 @@ export async function extractApiAssets(
   },
 ): Promise<{
   typeDeclarations: Array<TypeDeclaration>;
-  managedMiddlewarePayloadTypes: ManagedMiddlewarePayloadTypes;
+  payloadTypes: Record<string, string>;
   fetchDefinitions: Array<FetchDefinition>;
 }> {
   const fileContent = (await fsx.exists(file))
@@ -281,12 +265,12 @@ export async function extractApiAssets(
     },
   );
 
-  const managedMiddlewarePayloadTypes: ManagedMiddlewarePayloadTypes = {};
+  const payloadTypes: Record<string, string> = {};
   const fetchDefinitions: Record<string, FetchDefinition> = {};
 
-  for (const { method, index, payloadType, returnType } of methods) {
+  for (const { method, payloadType, returnType } of methods) {
     if (payloadType) {
-      managedMiddlewarePayloadTypes[index] = { method, payloadType };
+      payloadTypes[method] = payloadType;
     }
 
     fetchDefinitions[method] = {
@@ -299,7 +283,7 @@ export async function extractApiAssets(
 
   return {
     typeDeclarations,
-    managedMiddlewarePayloadTypes,
+    payloadTypes,
     fetchDefinitions: Object.values(fetchDefinitions),
   };
 }
