@@ -6,6 +6,7 @@ import { fileGenerator } from "@appril/dev-utils";
 
 import { type ApiRoute, defaults } from "@/base";
 
+import baseTpl from "./templates/base.hbs";
 import indexTpl from "./templates/index.hbs";
 import routeTpl from "./templates/route.hbs";
 import routesTpl from "./templates/routes.hbs";
@@ -26,6 +27,11 @@ export async function bootstrap(data: {
   sourceFolder = data.sourceFolder;
 
   generateFile = fileGenerator(data.appRoot).generateFile;
+
+  await generateFile(
+    join(defaults.libDir, sourceFolder, libApiDir, "base.ts"),
+    { template: baseTpl, context: {} },
+  );
 
   await generateFile(join(sourceFolder, defaults.dataSourceFile), "", {
     overwrite: false,
@@ -71,7 +77,9 @@ async function generateRouteFiles({
       {
         template: indexTpl,
         context: {
-          defaults,
+          importPathmap: {
+            lib: [sourceFolder, libApiDir].join("/"),
+          },
           apiMethods: Object.keys(APIMethods),
           route,
         },

@@ -1,16 +1,54 @@
 import {
   type DefaultState,
   type DefaultContext,
+  type UseDefinitionI,
   type DefinitionI,
+  type RouteDefinition,
+  useDefinitionFactory,
   definitionFactory,
 } from "@appril/api/router";
 
-export type ParamsT = { {{route.paramsType}} }
-export type ContextT = DefaultContext & { params: ParamsT }
-export { use } from "@appril/api/router";
+import { paramsHandlers, payloadHandlers } from "{{importPathmap.lib}}/base";
+import { paramsValidation, payloadValidation } from "./_assets";
 
-{{#each apiMethods}}export const {{this}}: DefinitionI<
+const definitions: Array<RouteDefinition> = []
+
+export default definitions;
+
+export type ParamsT = { {{route.params.literal}} }
+
+export type Ctx<PayloadT = unknown> = DefaultContext & {
+  params: ParamsT;
+  payload: PayloadT;
+}
+
+export const use: UseDefinitionI<
   DefaultState,
-  ContextT
-> = (a) => definitionFactory("{{this}}", a);
+  Ctx
+> = (...args: Array<unknown>) => {
+  const def = useDefinitionFactory(args);
+  definitions.push(def);
+  return def;
+};
+
+use(paramsHandlers({{route.params.schema}}))
+
+use(paramsValidation)
+
+use(payloadHandlers())
+
+for (const [method, handler] of payloadValidation) {
+  use(handler).before(method);
+}
+
+{{#each apiMethods}}
+export const {{this}}: DefinitionI<
+  DefaultState,
+  Ctx
+> = (a) => {
+  const def = definitionFactory("{{this}}", a);
+  definitions.push(def);
+  return def;
+}
+
 {{/each}}

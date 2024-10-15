@@ -1,31 +1,25 @@
 import { join } from "node:path";
 
-import {
-  type Meta, type RouteEndpoint,
-  routeMapper,
-} from "@appril/api/router";
+import { type Meta, type RouteEndpoint, routeMapper } from "@appril/api/router";
 
 import { baseurl, apiurl } from "{{importPathmap.config}}";
 import router from "{{importPathmap.api}}/router";
 
 {{#each routes}}
+{{#if optedFile}}
 import {{importName}} from "{{../importPathmap.api}}/{{importPath}}";
-{{#unless optedFile}}
-import {{importName}}$assets from "{{../importPathmap.lib}}/{{importPath}}/_assets";
-{{/unless}}
+{{else}}
+import "{{../importPathmap.api}}/{{importPath}}";
+import {{importName}} from "{{../importPathmap.lib}}/{{importPath}}";
+{{/if}}
 
 {{/each}}
-
-type Exports = {
-  endpoints: { endpoints: Array<RouteEndpoint> };
-  router: { router: InstanceType<typeof import("@koa/router")> };
-}
 
 type RouteSetup = {
   path: string;
   originalPath: string;
   file: string;
-  exports: Exports["endpoints"] | Exports["router"];
+  exports: Array<RouteEndpoint> | InstanceType<typeof import("@koa/router")>;
   meta?: Meta;
 }
 
@@ -41,31 +35,28 @@ export const routeStack: Array<RouteSetup> = [
     {{#if meta}}
     meta: {{meta}},
     {{/if}}
-    exports: Array.isArray({{importName}})
-      ? {
-          endpoints: routeMapper(
-            {{importName}} as never,
-            {{#unless optedFile}}{{importName}}$assets{{/unless}}
-          )
-        }
-      : {{importName}} as Exports["router"],
+    {{#if optedFile}}
+    exports: {{importName}},
+    {{else}}
+    exports: routeMapper({{importName}}),
+    {{/if}}
   },
 {{/each}}
 ]
 
 for (const { path, originalPath, exports } of routeStack) {
-  if ("endpoints" in exports) {
-    for (const { method, middleware } of exports.endpoints) {
-      router.register(
-        path.replace(/\+/g, "\\+"),
-        [method],
-        middleware as unknown as Array<import("koa__router").Middleware>,
-        { name: originalPath },
-      );
-    }
-  } else if ("router" in exports) {
-    router.use(path, exports.router.routes())
+  {{#if optedFile}}
+  router.use(path, exports.routes())
+  {{else}}
+  for (const { method, middleware } of exports as Array<RouteEndpoint>) {
+    router.register(
+      path.replace(/\+/g, "\\+"),
+      [method],
+      middleware as Array<never>,
+      { name: originalPath },
+    );
   }
+  {{/if}}
 }
 
 export default router.routes();

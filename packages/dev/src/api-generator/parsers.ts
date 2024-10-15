@@ -9,6 +9,7 @@ import { sanitizePath } from "@appril/dev-utils";
 import {
   type PluginOptionsResolved,
   type RouteOptions,
+  type RouteSection,
   type ApiRoute,
   type ApiRouteAlias,
   normalizeRoutePath,
@@ -53,7 +54,7 @@ export async function sourceFilesParsers(
             continue;
           }
 
-          const sections = routeSections(normalizeRoutePath(_path));
+          const sections = routeSections(normalizeRoutePath(_path), srcFile);
           const originalPath = sections.map((e) => e.orig).join("/");
 
           const path = sections
@@ -92,31 +93,22 @@ export async function sourceFilesParsers(
 
           const file = importPath + suffix;
 
-          const paramsType = sections
-            .slice(1)
-            .flatMap(({ param }) => {
-              if (param) {
-                if (param.isRest) {
-                  return [`${param.name}?: Array<${param.type}>`];
-                }
-                const suffix = param.isOpt ? "?" : "";
-                return [`${param.name + suffix}: ${param.type}`];
-              }
-              return [];
+          const paramsSections: Array<Required<RouteSection>["param"]> =
+            sections.slice(1).flatMap((e) => (e.param ? [e.param] : []));
+
+          const paramsLiteral = paramsSections
+            .map((param) => {
+              return param.isRest
+                ? `${param.name}?: Array<${param.type}>`
+                : `${param.name}${param.isOpt ? "?" : ""}: ${param.type}`;
             })
             .join("; ");
 
-          const fetchParamsType = sections
-            .slice(1)
-            .flatMap(({ param }) => {
-              if (param) {
-                if (param.isRest) {
-                  return [`...${param.name}: Array<${param.type}>`];
-                }
-                const suffix = param.isOpt ? "?" : "";
-                return [`${param.name + suffix}: ${param.type}`];
-              }
-              return [];
+          const fetchParamsLiteral = paramsSections
+            .map((param) => {
+              return param.isRest
+                ? `...${param.name}: Array<${param.type}>`
+                : `${param.name}${param.isOpt ? "?" : ""}: ${param.type}`;
             })
             .join(
               ", ", // intentionally using comma, do not use semicolon!
@@ -124,11 +116,14 @@ export async function sourceFilesParsers(
 
           const route: ApiRoute = {
             base,
-            path: path === "index" ? "/" : join("/", path),
+            path: join("/", path.replace(/^index\/?\b/, "")),
             originalPath,
-            paramsType,
-            paramsTypeConst: `ParamsT${crc32(path)}`,
-            fetchParamsType,
+            params: {
+              id: ["ParamsT", importName].join("_"),
+              schema: JSON.stringify(paramsSections),
+              literal: paramsLiteral,
+            },
+            fetchParams: { literal: fetchParamsLiteral },
             importName,
             importPath,
             srcFile,
@@ -198,5 +193,5 @@ export async function sourceFilesParsers(
 }
 
 function importNameFromPath(path: string): string {
-  return [path.replace(/\W/g, "_"), crc32(path)].join("$");
+  return [path.replace(/\W/g, "_"), crc32(path)].join("_");
 }
