@@ -107,11 +107,11 @@ function trimmerFactory(
   }, {});
 
   const trim = (key: string, val: unknown) => {
-    if (typeof val !== "string") {
-      return val;
-    }
-
-    return trimableKeys[key] || trimableKeys["*"] ? val.trim() : val;
+    return typeof val === "string"
+      ? trimableKeys[key] || trimableKeys["*"]
+        ? val.trim()
+        : val
+      : val;
   };
 
   const reducer = (
@@ -122,7 +122,11 @@ function trimmerFactory(
     return memo;
   };
 
-  // accumulator is set to payload intentionally, to avoid duplication of big strings!
-  // if using a new object for accumulator then trimmed strings will be duplicated!
-  return (payload) => Object.entries(payload).reduce(reducer, payload);
+  return (payload) =>
+    Object.entries(payload).reduce(
+      reducer,
+      // accumulator is set to payload intentionally, to avoid duplication of big strings.
+      // if using a new object for accumulator then trimmed strings will be duplicated?
+      payload,
+    );
 }
