@@ -2,8 +2,9 @@ import { parentPort } from "node:worker_threads";
 import { dirname, parse, join } from "node:path";
 
 import fsx from "fs-extra";
-import ts, { type CompilerOptions } from "typescript";
+import ts from "typescript";
 import { generate } from "ts-to-zod";
+
 import { renderToFile } from "@appril/dev-utils";
 
 import { defaults } from "@/base";
@@ -59,10 +60,12 @@ async function worker({
       : [];
 
     // rewriting schemaFile, inserting discovered type declarations
-    const sourceText = Array(
+    const sourceText = [
       discoveredTypeDeclarations.flatMap((e) => (e.included ? [e.text] : [])),
-      [`export type ${route.paramsTypeConst} = { ${route.paramsType} }`],
-    ).join("\n\n");
+      `export type ${route.params.id} = { ${route.params.literal} }`,
+    ]
+      .flat()
+      .join("\n\n");
 
     // it is important to write sourceText to schemaFile
     // as ts-to-zod api may use it to import circular references
@@ -93,7 +96,7 @@ async function worker({
       ts.sys as never,
     );
 
-    const compilerOptions: CompilerOptions = {
+    const compilerOptions: ts.CompilerOptions = {
       declaration: true,
       emitDeclarationOnly: true,
       isolatedDeclarations: true,
@@ -155,19 +158,20 @@ async function worker({
     return discoveredTypeDeclarations;
   };
 
-  const { typeDeclarations, managedMiddlewarePayloadTypes } =
-    await extractApiAssets(route.fileFullpath, {
-      relpathResolver(path) {
-        return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
-      },
-    });
+  const apiAssets = await extractApiAssets(route.fileFullpath, {
+    relpathResolver(path) {
+      return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
+    },
+  });
 
-  const payloadTypes = Object.entries(managedMiddlewarePayloadTypes).map(
-    ([index, { method, payloadType }]): PayloadType => {
+  const { typeDeclarations } = apiAssets;
+
+  const payloadTypes = Object.entries(apiAssets.payloadTypes).map(
+    ([method, text]: [m: string, t: string]): PayloadType => {
       return {
-        id: `PayloadValidation$${method.toUpperCase() + padStart(index, 3)}`,
-        index,
-        text: payloadType,
+        id: ["PayloadT", route.importName, method].join("_"),
+        method,
+        text,
       };
     },
   );
@@ -204,20 +208,4 @@ async function worker({
   );
 
   process.exit(0);
-}
-
-function padStart(
-  str: string | number,
-  maxlength: number,
-  fill = "0",
-  decorate?: (s: string | number) => string,
-): string {
-  const prefixLength = maxlength - String(str).length;
-
-  // biome-ignore format:
-  const prefix = prefixLength > 0
-    ? Array(prefixLength).fill(fill).join("")
-    : "";
-
-  return decorate ? prefix + decorate(str) : prefix + str;
 }

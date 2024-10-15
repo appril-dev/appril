@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { format } from "node:util";
 
 import { renderToFile } from "@appril/dev-utils";
+import pkg from "@appril/dev/package.json" with { type: "json" };
 import crc32 from "crc/crc32";
 import fsx from "fs-extra";
 
@@ -12,7 +13,7 @@ import assetsTpl from "./templates/assets.hbs";
 
 export type PayloadType = {
   id: string;
-  index: string;
+  method: string;
   text: string;
 };
 
@@ -100,7 +101,7 @@ export function generateAssetsFile(
   );
 }
 
-async function generateHashSum(file: string): Promise<number> {
+async function generateHashSum(file: string, extra?: string): Promise<number> {
   let fileContent: string | undefined;
   try {
     fileContent = await fsx.readFile(file, "utf8");
@@ -108,7 +109,7 @@ async function generateHashSum(file: string): Promise<number> {
     // file could be deleted since last build
     return 0;
   }
-  return fileContent ? crc32(fileContent) : 0;
+  return fileContent ? crc32(fileContent + pkg.version + String(extra)) : 0;
 }
 
 // computing hash for route and all it's deps.
@@ -138,7 +139,7 @@ export async function generateHashMap(
 
   return {
     file: route.file,
-    hash: await generateHashSum(route.fileFullpath),
+    hash: await generateHashSum(route.fileFullpath, route.params.schema),
     deps,
   };
 }
@@ -150,15 +151,18 @@ export async function identicalHashMap(
   { appRoot }: { appRoot: string },
 ) {
   if (
-    !identicalHashSum(hashmap.hash, await generateHashSum(route.fileFullpath))
+    !identicalHashSum(
+      hashmap.hash,
+      await generateHashSum(route.fileFullpath, route.params.schema),
+    )
   ) {
     // route itself updated, signaling rebuild without checking deps
     return false;
   }
 
-  for (const [path, sum] of Object.entries(hashmap.deps)) {
+  for (const [path, hash] of Object.entries(hashmap.deps)) {
     // prepending root as it was removed by generateHashSum
-    if (!identicalHashSum(sum, await generateHashSum(join(appRoot, path)))) {
+    if (!identicalHashSum(hash, await generateHashSum(join(appRoot, path)))) {
       return false;
     }
   }

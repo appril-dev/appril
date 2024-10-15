@@ -15,7 +15,8 @@
     ".": {
       "types": "./pkg/index.d.ts",
       "default": "./pkg/index.mjs"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "// ✨ linters": "",

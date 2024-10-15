@@ -1,5 +1,3 @@
-import type { Middleware } from "koa";
-import { ZodNumber } from "zod";
 
 {{#if importZodErrorHandlerFrom}}
 import { zodErrorHandler } from "{{importZodErrorHandlerFrom}}";
@@ -15,40 +13,37 @@ function zodErrorHandler(error: any) {
 
 {{zodSchema}}
 
-export default {
-  paramsValidation: [
+export const paramsValidation: Array<import("koa").Middleware> = [
+  (ctx, next) => {
+    try {
+      {{route.params.id}}Schema.parse(ctx.params)
+    } catch (error: any) {
+      throw zodErrorHandler(error)
+    }
+    return next()
+  },
+]
+
+export const payloadValidation: Array<[
+  import("@appril/api/router").APIMethod,
+  import("koa").Middleware
+]> = [
+  {{#if zodSchema}}
+  {{#each payloadTypes}}
+  [
+    "{{method}}",
     (ctx, next) => {
-      const shape: Record<string, unknown> = {{route.paramsTypeConst}}Schema.shape
-      ctx.params = Object.entries(ctx.params).reduce((map: typeof ctx.params, [k,v]) => {
-        map[k] = shape[k] instanceof ZodNumber && !/\D/.test(v as string) ? Number(v) : v
-        return map
-      }, {});
       try {
-        {{route.paramsTypeConst}}Schema.parse(ctx.params)
+        {{id}}Schema.parse(ctx.payload)
       } catch (error: any) {
         throw zodErrorHandler(error)
       }
       return next()
     }
-  ] satisfies Array<Middleware>,
-
-  payloadValidation: {
-    {{#if zodSchema}}
-    {{#each payloadTypes}}
-    {{index}}: [
-      (ctx, next) => {
-        try {
-          {{id}}Schema.parse(ctx.payload)
-        } catch (error: any) {
-          throw zodErrorHandler(error)
-        }
-        return next()
-      }
-    ] satisfies Array<Middleware>,
-    {{/each}}
-    {{/if}}
-  },
-}
+  ],
+  {{/each}}
+  {{/if}}
+]
 
 {{#if zodErrors.length}}
 console.error("\n[ \x1b[31m{{route.file}}\x1b[0m ]: failed building zod schema(s)")

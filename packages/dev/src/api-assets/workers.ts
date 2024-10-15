@@ -104,17 +104,8 @@ export async function handleSrcFileUpdate(data: {
   file: string;
   routes: Array<ApiRoute>;
 }) {
-  const newRoutes = data.routes.flatMap((route) => {
-    if (routes.some((e) => e.fileFullpath === route.fileFullpath)) {
-      return [];
-    }
-    // adding new route to exposed routes to be used later on watchers
-    routes.push(route);
-    return [route];
-  });
-
-  // making sure newly added routes have assets generated
-  await generateRouteAssets(newRoutes);
+  routes = data.routes;
+  await generateRouteAssets(routes);
 }
 
 export async function handleRouteFileUpdate({
@@ -155,9 +146,10 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
       sourceFolder,
     });
 
-    const hashmap: { default: HashMap } = await import(hashmapFile, {
-      with: { type: "json" },
-    });
+    const hashmap: { default: HashMap } = await import(
+      `${hashmapFile}?${new Date().getTime()}`,
+      { with: { type: "json" } }
+    );
 
     for (const file of extractDepFiles(route, hashmap.default, { appRoot })) {
       watchDepFile(file, route);
