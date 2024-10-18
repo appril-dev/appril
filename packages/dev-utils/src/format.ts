@@ -11,9 +11,7 @@ export async function formatSourceCode(
   content: string,
   { filePath = "file.ts" }: { filePath?: string } = {},
 ): Promise<string> {
-  return content;
-  // disabling format for a while - https://github.com/biomejs/biome/issues/3881
-  // return /\.(tsx?|jsx?|json)$/.test(filePath)
-  //   ? biome.formatContent(content, { filePath }).content
-  //   : content;
+  return /\.(tsx?|jsx?|json)$/.test(filePath)
+    ? biome.formatContent(content, { filePath }).content
+    : content;
 }

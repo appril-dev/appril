@@ -99,6 +99,7 @@ async function generateRouteFiles({
           base: [sourceFolder, libApiDir, route.importPath].join("/"),
         },
       },
+      format: true,
     },
     { overwrite: false },
   );

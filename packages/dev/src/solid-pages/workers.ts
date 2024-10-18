@@ -54,6 +54,7 @@ async function generatePageFiles({
     {
       template: page.template || template || pageTpl,
       context: { page },
+      format: true,
     },
     { overwrite: false },
   );
