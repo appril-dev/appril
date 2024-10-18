@@ -88,7 +88,7 @@ async function generateRouteFiles({
   await generateFile(
     join(sourceFolder, defaults.apiDir, route.file),
     {
-      template: template || routeTpl,
+      template: route.template || template || routeTpl,
       context: {
         route,
         importPathmap: {

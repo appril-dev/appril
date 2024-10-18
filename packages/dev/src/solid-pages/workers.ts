@@ -52,7 +52,7 @@ async function generatePageFiles({
   await generateFile(
     join(sourceFolder, defaults.pagesDir, page.file),
     {
-      template: template || pageTpl,
+      template: page.template || template || pageTpl,
       context: { page },
     },
     { overwrite: false },

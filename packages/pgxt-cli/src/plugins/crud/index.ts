@@ -1,4 +1,4 @@
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { format } from "node:util";
 
 import { stringify } from "smol-toml";
@@ -100,7 +100,9 @@ export default (
 
       for (const [file, template] of [
         ["[id].ts", tableIdTpl],
+        ["[id].tpl", publicIdTpl],
         ["index.ts", tableIndexTpl],
+        ["index.tpl", publicIndexTpl],
         ["typeLiterals.ts", tableTypeLiteralsTpl],
       ] as const) {
         await generateFile(
@@ -108,18 +110,9 @@ export default (
           { template, context },
         );
       }
-
-      for (const [file, template] of [
-        ["[id].ts", publicIdTpl],
-        ["index.ts", publicIndexTpl],
-      ] as const) {
-        await generateFile(
-          join(srcFolder, defaults.apiDir, baseUrl, table.name, file),
-          { template, context, format: true },
-          { overwrite: false },
-        );
-      }
     }
+
+    const relpathToLib = join("..", defaults.libDir, srcFolder, libBaseDir);
 
     const reducer = (map: Record<string, unknown>, table: TableDeclaration) => {
       let page: boolean | undefined;
@@ -132,11 +125,16 @@ export default (
 
       const base = join(baseUrl, table.name);
 
-      map[`${base}/`] = { dataLoader, page };
+      map[`${base}/`] = {
+        dataLoader,
+        page,
+        apiTemplate: join(relpathToLib, table.name, "index.tpl"),
+      };
 
       map[`${base}/[id]`] = {
         page: false,
         dataLoader: dataLoader ? { alias: base } : undefined,
+        apiTemplate: join(relpathToLib, table.name, "[id].tpl"),
       };
 
       return map;

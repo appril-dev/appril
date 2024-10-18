@@ -1,4 +1,4 @@
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { format } from "node:util";
 
 import { normalizePath, type ResolvedConfig } from "vite";
@@ -131,8 +131,15 @@ export async function sourceFilesParsers(
             return [];
           });
 
+          const template = opt?.pageTemplate
+            ? await fsx.readFile(
+                resolve(dirname(srcFile), opt.pageTemplate),
+                "utf8",
+              )
+            : undefined;
+
           const page: SolidPage = {
-            path: path === "index" ? "/" : join("/", path),
+            path: join("/", path.replace(/^index\/?\b/, "")),
             originalPath,
             file: originalPath + suffix,
             srcFile,
@@ -146,6 +153,7 @@ export async function sourceFilesParsers(
               replacements: JSON.stringify(linkReplcements),
             },
             meta: opt?.meta ? JSON.stringify(opt.meta) : undefined,
+            template,
           };
 
           entries.push({ page });

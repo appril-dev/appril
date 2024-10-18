@@ -1,4 +1,4 @@
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 import glob from "fast-glob";
 import fsx from "fs-extra";
@@ -111,6 +111,13 @@ export async function sourceFilesParsers(
               ", ", // intentionally using comma, do not use semicolon!
             );
 
+          const template = opt?.apiTemplate
+            ? await fsx.readFile(
+                resolve(dirname(srcFile), opt.apiTemplate),
+                "utf8",
+              )
+            : undefined;
+
           const route: ApiRoute = {
             base,
             path: join("/", path.replace(/^index\/?\b/, "")),
@@ -127,6 +134,7 @@ export async function sourceFilesParsers(
             file,
             fileFullpath: resolve(config.root, defaults.apiDir, file),
             meta: opt?.meta,
+            template,
           };
 
           const alias: Array<ApiRouteAlias> = [];

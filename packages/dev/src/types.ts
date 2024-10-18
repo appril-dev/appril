@@ -64,10 +64,9 @@ export type RouteSection = {
 };
 
 export type RouteOptions = {
-  // api-related options
-
-  // should generate api entry?
-  api?: boolean;
+  /**
+   * generic options
+   * */
 
   // use custom baseurl (eg. /) instead of default /api
   base?: string;
@@ -101,7 +100,20 @@ export type RouteOptions = {
 
   meta?: Record<string, unknown>;
 
-  // solid-related options
+  /**
+   * api-related options
+   * */
+
+  // should generate api entry?
+  api?: boolean;
+
+  // path to file to be used as api template, relative to _routes.toml file.
+  // intended for plugins. users may add custom template to vite.config.ts
+  apiTemplate?: string;
+
+  /**
+   * solid-related options
+   * */
 
   // should generate solid page?
   page?: boolean;
@@ -115,6 +127,10 @@ export type RouteOptions = {
     // error thrown if alias route has no default dataLoader.
     // error thrown even if alias route has dataLoader but it is a custom dataLoader.
     | { alias: string };
+
+  // path to file to be used as page template, relative to _routes.toml file
+  // intended for plugins. users may add custom template to vite.config.ts
+  pageTemplate?: string;
 };
 
 export type ApiRoute = {
@@ -138,6 +154,8 @@ export type ApiRoute = {
   meta?: Record<string, unknown>;
   // path of parent
   aliasOf?: string;
+  // custom template (not path, template itself)
+  template?: string;
 };
 
 export type ApiRouteAlias = Pick<
@@ -171,6 +189,8 @@ export type SolidPage = {
     // inject useData when generating page. false when custom loader provided
     useData?: boolean;
   };
+  // custom template (not path, template itself)
+  template?: string;
 };
 
 // biome-ignore format:
