@@ -8,9 +8,7 @@ import router from "{{importPathmap.api}}/router";
 
 {{#each routes}}
 import {{importName}} from "{{../importPathmap.api}}/{{importPath}}";
-{{#unless optedFile}}
 import {{importName}}_assets from "{{../importPathmap.lib}}/{{importPath}}/_assets";
-{{/unless}}
 {{/each}}
 
 export type ApiRoute ={{#each routes}}  {{#unless @first}}| {{/unless}}"{{originalPath}}"
@@ -34,12 +32,10 @@ routeStack.push({
   originalPath: "{{originalPath}}",
   file: "{{file}}",
   endpoints: routeMapper([
-    {{#unless optedFile}}
     use(paramsHandlers({{params.schema}})),
     use({{importName}}_assets.paramsValidation),
     use(payloadHandlers()),
     ...{{importName}}_assets.payloadValidation.map(([m,h]) => use(h).before(m)),
-    {{/unless}}
     ...{{importName}},
   ] as Array<never>),
   {{#if meta}}

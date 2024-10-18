@@ -72,9 +72,6 @@ export type RouteOptions = {
   // use custom baseurl (eg. /) instead of default /api
   base?: string;
 
-  // relative to apiDir
-  file?: string;
-
   /**
    * simple alias; will serve /login and /authorize
    *  [login]
@@ -136,7 +133,6 @@ export type ApiRoute = {
   file: string;
   fileFullpath: string;
   srcFile: string;
-  optedFile?: string;
   importName: string;
   importPath: string;
   meta?: Record<string, unknown>;

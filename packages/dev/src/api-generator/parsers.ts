@@ -4,7 +4,6 @@ import glob from "fast-glob";
 import fsx from "fs-extra";
 import crc32 from "crc/crc32";
 import { parse } from "smol-toml";
-import { sanitizePath } from "@appril/dev-utils";
 
 import {
   type PluginOptionsResolved,
@@ -70,9 +69,7 @@ export async function sourceFilesParsers(
             })
             .join("/");
 
-          const importPath = opt?.file
-            ? sanitizePath(opt.file).replace(/\.[^.]+$/, "")
-            : originalPath;
+          const importPath = originalPath;
 
           const importName = importNameFromPath(importPath);
 
@@ -129,7 +126,6 @@ export async function sourceFilesParsers(
             srcFile,
             file,
             fileFullpath: resolve(config.root, defaults.apiDir, file),
-            optedFile: opt?.file,
             meta: opt?.meta,
           };
 

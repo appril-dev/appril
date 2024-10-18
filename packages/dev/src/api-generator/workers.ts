@@ -65,27 +65,25 @@ async function generateRouteFiles({
   route,
   template,
 }: { route: ApiRoute; template: string | undefined }) {
-  if (!route.optedFile) {
-    await generateFile(
-      join(
-        defaults.libDir,
-        sourceFolder,
-        libApiDir,
-        route.importPath,
-        "index.ts",
-      ),
-      {
-        template: indexTpl,
-        context: {
-          importPathmap: {
-            lib: [sourceFolder, libApiDir].join("/"),
-          },
-          apiMethods: Object.keys(APIMethods),
-          route,
+  await generateFile(
+    join(
+      defaults.libDir,
+      sourceFolder,
+      libApiDir,
+      route.importPath,
+      "index.ts",
+    ),
+    {
+      template: indexTpl,
+      context: {
+        importPathmap: {
+          lib: [sourceFolder, libApiDir].join("/"),
         },
+        apiMethods: Object.keys(APIMethods),
+        route,
       },
-    );
-  }
+    },
+  );
 
   await generateFile(
     join(sourceFolder, defaults.apiDir, route.file),
