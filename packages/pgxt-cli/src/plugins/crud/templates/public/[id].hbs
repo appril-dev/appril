@@ -1,35 +1,21 @@
-import { type RecordT, type UpdateT, get, patch, del } from "{{importPathmap.api}}/[id]";
+import {
+  type RecordT,
+  type UpdateT,
+  get,
+  patch,
+  del,
+} from "{{importPathmap.api}}/[id]";
 
 export default [
+  get(async (ctx, worker): Promise<RecordT> => {
+    return worker();
+  }),
 
-  get(
-    (
-      ctx,
-      payload,
-      handler,
-    ): Promise<RecordT> => {
-      return handler(payload)
-    }
-  ),
+  patch<never, { payload: UpdateT }>(async (ctx, worker): Promise<RecordT> => {
+    return worker(ctx.payload);
+  }),
 
-  patch(
-    (
-      ctx,
-      payload: UpdateT,
-      handler,
-    ): Promise<RecordT> => {
-      return handler(payload)
-    }
-  ),
-
-  del(
-    (
-      ctx,
-      payload,
-      handler,
-    ): Promise<RecordT> => {
-      return handler(payload)
-    }
-  ),
-
-]
+  del(async (ctx, worker): Promise<RecordT> => {
+    return worker();
+  }),
+];

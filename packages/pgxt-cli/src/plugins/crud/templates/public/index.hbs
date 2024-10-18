@@ -1,25 +1,11 @@
 import { type RecordT, type InsertT, get, post } from "{{importPathmap.api}}";
 
 export default [
+  get(async (ctx, worker): Promise<Array<RecordT>> => {
+    return worker();
+  }),
 
-  get(
-    (
-      ctx,
-      payload,
-      handler,
-    ): Promise<Array<RecordT>> => {
-      return handler(payload)
-    }
-  ),
-
-  post(
-    async (
-      ctx,
-      payload: InsertT,
-      handler,
-    ): Promise<RecordT> => {
-      return handler(payload)
-    }
-  ),
-
-]
+  post<never, { payload: InsertT }>(async (ctx, worker): Promise<RecordT> => {
+    return worker(ctx.payload);
+  }),
+];
