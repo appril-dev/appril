@@ -69,6 +69,10 @@ async function generateRouteAssets({
 }: {
   route: ApiRoute;
 }) {
+  if (route.aliasOf) {
+    return;
+  }
+
   const { typeDeclarations, fetchDefinitions } = await extractApiAssets(
     route.fileFullpath,
     {

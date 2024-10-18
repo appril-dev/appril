@@ -65,6 +65,10 @@ async function generateRouteFiles({
   route,
   template,
 }: { route: ApiRoute; template: string | undefined }) {
+  if (route.aliasOf) {
+    return;
+  }
+
   await generateFile(
     join(
       defaults.libDir,
