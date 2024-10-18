@@ -47,7 +47,6 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
         apiAssets: {},
         apiGenerator: {},
         apiMiddleware: undefined,
-        fetchGenerator: {},
         solidPages: undefined,
         useWorkers: true,
         watchOptions: {

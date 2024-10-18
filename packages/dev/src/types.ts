@@ -21,10 +21,6 @@ export type PluginOptions = {
     next: () => void,
   ) => Promise<void>;
 
-  fetchGenerator?: {
-    filter?: (route: ApiRoute) => boolean;
-  };
-
   solidPages?: {
     // path to custom template, relative to vite.config.ts
     template?: string;

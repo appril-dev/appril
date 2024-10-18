@@ -21,8 +21,6 @@ export async function fetchGenerator(
 ) {
   const { appRoot, sourceFolder } = options;
 
-  const { filter = (_r: ApiRoute) => true } = options.fetchGenerator;
-
   const srcWatchers: Record<string, () => Promise<void>> = {};
 
   const routeMap: Record<string, ApiRoute> = {};
@@ -63,14 +61,12 @@ export async function fetchGenerator(
   for (const { file, parser } of await sourceFilesParsers(config, options)) {
     srcWatchers[file] = async () => {
       for (const { route, alias } of await parser()) {
-        if (filter(route)) {
-          routeMap[route.fileFullpath] = route;
-          for (const a of alias) {
-            routeMap[a.path] = {
-              ...route,
-              ...a,
-            };
-          }
+        routeMap[route.path] = route;
+        for (const a of alias) {
+          routeMap[a.path] = {
+            ...route,
+            ...a,
+          };
         }
       }
     };

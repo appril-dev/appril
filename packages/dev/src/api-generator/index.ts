@@ -123,10 +123,7 @@ export async function apiGenerator(
   for (const { file, parser } of await sourceFilesParsers(config, options)) {
     srcWatchers[file] = async () => {
       for (const { route, alias } of await parser()) {
-        const { path } = route;
-
-        routeMap[path] = route;
-
+        routeMap[route.path] = route;
         for (const a of alias) {
           routeMap[a.path] = {
             ...route,
