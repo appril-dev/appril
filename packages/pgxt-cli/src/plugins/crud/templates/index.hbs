@@ -152,7 +152,7 @@ export default <
             }, {})
 
             const [item] = Object.keys(updates).length
-              ? await ctx.crud.dbxt
+              ? await ctx.crud.queryBuilder
                   .where(ctx.crud.primaryKey, ctx.params.id)
                   .update(data)
                   .returning(ctx.crud.returning as Array<string>)
@@ -181,7 +181,7 @@ export default <
         initMiddleware,
         async (ctx, next) => {
           const worker = async () => {
-            const [item] = await ctx.crud.dbxt
+            const [item] = await ctx.crud.queryBuilder
               .where(ctx.crud.primaryKey, ctx.params.id)
               .delete()
               .returning(ctx.crud.returning as Array<string>);
