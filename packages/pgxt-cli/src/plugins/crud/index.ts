@@ -146,7 +146,14 @@ export default (
     ].join("\n");
 
     await generateFile(
-      join(srcFolder, `_${baseDir + defaults.sourceFile}`),
+      join(
+        srcFolder,
+        [
+          `_${baseDir}`,
+          ...(schema === "public" ? [] : [`_${schema}`]),
+          defaults.sourceFile,
+        ].join(""),
+      ),
       content,
     );
   };
