@@ -1,6 +1,7 @@
 import { join, dirname } from "node:path";
 import { format } from "node:util";
 
+import fsx from "fs-extra";
 import { fileGenerator } from "@appril/dev-utils";
 
 import { type ApiRoute, defaults } from "@/base";
@@ -74,7 +75,9 @@ async function generateRouteAssets({
   }
 
   const { typeDeclarations, fetchDefinitions } = await extractApiAssets(
-    route.fileFullpath,
+    (await fsx.exists(route.fileFullpath))
+      ? await fsx.readFile(route.fileFullpath, "utf8")
+      : "",
     {
       relpathResolver(path) {
         return join(sourceFolder, defaults.apiDir, dirname(route.file), path);

@@ -1,50 +1,44 @@
-export const paramsHandlers: (
-  schema: Array<{ name: string, type: string, isRest: boolean, isOpt: boolean}>
-) => Array<import("koa").Middleware> = (schema) => {
-  return [
-    (ctx, next) => {
-      for (const param of schema) {
-        if (param.isRest) {
-          Object.defineProperty(ctx.params, param.name, {
-            value: ctx.params[param.name]?.split("/") || [],
-            configurable: true, // should be swapable for hmr to work
-          })
-        }
+import { use } from "@appril/api/router";
 
-        if (String(param.type) !== "number") {
-          continue
-        }
-
-        const value = ctx.params[param.name]
-
-        if (Array.isArray(value)) {
-          Object.defineProperty(ctx.params, param.name, {
-            value: value.map((e) => Number.isFinite(+e) ? Number(e) : e),
-            configurable: true, // should be swapable for hmr to work
-          })
-        }
-        else if (value && Number.isFinite(+value)) {
-          Object.defineProperty(ctx.params, param.name, {
-            value: Number(value),
-            configurable: true, // should be swapable for hmr to work
-          })
-        }
-      }
-      return next()
-    },
-  ]
-}
-
-export const payloadHandlers: () => Array<import("koa").Middleware> = () => {
-  return [
-    (ctx, next) => {
-      Object.defineProperty(ctx, "payload", {
-        get() {
-          return "body" in ctx.request ? ctx.request.body : ctx.query;
-        },
+export const refineParams = (
+  schema: Array<{ name: string; isRest: boolean; isOpt: boolean; isNumber: boolean; }>
+) => use((ctx, next) => {
+  for (const param of schema) {
+    if (param.isRest) {
+      Object.defineProperty(ctx.params, param.name, {
+        value: ctx.params[param.name]?.split("/") || [],
         configurable: true, // should be swapable for hmr to work
-      });
-      return next();
+      })
     }
-  ]
-}
+
+    if (!param.isNumber) {
+      continue
+    }
+
+    const value = ctx.params[param.name]
+
+    if (Array.isArray(value)) {
+      Object.defineProperty(ctx.params, param.name, {
+        value: value.map((e) => Number.isFinite(+e) ? Number(e) : e),
+        configurable: true, // should be swapable for hmr to work
+      })
+    }
+    else if (value && Number.isFinite(+value)) {
+      Object.defineProperty(ctx.params, param.name, {
+        value: Number(value),
+        configurable: true, // should be swapable for hmr to work
+      })
+    }
+  }
+  return next()
+})
+
+export const injectPayload = () => use("payload", (ctx, next) => {
+  Object.defineProperty(ctx, "payload", {
+    get() {
+      return "body" in ctx.request ? ctx.request.body : ctx.query;
+    },
+    configurable: true, // should be swapable for hmr to work
+  });
+  return next();
+})

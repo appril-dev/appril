@@ -4,17 +4,19 @@ import glob from "fast-glob";
 import fsx from "fs-extra";
 import crc32 from "crc/crc32";
 import { parse } from "smol-toml";
+import { render } from "@appril/dev-utils";
 
 import {
   type PluginOptionsResolved,
   type RouteOptions,
-  type RouteSection,
   type ApiRoute,
   type ApiRouteAlias,
   normalizeRoutePath,
   routeSections,
   defaults,
 } from "@/base";
+
+import paramsTpl from "./templates/params.hbs";
 
 type ParsedEntry = {
   route: ApiRoute;
@@ -90,22 +92,15 @@ export async function sourceFilesParsers(
 
           const file = importPath + suffix;
 
-          const paramsSections: Array<Required<RouteSection>["param"]> =
-            sections.slice(1).flatMap((e) => (e.param ? [e.param] : []));
+          const paramsSchema = sections
+            .slice(1)
+            .flatMap((e) => (e.param ? [e.param] : []));
 
-          const paramsLiteral = paramsSections
+          const fetchParamsLiteral = paramsSchema
             .map((param) => {
               return param.isRest
-                ? `${param.name}?: Array<${param.type}>`
-                : `${param.name}${param.isOpt ? "?" : ""}: ${param.type}`;
-            })
-            .join("; ");
-
-          const fetchParamsLiteral = paramsSections
-            .map((param) => {
-              return param.isRest
-                ? `...${param.name}: Array<${param.type}>`
-                : `${param.name}${param.isOpt ? "?" : ""}: ${param.type}`;
+                ? `...${param.name}: Array<string | number>`
+                : `${param.name}${param.isOpt ? "?" : ""}: string | number`;
             })
             .join(
               ", ", // intentionally using comma, do not use semicolon!
@@ -124,8 +119,8 @@ export async function sourceFilesParsers(
             originalPath,
             params: {
               id: ["ParamsT", crc32(importName)].join(""),
-              schema: JSON.stringify(paramsSections),
-              literal: paramsLiteral,
+              literal: render(paramsTpl, { schema: paramsSchema }).trim(),
+              schema: paramsSchema,
             },
             fetchParams: { literal: fetchParamsLiteral },
             importName,

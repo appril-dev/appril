@@ -12,7 +12,7 @@ import { sourceFilesParsers } from "@/api-generator/parsers";
 
 type Workers = typeof import("./workers");
 
-export async function apiAssets(
+export async function apiRules(
   config: import("vite").ResolvedConfig,
   options: PluginOptionsResolved,
   { workerPool }: { workerPool: Workers },
@@ -21,9 +21,8 @@ export async function apiAssets(
 
   // biome-ignore format:
   const {
-    filter = (_r: ApiRoute) => true,
     importZodErrorHandlerFrom,
-  } = options.apiAssets;
+  } = options.apiRules;
 
   const srcWatchers: Record<string, () => Promise<void>> = {};
 
@@ -57,7 +56,7 @@ export async function apiAssets(
 
       if (routeMap[file]) {
         // some route updated, rebuilding assets
-        if (filter(routeMap[file])) {
+        if (routeMap[file]) {
           await workerPool.handleRouteFileUpdate({
             route: routeMap[file],
           });
@@ -70,9 +69,7 @@ export async function apiAssets(
   for (const { file, parser } of parsers) {
     srcWatchers[file] = async () => {
       for (const { route } of await parser()) {
-        if (filter(route)) {
-          routeMap[route.fileFullpath] = route;
-        }
+        routeMap[route.fileFullpath] = route;
       }
     };
   }

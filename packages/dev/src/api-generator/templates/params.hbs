@@ -1,0 +1,9 @@
+{
+  {{#each schema}}
+  {{#if isRest}}
+  "{{name}}": Array<string | number>;
+  {{else}}
+  "{{name}}"{{#if isOpt}}?{{/if}}: string | number;
+  {{/if}}
+  {{/each}}
+}

@@ -16,7 +16,7 @@ import {
   type HashMap,
   extractDepFiles,
   identicalHashMap,
-  generateAssetsFile,
+  generateRulesFile,
   libFilePath,
 } from "./base";
 
@@ -76,7 +76,7 @@ export async function bootstrap(data: {
             ),
           )
         ) {
-          return ["_assets.ts", "_hashmap.json", "_schema.ts"].includes(
+          return ["_rules.ts", "_hashmap.json", "_schema.ts"].includes(
             basename(path),
           );
         }
@@ -122,12 +122,13 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
       continue;
     }
 
-    // generating a generic assets file
+    // generating a generic rules file
     // to avoid import errors while zod schema generated
-    await generateAssetsFile(route, {
+    await generateRulesFile(route, {
       appRoot,
       sourceFolder,
       typeDeclarations: [],
+      paramsType: undefined,
       payloadTypes: [],
       importZodErrorHandlerFrom,
       overwrite: false, // skip if exists
@@ -173,7 +174,7 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
       batch.map((route) => {
         return new Promise((resolve) => {
           const worker = new Worker(
-            new URL("api-assets/worker.mjs", import.meta.url),
+            new URL("api-rules/worker.mjs", import.meta.url),
           );
 
           worker.on(

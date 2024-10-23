@@ -40,6 +40,7 @@ export interface DefaultState {}
 export interface DefaultContext {}
 
 export interface UseIdentities {
+  payload: string;
   bodyparser: string;
 }
 

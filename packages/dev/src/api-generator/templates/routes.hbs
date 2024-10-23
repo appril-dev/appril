@@ -1,18 +1,18 @@
 import { join } from "node:path";
 
-import { type Meta, type RouteEndpoint, use, routeMapper } from "@appril/api/router";
+import { type Meta, type RouteEndpoint, routeMapper } from "@appril/api/router";
 
 import { baseurl, apiurl } from "{{importPathmap.config}}";
-import { paramsHandlers, payloadHandlers } from "{{importPathmap.lib}}/base";
+import { injectPayload } from "{{importPathmap.lib}}/base";
 import router from "{{importPathmap.api}}/router";
 
 {{#each routes}}
-import {{importName}} from "{{../importPathmap.api}}/{{importPath}}";
-import {{importName}}_assets from "{{../importPathmap.lib}}/{{importPath}}/_assets";
+  import {{importName}} from "{{../importPathmap.api}}/{{importPath}}";
+  import {{importName}}_rules from "{{../importPathmap.lib}}/{{importPath}}/_rules";
 {{/each}}
 
-export type ApiRoute ={{#each routes}}  {{#unless @first}}| {{/unless}}"{{originalPath}}"
-{{/each}}
+export type ApiRoute ={{#each routes}}
+  | "{{originalPath}}"{{/each}}
 
 export const routeStack: Array<{
   path: string;
@@ -32,12 +32,10 @@ routeStack.push({
   originalPath: "{{originalPath}}",
   file: "{{file}}",
   endpoints: routeMapper([
-    use(paramsHandlers({{params.schema}})),
-    use({{importName}}_assets.paramsValidation),
-    use(payloadHandlers()),
-    ...{{importName}}_assets.payloadValidation.map(([m,h]) => use(h).before(m)),
-    ...{{importName}},
-  ] as Array<never>),
+    injectPayload(),
+    {{importName}}_rules(),
+    {{importName}}
+  ].flat()),
   {{#if meta}}
   meta: {{meta}},
   {{/if}}

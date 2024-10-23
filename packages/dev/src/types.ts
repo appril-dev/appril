@@ -3,8 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 export type PluginOptions = {
   apiurl: string;
 
-  apiAssets?: {
-    filter?: (route: ApiRoute) => boolean;
+  apiRules?: {
     importZodErrorHandlerFrom?: string;
   };
 
@@ -53,7 +52,6 @@ export type RouteSection = {
   ext: string;
   param?: {
     name: string;
-    type: string;
     isOpt?: boolean;
     isRest?: boolean;
   };
@@ -135,8 +133,8 @@ export type ApiRoute = {
   originalPath: string;
   params: {
     id: string;
-    schema: string;
     literal: string;
+    schema: Array<Required<RouteSection>["param"]>;
   };
   fetchParams: {
     literal: string;

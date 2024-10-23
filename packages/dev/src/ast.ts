@@ -1,5 +1,5 @@
 import fsx from "fs-extra";
-// TODO: switch to ts-morph
+// TODO: consider github.com/dsherret/ts-morph
 import tsquery from "@phenomnomnominal/tsquery";
 
 import ts from "typescript";
@@ -30,74 +30,88 @@ export type TypeDeclaration = {
   };
 };
 
-export function extractDefaultExportedArrayMethods<
+export function extractMiddlewareHandlers<
   MethodsOfInterest extends readonly string[] = [],
 >(
-  srcText: string,
-  {
-    methodsOfInterest,
-    relpathResolver,
-  }: {
-    methodsOfInterest: readonly string[];
-    relpathResolver: RelpathResolver;
-  },
-): {
-  typeDeclarations: Array<TypeDeclaration>;
-  methods: Array<{
-    method: MethodsOfInterest[number];
-    payloadType: string | undefined;
-    returnType: string | undefined;
-  }>;
-} {
-  const ast = tsquery.ast(srcText);
+  ast: ts.SourceFile,
+  methodsOfInterest: readonly string[],
+): Array<{
+  method: MethodsOfInterest[number];
+  payloadType: string | undefined;
+  returnType: string | undefined;
+}> {
+  const [callExpression] = tsquery.match(
+    ast,
+    "ExportAssignment > CallExpression",
+  );
 
-  const typeDeclarations = extractTypeDeclarations(ast, { relpathResolver });
+  if (!callExpression) {
+    return [];
+  }
 
-  const callExpressions = tsquery
-    .match(ast, "ExportAssignment ArrayLiteralExpression > CallExpression")
-    .filter(
-      (e) => e.parent?.parent?.parent === ast,
-    ) as Array<ts.CallExpression>;
+  const [arrayLiteralExpression] = tsquery
+    .match(
+      callExpression,
+      [
+        "ArrowFunction      > ArrayLiteralExpression",
+        "FunctionExpression > ArrayLiteralExpression",
+      ].join(", "),
+    )
+    .filter((e) => e.parent?.parent === callExpression);
 
-  const methods = [];
+  if (!arrayLiteralExpression) {
+    return [];
+  }
 
-  for (const node of callExpressions) {
-    const method = node.expression.getText();
+  const methodsLiteral = methodsOfInterest.join("|");
 
-    if (!methodsOfInterest.includes(method)) {
-      continue;
-    }
+  let callExpressions: Array<[ts.CallExpression, string]> = tsquery
+    .match(
+      arrayLiteralExpression,
+      `CallExpression > Identifier[name=/^(${methodsLiteral})$/]`,
+    )
+    .flatMap((e) =>
+      e.parent?.parent === arrayLiteralExpression
+        ? [[e.parent as ts.CallExpression, e.getText()]]
+        : [],
+    );
 
-    const firstArg = node.arguments?.[0] as
-      | ts.ArrowFunction
-      | ts.FunctionExpression
-      | undefined;
-
-    if (
-      !firstArg ||
-      ![ts.isArrowFunction(firstArg), ts.isFunctionExpression(firstArg)].some(
-        (e) => e === true,
+  if (!callExpressions.length) {
+    callExpressions = tsquery
+      .match(
+        arrayLiteralExpression,
+        `CallExpression > PropertyAccessExpression > Identifier[name=/^(${methodsLiteral})$/]`,
       )
-    ) {
-      continue;
-    }
+      .flatMap((e) =>
+        e.parent?.parent?.parent === arrayLiteralExpression
+          ? [[e.parent.parent as ts.CallExpression, e.getText()]]
+          : [],
+      );
+  }
 
-    const payloadType = extractPayloadType(node);
+  const handlers = [];
 
-    const returnType = extractReturnType(firstArg);
+  for (const [callExpression, method] of callExpressions) {
+    const [managedMiddleware] = tsquery
+      .match(callExpression, "ArrowFunction, FunctionExpression")
+      .filter((e) => e.parent === callExpression);
 
-    methods.push({
+    const generics = extractGenerics(callExpression);
+
+    handlers.push({
       method,
-      payloadType,
-      returnType,
+      payloadType: generics[1] ? extractPayloadType(generics[1]) : undefined,
+      returnType: managedMiddleware
+        ? extractReturnType(managedMiddleware)
+        : undefined,
     });
   }
 
-  return { typeDeclarations, methods };
+  return handlers;
 }
 
 export function extractTypeDeclarations(
-  ast: ReturnType<(typeof tsquery)["ast"]>,
+  ast: ts.SourceFile,
   {
     relpathResolver,
   }: {
@@ -180,44 +194,64 @@ export function extractTypeDeclarations(
   return Object.values(typeDeclarationsMap);
 }
 
-export function extractPayloadType(
-  callExpression: ts.CallExpression,
-): string | undefined {
-  const [syntaxList] = tsquery
-    .match(callExpression, "SyntaxList")
-    .filter((e) => e.parent === callExpression);
-
-  if (!syntaxList) {
-    return;
-  }
-
-  const [_, ctxType] =
-    syntaxList
-      .getChildren()
-      .filter((e) => e.kind !== ts.SyntaxKind.CommaToken) || [];
-
-  if (ctxType?.kind !== ts.SyntaxKind.TypeLiteral) {
-    // handling only type literals
-    // get<never, { payload: { id: number } }>(...) - good
-    // get<never, { payload: Payload }>(...) - good
-    // get<never, Payload>(...) - bad
-    // also generics wont work, ts-to-zod will fail
-    // get<never, { payload: SomeGeneric<...> }>(...) - bad
-    return;
-  }
-
-  const [propertySignature] = tsquery
-    .match(ctxType, `PropertySignature > Identifier[name="payload"]`)
-    .flatMap((e) => (e.parent?.parent === ctxType ? [e.parent] : []));
-
-  if (!propertySignature) {
-    return;
-  }
-
-  const [payloadType] = tsquery.match(
-    propertySignature,
-    "TypeLiteral,TypeReference",
+export function extractParamsType(ast: ts.SourceFile): string | undefined {
+  const [callExpression] = tsquery.match(
+    ast,
+    "ExportAssignment > CallExpression",
   );
+
+  if (!callExpression) {
+    return;
+  }
+
+  const [paramsType] = extractGenerics(callExpression);
+
+  return paramsType?.getText();
+}
+
+// extract [ "string", "number" ] from
+// export default routeFactory<string, number>(...
+// or [ "{ x: number }", "{ payload: { id: number } }" ] from
+// get<{ x: number }, { payload: { id: number } }>(...
+export function extractGenerics(callExpression: ts.Node): Array<ts.Node> {
+  const traversed: Record<number, ts.Node> = {};
+  const generics: Array<ts.Node> = [];
+
+  for (const [i, node] of callExpression.getChildren().entries()) {
+    if (
+      node.kind === ts.SyntaxKind.GreaterThanToken &&
+      traversed[i - 1]?.kind === ts.SyntaxKind.SyntaxList &&
+      traversed[i - 2]?.kind === ts.SyntaxKind.LessThanToken
+    ) {
+      for (const c of traversed[i - 1].getChildren()) {
+        if (c.parent !== callExpression) {
+          continue;
+        }
+        if (c.kind === ts.SyntaxKind.CommaToken) {
+          continue;
+        }
+        generics.push(c);
+      }
+      break;
+    }
+    traversed[i] = node;
+  }
+
+  return generics;
+}
+
+// extract "{ id: number }" from "{ payload: { id: number } }"
+export function extractPayloadType(node: ts.Node): string | undefined {
+  // given node looks like "{ payload: { id: number } }"
+  // getting first identifier with [name=payload]
+  // identifier's parent is the LabeledStatement of ineterest
+  const [labeledStatement] = tsquery
+    .match(node, "Identifier[name=payload]")
+    .map((e) => e.parent);
+
+  // extracted labeledStatement looks like "payload: { id: number }"
+  // getChildren returns an array like "[ 'payload', ':', '{ id: number }' ]"
+  const payloadType = labeledStatement?.getChildren()[2];
 
   return payloadType?.getText();
 }
@@ -257,7 +291,7 @@ export function extractTypeReferences(node: ts.Node) {
 }
 
 export async function extractApiAssets(
-  file: string,
+  fileContent: string,
   {
     relpathResolver,
   }: {
@@ -265,37 +299,32 @@ export async function extractApiAssets(
   },
 ): Promise<{
   typeDeclarations: Array<TypeDeclaration>;
+  paramsType: string | undefined;
   payloadTypes: Record<string, string>;
   fetchDefinitions: Array<FetchDefinition>;
 }> {
-  const fileContent = (await fsx.exists(file))
-    ? await fsx.readFile(file, "utf8")
-    : "";
+  const ast = tsquery.ast(fileContent);
 
-  const { typeDeclarations, methods } = extractDefaultExportedArrayMethods(
-    fileContent,
-    {
-      relpathResolver,
-      methodsOfInterest: [
-        "head",
-        "options",
-        "get",
-        "put",
-        "patch",
-        "post",
-        "del",
-      ],
-    },
-  );
+  const typeDeclarations = extractTypeDeclarations(ast, { relpathResolver });
+  const paramsType = extractParamsType(ast);
+
+  const handlers = extractMiddlewareHandlers(ast, [
+    "head",
+    "options",
+    "get",
+    "put",
+    "patch",
+    "post",
+    "del",
+  ]);
 
   const payloadTypes: Record<string, string> = {};
   const fetchDefinitions: Record<string, FetchDefinition> = {};
 
-  for (const { method, payloadType, returnType } of methods) {
+  for (const { method, payloadType, returnType } of handlers) {
     if (payloadType) {
       payloadTypes[method] = payloadType;
     }
-
     fetchDefinitions[method] = {
       method,
       httpMethod: httpMethodByApi(method),
@@ -306,6 +335,7 @@ export async function extractApiAssets(
 
   return {
     typeDeclarations,
+    paramsType,
     payloadTypes,
     fetchDefinitions: Object.values(fetchDefinitions),
   };

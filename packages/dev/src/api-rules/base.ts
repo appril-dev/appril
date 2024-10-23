@@ -9,7 +9,7 @@ import fsx from "fs-extra";
 import { type ApiRoute, defaults } from "@/base";
 import type { TypeDeclaration } from "@/ast";
 
-import assetsTpl from "./templates/assets.hbs";
+import rulesTpl from "./templates/rules.hbs";
 
 export type PayloadType = {
   id: string;
@@ -53,23 +53,24 @@ export function libFileBase(
 
 export function libFilePath(
   route: ApiRoute,
-  file: "assets" | "schema" | "hashmap",
+  file: "rules" | "schema" | "hashmap",
   { appRoot, sourceFolder }: { appRoot: string; sourceFolder: string },
 ) {
   return join(
     libFileBase(route, { appRoot, sourceFolder }),
-    { assets: "_assets.ts", schema: "_schema.ts", hashmap: "_hashmap.json" }[
+    { rules: "_rules.ts", schema: "_schema.ts", hashmap: "_hashmap.json" }[
       file
     ],
   );
 }
 
-export function generateAssetsFile(
+export function generateRulesFile(
   route: ApiRoute,
   {
     appRoot,
     sourceFolder,
     typeDeclarations,
+    paramsType,
     payloadTypes,
     zodSchema,
     zodErrors,
@@ -79,6 +80,7 @@ export function generateAssetsFile(
     appRoot: string;
     sourceFolder: string;
     typeDeclarations: Array<TypeDeclaration>;
+    paramsType: string | undefined;
     payloadTypes: Array<PayloadType>;
     zodSchema?: string | undefined;
     zodErrors?: Array<string>;
@@ -86,16 +88,29 @@ export function generateAssetsFile(
     overwrite?: boolean;
   },
 ) {
+  const paramsSchema = route.params.schema.map((e) => ({
+    ...e,
+    isNumber: paramsType
+      ? new RegExp(`('|")?${e.name}\\1\\??:(\\s+)?number\\b`).test(paramsType)
+      : false,
+  }));
+
+  const libApiDir = format(defaults.libDirFormat, defaults.apiDir);
+
   return renderToFile(
-    libFilePath(route, "assets", { appRoot, sourceFolder }),
-    assetsTpl,
+    libFilePath(route, "rules", { appRoot, sourceFolder }),
+    rulesTpl,
     {
       route,
       typeDeclarations,
+      paramsSchema: JSON.stringify(paramsSchema),
       payloadTypes,
       zodSchema,
       zodErrors,
       importZodErrorHandlerFrom,
+      importPathmap: {
+        lib: [sourceFolder, libApiDir].join("/"),
+      },
     },
     { overwrite },
   );
@@ -110,6 +125,10 @@ async function generateHashSum(file: string, extra?: string): Promise<number> {
     return 0;
   }
   return fileContent ? crc32(fileContent + pkg.version + String(extra)) : 0;
+}
+
+export async function generateRouteHashMap(route: ApiRoute): Promise<number> {
+  return generateHashSum(route.fileFullpath, JSON.stringify(route.params));
 }
 
 // computing hash for route and all it's deps.
@@ -139,7 +158,7 @@ export async function generateHashMap(
 
   return {
     file: route.file,
-    hash: await generateHashSum(route.fileFullpath, route.params.schema),
+    hash: await generateRouteHashMap(route),
     deps,
   };
 }
@@ -150,12 +169,7 @@ export async function identicalHashMap(
   hashmap: HashMap,
   { appRoot }: { appRoot: string },
 ) {
-  if (
-    !identicalHashSum(
-      hashmap.hash,
-      await generateHashSum(route.fileFullpath, route.params.schema),
-    )
-  ) {
+  if (!identicalHashSum(hashmap.hash, await generateRouteHashMap(route))) {
     // route itself updated, signaling rebuild without checking deps
     return false;
   }

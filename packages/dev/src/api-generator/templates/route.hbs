@@ -1,9 +1,7 @@
-import { get } from "{{importPathmap.base}}";
+import routeFactory from "{{importPathmap.base}}";
 
-export default [
-
+export default routeFactory(({ get }) => [
   get(async (ctx) => {
     return "Automatically generated route: [ {{route.originalPath}} ]"
   }),
-
-]
+])

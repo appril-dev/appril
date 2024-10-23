@@ -1,3 +1,6 @@
+import { use } from "@appril/api/router";
+
+import { refineParams } from "{{importPathmap.lib}}/base";
 
 {{#if importZodErrorHandlerFrom}}
 import { zodErrorHandler } from "{{importZodErrorHandlerFrom}}";
@@ -13,37 +16,29 @@ function zodErrorHandler(error: any) {
 
 {{zodSchema}}
 
-const paramsValidation: Array<import("koa").Middleware> = [
-  (ctx, next) => {
+const validateParams = () => use((ctx, next) => {
+  try {
+    {{route.params.id}}Schema.parse(ctx.params)
+  } catch (error: any) {
+    throw zodErrorHandler(error)
+  }
+  return next()
+})
+
+const validatePayload = () => [
+  {{#if zodSchema}}
+  {{#each payloadTypes}}
+  use<never, { payload: {} }>((ctx, next) => {
     try {
-      {{route.params.id}}Schema.parse(ctx.params)
+      {{id}}Schema.parse(ctx.payload)
     } catch (error: any) {
       throw zodErrorHandler(error)
     }
     return next()
-  },
-]
-
-const payloadValidation: Array<[
-  import("@appril/api/router").APIMethod,
-  import("koa").Middleware
-]> = [
-  {{#if zodSchema}}
-  {{#each payloadTypes}}
-  [
-    "{{method}}",
-    (ctx, next) => {
-      try {
-        {{id}}Schema.parse(ctx.payload)
-      } catch (error: any) {
-        throw zodErrorHandler(error)
-      }
-      return next()
-    }
-  ],
+  }).before("{{method}}"),
   {{/each}}
   {{/if}}
-]
+].flat()
 
 {{#if zodErrors.length}}
 console.error("\n[ \x1b[31m{{route.file}}\x1b[0m ]: failed building zod schema(s)")
@@ -52,4 +47,8 @@ console.error(`{{this}}`)
 {{/each}}
 {{/if}}
 
-export default { paramsValidation, payloadValidation };
+export default () => [
+  refineParams({{paramsSchema}}),
+  validateParams(),
+  validatePayload(),
+].flat()

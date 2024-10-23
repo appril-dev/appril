@@ -1,0 +1,7 @@
+{{#each discoveredTypeDeclarations}}
+{{#if included}}{{text}}
+{{/if}}
+{{/each}}
+
+export type {{paramsType.id}} = {{paramsType.literal}}{{#if paramsType.customSchema}} & {{paramsType.customSchema}}
+{{/if}}

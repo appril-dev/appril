@@ -12,7 +12,7 @@ import { workerFactory } from "./worker-pool";
 
 import { apiHandlerFactory } from "./api-handler";
 import { apiGenerator } from "./api-generator";
-import { apiAssets } from "./api-assets";
+import { apiRules } from "./api-rules";
 import { solidPages } from "./solid-pages";
 import { fetchGenerator } from "./fetch-generator";
 
@@ -44,7 +44,7 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
 
     async configResolved(config) {
       const resolvedOptions: PluginOptionsResolved = {
-        apiAssets: {},
+        apiRules: {},
         apiGenerator: {},
         apiMiddleware: undefined,
         solidPages: undefined,
@@ -74,7 +74,7 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
 
       const plugins = [
         fetchGenerator,
-        apiAssets,
+        apiRules,
         apiGenerator,
         ...(resolvedOptions.solidPages ? [solidPages] : []),
       ];

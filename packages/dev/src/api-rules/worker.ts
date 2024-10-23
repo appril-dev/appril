@@ -6,13 +6,13 @@ import ts from "typescript";
 import crc32 from "crc/crc32";
 import { generate } from "ts-to-zod";
 
-import { renderToFile } from "@appril/dev-utils";
+import { render, renderToFile } from "@appril/dev-utils";
 
 import { defaults } from "@/base";
 import { extractApiAssets, extractTypeReferences } from "@/ast";
 
 import {
-  generateAssetsFile,
+  generateRulesFile,
   generateHashMap,
   libFilePath,
   type DiscoveredTypeDeclaration,
@@ -20,7 +20,8 @@ import {
   type WorkerPayload,
 } from "./base";
 
-import schemaTpl from "./templates/schema.hbs";
+import schemaTsTpl from "./templates/schema-ts.hbs";
+import schemaZodTpl from "./templates/schema-zod.hbs";
 
 parentPort?.on("message", worker);
 
@@ -42,37 +43,34 @@ async function worker({
 }: WorkerPayload) {
   console.log([route.file, "rebuilding assets"]);
 
-  const schemaFile = libFilePath(route, "schema", { appRoot, sourceFolder });
-
   const generateZodSchema = async (): Promise<{
     zodSchema?: string | undefined;
     zodErrors?: Array<string> | undefined;
     discoveredTypeDeclarations?: Array<DiscoveredTypeDeclaration>;
   }> => {
-    // generating schemaFile containing types required by route
-    await renderToFile(schemaFile, schemaTpl, {
+    const schemaFile = libFilePath(route, "schema", { appRoot, sourceFolder });
+
+    // writing extracted types to schemaFile
+    await renderToFile(schemaFile, schemaTsTpl, {
       typeDeclarations,
       payloadTypes,
     });
 
-    // feeding schemaFile to Typescript api to discover all types used by route
-    const discoveredTypeDeclarations = payloadTypes.length
-      ? discoverTypeDeclarations()
-      : [];
+    // and feeding it to Typescript api to discover all types used by route
+    const discoveredTypeDeclarations =
+      paramsType || payloadTypes.length
+        ? discoverTypeDeclarations(schemaFile)
+        : [];
 
-    // rewriting schemaFile, inserting discovered type declarations
-    const sourceText = [
-      discoveredTypeDeclarations.flatMap((e) => (e.included ? [e.text] : [])),
-      `export type ${route.params.id} = { ${route.params.literal} }`,
-    ]
-      .flat()
-      .join("\n\n");
+    // then rewriting schemaFile. it should contain all relevant type literals
+    const sourceText = render(schemaZodTpl, {
+      discoveredTypeDeclarations,
+      paramsType: { ...route.params, customSchema: paramsType },
+    });
 
-    // it is important to write sourceText to schemaFile
-    // as ts-to-zod api may use it to import circular references
     await fsx.writeFile(schemaFile, sourceText);
 
-    // feeding schemaFile content to ts-to-zod api to get zod schema
+    // and feeding it to ts-to-zod api to get zod schema
     const { getZodSchemasFile, errors: zodErrors } = generate({
       sourceText,
       keepComments: true,
@@ -90,7 +88,9 @@ async function worker({
     return { zodSchema, discoveredTypeDeclarations };
   };
 
-  const discoverTypeDeclarations = (): Array<DiscoveredTypeDeclaration> => {
+  const discoverTypeDeclarations = (
+    schemaFile: string,
+  ): Array<DiscoveredTypeDeclaration> => {
     const tsconfig = ts.getParsedCommandLineOfConfigFile(
       join(appRoot, "tsconfig.json"),
       undefined,
@@ -145,27 +145,35 @@ async function worker({
 
     for (const typeAlias of discoveredTypeDeclarations) {
       const nameRegex = new RegExp(`\\b${typeAlias.name}\\b`);
-      typeAlias.included =
+      typeAlias.included = [
+        // included if required by paramsType
+        paramsType ? nameRegex.test(paramsType) : false,
+        // or required by payloadTypes
         payloadTypes.some((e) => {
-          // included if required by payloadTypes
           return e.id === typeAlias.name || e.text.match(nameRegex);
-        }) ||
+        }),
+        // or required by another included types
         discoveredTypeDeclarations.some((e) => {
-          // included if required by another included types
           return e.included ? e.typeReferences.includes(typeAlias.name) : false;
-        });
+        }),
+      ].some((e) => e);
     }
 
     return discoveredTypeDeclarations;
   };
 
-  const apiAssets = await extractApiAssets(route.fileFullpath, {
-    relpathResolver(path) {
-      return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
+  const apiAssets = await extractApiAssets(
+    (await fsx.exists(route.fileFullpath))
+      ? await fsx.readFile(route.fileFullpath, "utf8")
+      : "",
+    {
+      relpathResolver(path) {
+        return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
+      },
     },
-  });
+  );
 
-  const { typeDeclarations } = apiAssets;
+  const { typeDeclarations, paramsType } = apiAssets;
 
   const payloadTypes = Object.entries(apiAssets.payloadTypes).map(
     ([method, text]: [m: string, t: string]): PayloadType => {
@@ -182,10 +190,11 @@ async function worker({
 
   parentPort?.postMessage({ discoveredTypeDeclarations });
 
-  await generateAssetsFile(route, {
+  await generateRulesFile(route, {
     appRoot,
     sourceFolder,
     typeDeclarations,
+    paramsType,
     payloadTypes,
     importZodErrorHandlerFrom,
     zodSchema,

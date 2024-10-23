@@ -1,20 +1,27 @@
-import {
+import api, {
   type DefaultState,
   type DefaultContext,
   type DefinitionI,
-  use,
-  definitionFactory,
+  type UseDefinitionI,
 } from "@appril/api/router";
 
-export type ParamsT = { {{route.params.literal}} }
-export type ContextT = DefaultContext & { params: ParamsT }
+export { use } from "@appril/api/router";
 
-export { use };
+type Factory<
+  ParamsT,
+  StateT = DefaultState,
+  ContextT = DefaultContext & { params: ParamsT }
+> = (
+  a: { use: UseDefinitionI<StateT, ContextT> } & Record<
+    {{#each apiMethods}}| "{{this}}"{{/each}},
+    DefinitionI<StateT, ContextT>
+  >
+) => Array<any>
 
-{{#each apiMethods}}
-export const {{this}}: DefinitionI<
-  DefaultState,
-  ContextT
-> = (a) => definitionFactory("{{this}}", a);
+type DefaultParamsT = {{route.params.literal}}
 
-{{/each}}
+export default <
+  ParamsT extends DefaultParamsT = DefaultParamsT
+>(
+  factory: Factory<ParamsT>
+) => factory(api)

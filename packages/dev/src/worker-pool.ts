@@ -1,7 +1,7 @@
 import { Worker } from "node:worker_threads";
 
 import * as apiGenerator from "./api-generator/workers";
-import * as apiAssets from "./api-assets/workers";
+import * as apiRules from "./api-rules/workers";
 import * as fetchGenerator from "./fetch-generator/workers";
 import * as solidPages from "./solid-pages/workers";
 
@@ -11,7 +11,7 @@ export const workerMap = {
   solidPages,
   fetchGenerator,
   apiGenerator,
-  apiAssets,
+  apiRules,
 };
 
 export type WorkerMap = typeof workerMap;
