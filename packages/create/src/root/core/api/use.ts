@@ -1,6 +1,10 @@
 /// <reference path="./env.d.ts" />
 
-import { type Middleware, use } from "@appril/api/router";
+import {
+  type ManagedMiddlewareContext,
+  type Middleware,
+  use,
+} from "@appril/api/router";
 
 import {
   type JsonOptions,
@@ -29,4 +33,13 @@ export const useFormBodyparser = (opts: FormOptions = {}) => {
 
 export const useRawBodyparser = (opts: RawOptions = {}) => {
   return use("bodyparser", bodyparser.raw(opts)).before("post", "put", "patch");
+};
+
+export const usePayload = (
+  handler: (ctx: ManagedMiddlewareContext) => unknown,
+) => {
+  return use("payload", (ctx, next) => {
+    ctx.payload = handler(ctx);
+    return next();
+  });
 };
