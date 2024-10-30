@@ -1,12 +1,9 @@
-import {
+import routeFactory, {
   type RecordT,
   type UpdateT,
-  get,
-  patch,
-  del,
 } from "{{importPathmap.api}}/[id]";
 
-export default [
+export default routeFactory(({ get, patch, del }) => [
   get(async (ctx, worker): Promise<RecordT> => {
     return worker();
   }),
@@ -18,4 +15,4 @@ export default [
   del(async (ctx, worker): Promise<RecordT> => {
     return worker();
   }),
-];
+]);

@@ -1,6 +1,6 @@
-import { type RecordT, type InsertT, get, post } from "{{importPathmap.api}}";
+import routeFactory, { type RecordT, type InsertT } from "{{importPathmap.api}}";
 
-export default [
+export default routeFactory(({ get, post }) => [
   get(async (ctx, worker): Promise<Array<RecordT>> => {
     return worker();
   }),
@@ -8,4 +8,4 @@ export default [
   post<never, { payload: InsertT }>(async (ctx, worker): Promise<RecordT> => {
     return worker(ctx.payload);
   }),
-];
+]);

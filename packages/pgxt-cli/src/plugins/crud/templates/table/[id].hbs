@@ -9,21 +9,36 @@ import {
 
 export * from "./typeLiterals";
 
-type ParamsT = { id: string }
+type DefaultParamsT = { id: string }
 
-export const use = useWrapper<ParamsT>()
+export const use = useWrapper<DefaultParamsT>()
 
 export const get = retrieveWrapper<
-  ParamsT,
+  DefaultParamsT,
   () => Promise<RecordT>
 >()
 
 export const patch = updateWrapper<
-  ParamsT,
+  DefaultParamsT,
   (payload: UpdateT) => Promise<RecordT>
 >()
 
 export const del = deleteWrapper<
-  ParamsT,
+  DefaultParamsT,
   () => Promise<RecordT>
 >()
+
+type Factory<
+  ParamsT
+> = (a: {
+  use: ReturnType<typeof useWrapper<ParamsT>>;
+  get: ReturnType<typeof retrieveWrapper<ParamsT, () => Promise<RecordT>>>;
+  patch: ReturnType<typeof updateWrapper<ParamsT, (p: UpdateT) => Promise<RecordT>>>;
+  del: ReturnType<typeof deleteWrapper<ParamsT, () => Promise<RecordT>>>;
+}) => Array<any>
+
+export default <
+  ParamsT extends DefaultParamsT = DefaultParamsT
+>(
+  factory: Factory<ParamsT>
+) => factory({ use, get, patch, del });

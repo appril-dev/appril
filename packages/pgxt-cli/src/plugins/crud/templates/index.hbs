@@ -45,8 +45,8 @@ export default <
     readonly dbxt: QueryBuilder<TableName>;
     readonly queryBuilder: QueryBuilder<TableName>;
     readonly primaryKey: string;
-    returning?: Array<ColumnT> | Knex.Raw;
-    returningExclude?: Array<ColumnT> | Knex.Raw;
+    returning?: readonly ColumnT[] | Knex.Raw;
+    returningExclude?: readonly ColumnT[] | Knex.Raw;
   };
 
   type WrapperContext<
@@ -125,7 +125,7 @@ export default <
           const worker = async (data: never) => {
             const [item] = await ctx.crud.dbxt
               .insert(data)
-              .returning(ctx.crud.returning as Array<string>);
+              .returning(ctx.crud.returning as readonly string[]);
             return item;
           }
           ctx.body = await handler(ctx as never, worker as never)
@@ -155,10 +155,10 @@ export default <
               ? await ctx.crud.queryBuilder
                   .where(ctx.crud.primaryKey, ctx.params.id)
                   .update(data)
-                  .returning(ctx.crud.returning as Array<string>)
+                  .returning(ctx.crud.returning as readonly string[])
               : await ctx.crud.dbxt
                   .where(ctx.crud.primaryKey, ctx.params.id)
-                  .select(ctx.crud.returning as Array<string>)
+                  .select(ctx.crud.returning as readonly string[])
 
             // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
             ctx.assert(item, 404);
@@ -184,7 +184,7 @@ export default <
             const [item] = await ctx.crud.queryBuilder
               .where(ctx.crud.primaryKey, ctx.params.id)
               .delete()
-              .returning(ctx.crud.returning as Array<string>);
+              .returning(ctx.crud.returning as readonly string[]);
 
             // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
             ctx.assert(item, 404);
@@ -209,7 +209,7 @@ export default <
           const worker = async () => {
             const item = await ctx.crud.queryBuilder
               .where(ctx.crud.primaryKey, ctx.params.id)
-              .first(ctx.crud.returning as Array<string>);
+              .first(ctx.crud.returning as readonly string[]);
 
             // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
             ctx.assert(item, 404);
@@ -295,7 +295,7 @@ export default <
             } as Pager;
 
             const items = await crud.queryBuilder
-              .select(ctx.crud.returning as Array<string>)
+              .select(ctx.crud.returning as readonly string[])
               .offset(offset)
               .limit(itemsPerPage);
 
@@ -317,20 +317,25 @@ export default <
     ...opt,
   };
 
-  let returning: Array<ColumnT> | Knex.Raw | undefined
-  let returningExclude: Array<ColumnT> = []
+  let returning: readonly ColumnT[] | Knex.Raw | undefined
+  let returningExclude: readonly ColumnT[] = []
 
   const crudContext: Record<
     keyof CrudContext,
     PropertyDescriptor
   > = {
     dbxt: {
-      get() {
-        return dbxt;
-      }
+      get() { return dbxt },
+      enumerable: true,
     },
-    queryBuilder: { get: dbxt.clone },
-    primaryKey: { value: primaryKey },
+    queryBuilder: {
+      get: dbxt.clone,
+      enumerable: true,
+    },
+    primaryKey: {
+      value: primaryKey,
+      enumerable: true,
+    },
     returning: {
       get() {
         return returning || (
@@ -340,10 +345,12 @@ export default <
         )
       },
       set(val) { returning = val },
+      enumerable: true,
     },
     returningExclude: {
       get() { return returningExclude },
       set(val) { returningExclude = Array.isArray(val) ? val : [] },
+      enumerable: true,
     },
   };
 

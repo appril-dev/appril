@@ -9,7 +9,9 @@ export const columns = [
 {{/each}}
 ] as const;
 
-export type ColumnT = typeof columns[number];
+export type ColumnT =
+{{#each table.columns}}  | "{{name}}"
+{{/each}};
 
 export const {
   useWrapper,
@@ -42,3 +44,11 @@ export const post = createWrapper<
   ParamsT,
   (payload: InsertT) => Promise<RecordT>
 >()
+
+export default (
+  factory: (a: {
+    use: typeof use;
+    get: typeof get;
+    post: typeof post;
+  }) => Array<any>
+) => factory({ use, get, post });
