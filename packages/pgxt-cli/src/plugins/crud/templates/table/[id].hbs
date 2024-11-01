@@ -7,9 +7,11 @@ import {
   deleteWrapper,
 } from ".";
 
+export { head, options, post, put } from "@appril/api/router";
+
 export * from "./typeLiterals";
 
-type DefaultParamsT = { id: string }
+type DefaultParamsT = { id: number | string }
 
 export const use = useWrapper<DefaultParamsT>()
 
