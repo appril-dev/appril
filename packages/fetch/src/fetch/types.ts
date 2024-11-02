@@ -1,7 +1,6 @@
 export interface Defaults {
   responseMode: ResponseMode;
   headers: Record<string, string>;
-  stringify: (data: Record<string, unknown>) => string;
   errorHandler: (e: unknown) => void;
 }
 

@@ -1,3 +1,5 @@
+import { stringify, join } from "@appril/api/lib";
+
 import type {
   Options,
   HTTPError,
@@ -16,7 +18,7 @@ type GenericObject = Record<string, unknown>;
 type PathEntry = string | number;
 
 export default (base: string | URL, opts?: Options): FetchMapper => {
-  const { headers, stringify, responseMode, errorHandler, ...fetchOpts } = {
+  const { headers, responseMode, errorHandler, ...fetchOpts } = {
     ...defaults,
     ...opts,
   };
@@ -100,22 +102,3 @@ export default (base: string | URL, opts?: Options): FetchMapper => {
     del: wrapper("DELETE"),
   };
 };
-
-const pathTypes: { [key: string]: boolean } = {
-  "[object Number]": true,
-  "[object String]": true,
-};
-
-function join(...args: Array<PathEntry>) {
-  for (const a of args) {
-    const type = Object.prototype.toString.call(a);
-    if (!pathTypes[type]) {
-      throw new Error(`join accepts only strings and numbers, ${type} given`);
-    }
-  }
-
-  return args
-    .filter((e) => e)
-    .join("/")
-    .replace(/\/+/g, "/");
-}

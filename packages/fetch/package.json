@@ -38,6 +38,7 @@
     "qs": "^6.13.0"
   },
   "devDependencies": {
+    "@appril/api": "workspace:^",
     "@appril/configs": "workspace:^",
     "@types/follow-redirects": "^1.14.4",
     "@types/qs": "^6.9.16"
