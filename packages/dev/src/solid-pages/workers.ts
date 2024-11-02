@@ -6,10 +6,10 @@ import { fileGenerator } from "@appril/dev-utils";
 
 import { type SolidPage, BANNER, defaults } from "@/base";
 
-import assetsTpl from "./templates/assets.hbs";
 import dataTpl from "./templates/data.hbs";
 import pageTpl from "./templates/page.hbs";
 import routesTpl from "./templates/routes.hbs";
+import indexTpl from "./templates/index.hbs";
 
 let sourceFolder: string;
 let generateFile: ReturnType<typeof fileGenerator>["generateFile"];
@@ -90,8 +90,8 @@ async function generateIndexFiles(data: { pages: Array<SolidPage> }) {
   const pages = data.pages.sort((a, b) => a.path.localeCompare(b.path));
 
   for (const [outfile, template] of [
-    [defaults.routerRoutesFile, routesTpl],
-    [defaults.routerAssetsFile, assetsTpl],
+    ["routes.ts", routesTpl],
+    ["index.ts", indexTpl],
   ]) {
     await generateFile(
       join(
@@ -105,6 +105,7 @@ async function generateIndexFiles(data: { pages: Array<SolidPage> }) {
         context: {
           pages,
           importPathmap: {
+            config: [sourceFolder, defaults.configDir].join("/"),
             components: [sourceFolder, defaults.pagesDir].join("/"),
           },
         },

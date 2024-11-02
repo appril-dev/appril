@@ -1,16 +1,27 @@
-import fetchFactory, { defaults } from "@appril/fetch";
+import { stringify, join } from "@appril/api/lib";
+import fetchFactory from "@appril/fetch";
 
 import { baseurl, apiurl } from "{{importPathmap.config}}";
-import { formatPath, join } from "{{importPathmap.fetchBase}}";
 import { unref } from "{{importPathmap.fetchFile}}";
 
 {{#each typeDeclarations}}{{text}}
 {{/each}}
 
+const paramsTokens: Array<string> = [
+{{#each route.fetchParams.tokens}}  "{{this}}",
+{{/each}}
+]
+
+function formatPath(params: Array<unknown>): string {
+  return paramsTokens.reduce(
+    (path, token, i) => path.replace(token, String(params[i] ?? "")),
+    "{{route.originalPath}}"
+  )
+}
+
 function fetchMapper(
   api: import("@appril/fetch").FetchMapper,
 ) {
-
   {{#each fetchDefinitions}}
   function {{method}}(
     params: [ {{../route.fetchParams.literal}} ],
@@ -31,7 +42,7 @@ function fetchMapper(
     {{/if}}
   > {
     return api.{{method}}(
-      formatPath("{{../route.originalPath}}", params),
+      formatPath(params),
       unref(payload || {}),
     )
   }
@@ -66,9 +77,9 @@ export const resolve = (
   params: [ {{route.fetchParams.literal}} ],
   query?: Record<string, unknown>,
 ) => {
-  const path = join(baseurl, apiurl, formatPath("{{route.originalPath}}", params));
+  const path = join(baseurl, apiurl, formatPath(params));
   return query
-    ? [ path, defaults.stringify(query) ].join("?")
+    ? [ path, stringify(query) ].join("?")
     : path;
 }
 

@@ -138,6 +138,7 @@ export type ApiRoute = {
   };
   fetchParams: {
     literal: string;
+    tokens: Array<string>;
   };
   // relative file path
   file: string;
@@ -164,7 +165,13 @@ export type SolidPage = {
   srcFile: string;
   importName: string;
   importPath: string;
-  link: { base: string; props: string; replacements: string };
+  params: {
+    tokens: Array<string>;
+  };
+  link: {
+    base: string;
+    props: string;
+  };
   meta?: string;
   dataLoaderGenerator?: {
     // where to save file that would contain data functions (useData, useDataStore and alike);

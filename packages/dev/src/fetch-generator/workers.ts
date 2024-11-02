@@ -7,7 +7,6 @@ import { fileGenerator } from "@appril/dev-utils";
 import { type ApiRoute, defaults } from "@/base";
 import { extractApiAssets } from "@/ast";
 
-import baseTpl from "./templates/base.hbs";
 import fetchTpl from "./templates/fetch.hbs";
 import indexTpl from "./templates/index.hbs";
 
@@ -26,14 +25,6 @@ export async function bootstrap(data: {
   sourceFolder = data.sourceFolder;
 
   generateFile = fileGenerator(data.appRoot).generateFile;
-
-  await generateFile(
-    join(defaults.libDir, sourceFolder, libFetchDir, "base.ts"),
-    {
-      template: baseTpl,
-      context: { defaults, sourceFolder },
-    },
-  );
 
   for (const route of routes) {
     await generateRouteAssets({ route });
@@ -101,7 +92,6 @@ async function generateRouteAssets({
         fetchDefinitions,
         importPathmap: {
           config: [sourceFolder, defaults.configDir].join("/"),
-          fetchBase: [sourceFolder, libFetchDir, "base"].join("/"),
           fetchFile: [defaults.appPrefix, defaults.coreDir, "fetch"].join("/"),
         },
       },

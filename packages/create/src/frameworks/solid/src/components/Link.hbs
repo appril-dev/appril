@@ -1,12 +1,12 @@
 import { A } from "@solidjs/router";
 
-import { type LinkProps, linkReplcements } from "{{importPathmap.router}}/assets";
+import { type LinkProps, linkReplcements } from "{{importPathmap.router}}";
 
 export default (props: {
   href: LinkProps;
   children: import("solid-js").JSXElement;
 }) => {
   const [path, ...params] = props.href;
-  const href = linkReplcements[path]?.(params as Array<string>);
+  const href = linkReplcements[path]?.(params as never);
   return <A href={href}>{props.children}</A>;
 };

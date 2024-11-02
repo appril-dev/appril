@@ -1,0 +1,66 @@
+import { stringify, join } from "@appril/api/lib";
+
+import { baseurl } from "{{importPathmap.config}}";
+
+const paramsTokens: Record<
+  string,
+  Array<string>
+> = {
+{{#each pages}}
+  "{{originalPath}}": [
+{{#each params.tokens}}    "{{this}}",
+{{/each}}
+  ],
+{{/each}}
+}
+
+function formatPath(
+  path: string,
+  tokens: Array<string>,
+  params: Array<unknown>,
+) {
+  return tokens.reduce(
+    (path, token, i) => path.replace(token, String(params[i] ?? "")),
+    path
+  )
+}
+
+export type LinkProps =
+  {{#each pages}}
+  | [ "{{originalPath}}", {{link.props}} ]
+  {{/each}}
+
+export const linkReplcements = {
+  {{#each pages}}
+  "{{originalPath}}"(params: [ {{link.props}} ]) {
+    return formatPath(
+      "{{link.base}}",
+      paramsTokens["{{originalPath}}"],
+      params,
+    )
+  },
+  {{/each}}
+}
+
+export default {
+  {{#each pages}}
+  "{{originalPath}}": {
+    resolve(
+      params: [ {{link.props}} ],
+      query?: Record<string, unknown>,
+    ) {
+      const path = join(
+        baseurl,
+        formatPath(
+          "{{link.base}}",
+          paramsTokens["{{originalPath}}"],
+          params,
+        ),
+      )
+      return query
+        ? [ path, stringify(query) ].join("?")
+        : path;
+    },
+  },
+  {{/each}}
+}

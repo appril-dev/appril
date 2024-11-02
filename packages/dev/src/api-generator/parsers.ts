@@ -92,9 +92,9 @@ export async function sourceFilesParsers(
 
           const file = importPath + suffix;
 
-          const paramsSchema = sections
-            .slice(1)
-            .flatMap((e) => (e.param ? [e.param] : []));
+          const paramsSchema = sections.flatMap((e) => {
+            return e.param ? [e.param] : [];
+          });
 
           const fetchParamsLiteral = paramsSchema
             .map((param) => {
@@ -105,6 +105,10 @@ export async function sourceFilesParsers(
             .join(
               ", ", // intentionally using comma, do not use semicolon!
             );
+
+          const paramsTokens = sections.flatMap((e) => {
+            return e.param ? [e.orig] : [];
+          });
 
           const template = opt?.apiTemplate
             ? await fsx.readFile(
@@ -122,7 +126,10 @@ export async function sourceFilesParsers(
               literal: render(paramsTpl, { schema: paramsSchema }).trim(),
               schema: paramsSchema,
             },
-            fetchParams: { literal: fetchParamsLiteral },
+            fetchParams: {
+              literal: fetchParamsLiteral,
+              tokens: paramsTokens,
+            },
             importName,
             importPath,
             srcFile,

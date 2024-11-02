@@ -15,8 +15,6 @@ export const defaults = {
   apiRoutesFile: "routes.ts",
 
   routerDir: "router",
-  routerRoutesFile: "routes.ts",
-  routerAssetsFile: "assets.ts",
 
   sourceFile: "_routes.toml",
   dataSourceFile: "_data_routes.toml",

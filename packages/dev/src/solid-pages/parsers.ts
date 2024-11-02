@@ -111,7 +111,6 @@ export async function sourceFilesParsers(
           }
 
           const linkProps = sections
-            .slice(1)
             .flatMap(({ param }) => {
               if (param) {
                 if (param.isRest) {
@@ -124,11 +123,8 @@ export async function sourceFilesParsers(
             })
             .join(", ");
 
-          const linkReplcements = sections.slice(1).flatMap((e, i) => {
-            if (e.param) {
-              return [[e.orig, i]];
-            }
-            return [];
+          const paramsTokens = sections.flatMap((e) => {
+            return e.param ? [e.orig] : [];
           });
 
           const template = opt?.pageTemplate
@@ -145,12 +141,14 @@ export async function sourceFilesParsers(
             srcFile,
             importPath: originalPath,
             importName: originalPath.replace(/\W/g, "_"),
+            params: {
+              tokens: paramsTokens,
+            },
             dataLoaderGenerator,
             dataLoaderConsumer,
             link: {
-              base: originalPath.replace(/^index\/?\b/, "/"),
+              base: originalPath.replace(/^index\/?\b/, ""),
               props: linkProps,
-              replacements: JSON.stringify(linkReplcements),
             },
             meta: opt?.meta ? JSON.stringify(opt.meta) : undefined,
             template,
