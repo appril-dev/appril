@@ -31,7 +31,7 @@
     "@appril/dev-utils": "workspace:^",
     "fs-extra": "^11.2.0",
     "merge": "^2.1.1",
-    "npm-check-updates": "^17.1.4",
+    "npm-check-updates": "^17.1.9",
     "prompts": "^2.4.2"
   },
   "devDependencies": {
@@ -41,7 +41,7 @@
     "@appril/fetch": "workspace:^",
     "@appril/pgxt": "workspace:^",
     "@appril/pgxt-cli": "workspace:^",
-    "@solidjs/router": "^0.14.9",
+    "@solidjs/router": "^0.15.0",
     "@types/fs-extra": "^11.0.4",
     "@types/koa": "^2.15.0",
     "@types/koa-logger": "^3.1.5",
@@ -50,8 +50,8 @@
     "knex": "^3.1.0",
     "koa": "^2.15.3",
     "koa-logger": "^3.2.1",
-    "solid-js": "^1.9.2",
-    "vite": "^5.4.9",
+    "solid-js": "^1.9.3",
+    "vite": "^5.4.10",
     "vite-plugin-solid": "^2.10.2"
   }
 }
