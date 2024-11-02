@@ -1,7 +1,7 @@
 /// <reference path="./env.d.ts" />
 
 import {
-  type ManagedMiddlewareContext,
+  type ParameterizedContext,
   type Middleware,
   use,
 } from "@appril/api/router";
@@ -35,9 +35,7 @@ export const useRawBodyparser = (opts: RawOptions = {}) => {
   return use("bodyparser", bodyparser.raw(opts)).before("post", "put", "patch");
 };
 
-export const usePayload = (
-  handler: (ctx: ManagedMiddlewareContext) => unknown,
-) => {
+export const usePayload = (handler: (ctx: ParameterizedContext) => unknown) => {
   return use("payload", (ctx, next) => {
     ctx.payload = handler(ctx);
     return next();

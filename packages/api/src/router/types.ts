@@ -47,11 +47,10 @@ export interface UseIdentities {
 // biome-ignore lint:
 export interface Meta {}
 
-export type Middleware<
-  StateT = DefaultState,
-  ContextT = DefaultContext,
-  ResponseBodyT = unknown,
-> = import("koa__router").Middleware<StateT, ContextT, ResponseBodyT>;
+export type Middleware<StateT = DefaultState, ContextT = DefaultContext> = (
+  ctx: ParameterizedContext<StateT, ContextT>,
+  next: import("koa").Next,
+) => unknown;
 
 export type MiddlewareDefinition<
   StateT = DefaultState,
@@ -61,31 +60,29 @@ export type MiddlewareDefinition<
   middleware: Array<Middleware<StateT, ContextT>>;
 };
 
-// use throw inside handler when needed to say NotFound (or another error):
-// throw [ 404, "Not Found" ]
-// throw [ 400, "Bad Request" ]
-/** biome-ignore lint: */
-type ManagedMiddlewareReturn = any | Promise<any>;
-
-export type ManagedMiddlewareContext<
+export type ParameterizedContext<
   StateT = DefaultState,
   ContextT = DefaultContext,
 > = import("koa").ParameterizedContext<
   StateT,
   ContextT &
     Omit<
-      // dropping default params to not shadow custom params
+      // dropping default params
       import("koa__router").RouterParamContext<StateT, ContextT>,
       "params"
     >
 >;
 
+// use throw inside handler to say NotFound (or another error):
+// throw [ 404, "Not Found" ]
+// throw [ 400, "Bad Request" ]
+/** biome-ignore lint: */
+type ManagedMiddlewareReturn = any | Promise<any>;
+
 export type ManagedMiddleware<
   StateT = DefaultState,
   ContextT = DefaultContext,
-> = (
-  ctx: ManagedMiddlewareContext<StateT, ContextT>,
-) => ManagedMiddlewareReturn;
+> = (ctx: ParameterizedContext<StateT, ContextT>) => ManagedMiddlewareReturn;
 
 export type UseScope = APIMethod | Array<APIMethod>;
 export type UseScopeGlobal = APIMethod;
@@ -105,14 +102,10 @@ export type UseFactory<TScope> = {
   "@after": (m: APIMethod, p?: string) => boolean;
 };
 
-// biome-ignore format:
-export type UseDefinition<TScope = UseScope> = UseDefinitionBase & UseFactory<
-  TScope
->;
-
-type UseMiddleware<StateT, ContextT> =
-  | Middleware<StateT, ContextT>
-  | Array<Middleware<StateT, ContextT>>;
+export type UseDefinition<
+  /**/
+  TScope = UseScope,
+> = UseDefinitionBase & UseFactory<TScope>;
 
 export interface DefinitionI<StateT = DefaultState, ContextT = DefaultContext> {
   <StateB = object, ContextB = object>(
@@ -129,23 +122,23 @@ export interface UseDefinitionI<
   ContextT = DefaultContext,
 > {
   <StateB = object, ContextB = object>(
-    a: UseMiddleware<StateT & StateB, ContextT & ContextB>,
+    a:
+      | Middleware<StateT & StateB, ContextT & ContextB>
+      | Array<Middleware<StateT & StateB, ContextT & ContextB>>,
   ): UseDefinition;
-
   <StateB = object, ContextB = object>(
     a: keyof UseIdentities,
-    b: UseMiddleware<StateT & StateB, ContextT & ContextB>,
+    b:
+      | Middleware<StateT & StateB, ContextT & ContextB>
+      | Array<Middleware<StateT & StateB, ContextT & ContextB>>,
   ): UseDefinition;
 }
 
 export interface UseDefinitionGlobalI {
+  (a: Middleware | Array<Middleware>): UseDefinition<UseScopeGlobal>;
   (
-    functions: UseMiddleware<DefaultState, DefaultContext>,
-  ): UseDefinition<UseScopeGlobal>;
-
-  (
-    namespace: keyof UseIdentities,
-    functions: UseMiddleware<DefaultState, DefaultContext>,
+    a: keyof UseIdentities,
+    b: Middleware | Array<Middleware>,
   ): UseDefinition<UseScopeGlobal>;
 }
 

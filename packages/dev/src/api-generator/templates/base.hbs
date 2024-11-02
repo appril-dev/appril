@@ -2,7 +2,10 @@ import { use } from "@appril/api/router";
 
 export const refineParams = (
   schema: Array<{ name: string; isRest: boolean; isOpt: boolean; isNumber: boolean; }>
-) => use((ctx, next) => {
+) => use<
+  never,
+  { params: Record<string, string> }
+>((ctx, next) => {
   for (const param of schema) {
     if (param.isRest) {
       Object.defineProperty(ctx.params, param.name, {
@@ -33,7 +36,10 @@ export const refineParams = (
   return next()
 })
 
-export const injectPayload = () => use("payload", (ctx, next) => {
+export const injectPayload = () => use<
+  never,
+  { params: Record<string, string> }
+>("payload", (ctx, next) => {
   Object.defineProperty(ctx, "payload", {
     get() {
       return "body" in ctx.request ? ctx.request.body : ctx.query;

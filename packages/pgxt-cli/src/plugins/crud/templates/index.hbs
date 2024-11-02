@@ -1,11 +1,11 @@
 import {
   type DefaultState,
   type DefaultContext,
+  type ParameterizedContext,
   type Middleware,
   type UseDefinition,
   type UseIdentities,
   type MiddlewareDefinition,
-  type ManagedMiddlewareContext,
   definitionFactory,
   useDefinitionFactory,
 } from "@appril/api/router";
@@ -53,7 +53,7 @@ export default <
     StateT,
     ContextT,
     ParamsT
-  > = ManagedMiddlewareContext<
+  > = ParameterizedContext<
     DefaultState & StateT,
     DefaultContext & ContextT & { params: ParamsT; crud: CrudContext }
   >
@@ -102,7 +102,10 @@ export default <
     ): UseDefinition;
   }
 
-  type GenericMiddleware = Middleware<DefaultState, { crud: CrudContext }>
+  type GenericMiddleware = Middleware<DefaultState, {
+    params: Record<string, string>;
+    crud: CrudContext;
+  }>;
 
   function useWrapper<ParamsT>(): UseWrapper<
     ParamsT

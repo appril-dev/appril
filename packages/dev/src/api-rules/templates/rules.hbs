@@ -16,7 +16,12 @@ function zodErrorHandler(error: any) {
 
 {{zodSchema}}
 
-const validateParams = () => use((ctx, next) => {
+const validateParams = () => use<
+  never,
+  {
+    params: Record<string, unknown>
+  }
+>((ctx, next) => {
   try {
     {{route.params.id}}Schema.parse(ctx.params)
   } catch (error: any) {

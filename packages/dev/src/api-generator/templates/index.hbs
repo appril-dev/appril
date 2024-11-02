@@ -5,7 +5,12 @@ import api, {
   type UseDefinitionI,
 } from "@appril/api/router";
 
-export { use } from "@appril/api/router";
+type DefaultParamsT = {{route.params.literal}};
+
+export const use: UseDefinitionI<
+  DefaultState,
+  DefaultContext & { params: DefaultParamsT }
+> = api.use;
 
 type Factory<
   ParamsT,
@@ -16,12 +21,10 @@ type Factory<
     {{#each apiMethods}}| "{{this}}"{{/each}},
     DefinitionI<StateT, ContextT>
   >
-) => Array<any>
-
-type DefaultParamsT = {{route.params.literal}}
+) => Array<any>;
 
 export default <
   ParamsT extends DefaultParamsT = DefaultParamsT
 >(
   factory: Factory<ParamsT>
-) => factory(api)
+) => factory(api);
