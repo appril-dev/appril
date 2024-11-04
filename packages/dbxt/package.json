@@ -1,6 +1,6 @@
 {
   "name": "@appril/dbxt",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Thin wrapper around Knex",
   "author": "Slee Woo",
   "license": "MIT",
