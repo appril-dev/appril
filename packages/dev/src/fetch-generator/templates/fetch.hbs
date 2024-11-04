@@ -1,4 +1,10 @@
-import { stringify, join } from "@appril/api/lib";
+import {
+  type HostOpt,
+  createHost,
+  stringify,
+  join,
+} from "@appril/api/lib";
+
 import fetchFactory from "@appril/fetch";
 
 import { baseurl, apiurl } from "{{importPathmap.config}}";
@@ -7,15 +13,15 @@ import { unref } from "{{importPathmap.fetchFile}}";
 {{#each typeDeclarations}}{{text}}
 {{/each}}
 
-const paramsTokens: Array<string> = [
-{{#each route.fetchParams.tokens}}  "{{this}}",
-{{/each}}
-]
+type {{route.fetchParams.id}} = [ {{route.fetchParams.literal}} ];
 
-function formatPath(params: Array<unknown>): string {
-  return paramsTokens.reduce(
+function formatPath(params: {{route.fetchParams.id}}): string {
+  return [
+{{#each route.fetchParams.tokens}}    "{{this}}",
+{{/each}}
+  ].reduce(
     (path, token, i) => path.replace(token, String(params[i] ?? "")),
-    "{{route.originalPath}}"
+    "{{route.originalPathParams}}"
   )
 }
 
@@ -24,7 +30,7 @@ function fetchMapper(
 ) {
   {{#each fetchDefinitions}}
   function {{method}}(
-    params: [ {{../route.fetchParams.literal}} ],
+    params: {{../route.fetchParams.id}},
     payload{{#unless payloadType}}?{{/unless}}: import(
       "{{../importPathmap.fetchFile}}"
     ).MaybeRef<
@@ -56,53 +62,38 @@ function fetchMapper(
   }
 }
 
-export const createFetch = (
-  options?: import("@appril/fetch").Options,
-) => {
-  return fetchMapper(
-    fetchFactory(
-      join(baseurl, apiurl),
-      options,
-    )
-  )
-}
-
-export const fetch = createFetch()
+export const fetch = fetchMapper(
+  fetchFactory(baseurl)
+)
 
 {{#each fetchDefinitions}}
 export const {{method}} = fetch.{{method}};
 {{/each}}
 
 export const resolve = (
-  params: [ {{route.fetchParams.literal}} ],
+  params: {{route.fetchParams.id}},
   query?: Record<string, unknown>,
 ) => {
-  const path = join(baseurl, apiurl, formatPath(params));
+  const path = join(
+    baseurl,
+    {{#if base}}"{{base}}"{{else}}apiurl{{/if}},
+    formatPath(params)
+  );
   return query
     ? [ path, stringify(query) ].join("?")
     : path;
 }
 
 export const href = (
-  _host: string | { hostname: string; port?: number; secure?: boolean },
-  params: [ {{route.fetchParams.literal}} ],
+  host: HostOpt,
+  params: {{route.fetchParams.id}},
   query?: Record<string, unknown>,
-) => {
-  const host = typeof _host === "string"
-    ? _host
-    : [
-        _host.secure ? "https://" : "http://",
-        _host.hostname,
-        _host.port ? `:${_host.port}` : "",
-      ].join("");
-  return host.replace(/\/+$/, "") + resolve(params, query);
-}
+) => createHost(host) + resolve(params, query);
 
 export default {
   {{#each fetchDefinitions}}
   {{method}}: fetch.{{method}},
   {{/each}}
-  createFetch,
   fetch,
   resolve,
   href,

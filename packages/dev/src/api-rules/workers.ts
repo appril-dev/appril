@@ -118,10 +118,6 @@ export async function handleRouteFileUpdate({
 
 async function generateRouteAssets(routes: Array<ApiRoute>) {
   for (const route of routes) {
-    if (route.aliasOf) {
-      continue;
-    }
-
     // generating a generic rules file
     // to avoid import errors while zod schema generated
     await generateRulesFile(route, {

@@ -62,35 +62,7 @@ export type RouteOptions = {
    * generic options
    * */
 
-  // use custom baseurl (eg. /) instead of default /api
-  base?: string;
-
-  /**
-   * simple alias; will serve /login and /authorize
-   *  [login]
-   *  alias = "authorize"
-   *
-   * multiple aliases; will serve /login, /authorize and /authenticate
-   *  [login]
-   *  alias = [ "authorize", "authenticate" ]
-   *
-   * alias for dynamic routes; will serve /users/[id] and /customers/[id]
-   *  ["users/[id]"]
-   *  alias = { find = "users", replace = "customers" }
-   *
-   * multiple dynamic aliases;
-   * will serve /cms/[page].html, /pages/[page].html and /content/[page].html
-   *  ["cms/[page].html"]
-   *  alias = [
-   *    { find = "cms", replace = "pages" },
-   *    { find = "cms", replace = "content" },
-   *  ]
-   *
-   * */
-  alias?:
-    | string
-    | { find: string; replace: string }
-    | (string | { find: string; replace: string })[];
+  alias?: string | Array<string>;
 
   meta?: Record<string, unknown>;
 
@@ -100,6 +72,9 @@ export type RouteOptions = {
 
   // should generate api entry?
   api?: boolean;
+
+  // use custom baseurl (eg. /) instead of default /api
+  base?: string;
 
   // path to file to be used as api template, relative to _routes.toml file.
   // intended for plugins. users may add custom template to vite.config.ts
@@ -113,14 +88,10 @@ export type RouteOptions = {
   page?: boolean;
 
   dataLoader?: // no dataLoader by default
-  // generate and consume default dataLoader
+  // when true, generate and consume default dataLoader
     | boolean
-    // do not generate dataLoader, rather use default export of given file.
-    | string
-    // do not generate dataLoader, use default dataLoader of alias route.
-    // error thrown if alias route has no default dataLoader.
-    // error thrown even if alias route has dataLoader but it is a custom dataLoader.
-    | { alias: string };
+    // when string, do not generate dataLoader, rather use default export of given file.
+    | string;
 
   // path to file to be used as page template, relative to _routes.toml file
   // intended for plugins. users may add custom template to vite.config.ts
@@ -131,12 +102,14 @@ export type ApiRoute = {
   base?: string;
   path: string;
   originalPath: string;
+  originalPathParams: string;
   params: {
     id: string;
     literal: string;
     schema: Array<Required<RouteSection>["param"]>;
   };
   fetchParams: {
+    id: string;
     literal: string;
     tokens: Array<string>;
   };
@@ -147,30 +120,24 @@ export type ApiRoute = {
   importName: string;
   importPath: string;
   meta?: Record<string, unknown>;
-  // path of parent
-  aliasOf?: string;
   // custom template (not path, template itself)
   template?: string;
-};
 
-export type ApiRouteAlias = Pick<
-  ApiRoute,
-  "base" | "path" | "originalPath" | "importName"
-> & { aliasOf: string };
+  alias: Array<string>;
+};
 
 export type SolidPage = {
   path: string;
   originalPath: string;
+  originalPathParams: string;
   file: string;
+  fileFullpath: string;
   srcFile: string;
   importName: string;
   importPath: string;
   params: {
+    literal: string;
     tokens: Array<string>;
-  };
-  link: {
-    base: string;
-    props: string;
   };
   meta?: string;
   dataLoaderGenerator?: {
@@ -192,6 +159,8 @@ export type SolidPage = {
   };
   // custom template (not path, template itself)
   template?: string;
+
+  alias: Array<string>;
 };
 
 // biome-ignore format:

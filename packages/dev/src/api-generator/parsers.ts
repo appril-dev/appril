@@ -10,17 +10,17 @@ import {
   type PluginOptionsResolved,
   type RouteOptions,
   type ApiRoute,
-  type ApiRouteAlias,
   normalizeRoutePath,
   routeSections,
   defaults,
+  routeAlias,
+  importNameFromPath,
 } from "@/base";
 
 import paramsTpl from "./templates/params.hbs";
 
 type ParsedEntry = {
   route: ApiRoute;
-  alias: Array<ApiRouteAlias>;
 };
 
 export async function sourceFilesParsers(
@@ -72,10 +72,7 @@ export async function sourceFilesParsers(
             .join("/");
 
           const importPath = originalPath;
-
           const importName = importNameFromPath(importPath);
-
-          const base = opt?.base;
 
           const suffix = [
             // place file in a folder
@@ -84,7 +81,6 @@ export async function sourceFilesParsers(
             // or path explicitly ends in a slash
             /\/$/.test(_path),
             // or route has dataLoader explicitly enabled
-            // (e.g. not as a custom path and not as an alias)
             opt?.dataLoader === true,
           ].some((e) => e)
             ? "/index.ts"
@@ -110,6 +106,8 @@ export async function sourceFilesParsers(
             return e.param ? [e.orig] : [];
           });
 
+          const paramsTypeId = ["ParamsT", crc32(importName)].join("");
+
           const template = opt?.apiTemplate
             ? await fsx.readFile(
                 resolve(dirname(srcFile), opt.apiTemplate),
@@ -118,15 +116,17 @@ export async function sourceFilesParsers(
             : undefined;
 
           const route: ApiRoute = {
-            base,
-            path: join("/", path.replace(/^index\/?\b/, "")),
+            base: opt?.base,
             originalPath,
+            originalPathParams: originalPath.replace(/^index\/?\b/, ""),
+            path: join("/", path.replace(/^index\/?\b/, "")),
             params: {
-              id: ["ParamsT", crc32(importName)].join(""),
+              id: paramsTypeId,
               literal: render(paramsTpl, { schema: paramsSchema }).trim(),
               schema: paramsSchema,
             },
             fetchParams: {
+              id: paramsTypeId,
               literal: fetchParamsLiteral,
               tokens: paramsTokens,
             },
@@ -137,57 +137,12 @@ export async function sourceFilesParsers(
             fileFullpath: resolve(config.root, defaults.apiDir, file),
             meta: opt?.meta,
             template,
+            alias: routeAlias(opt),
           };
 
-          const alias: Array<ApiRouteAlias> = [];
-          const aliasOf = route.path;
-
-          if (Array.isArray(opt?.alias)) {
-            for (const e of opt.alias) {
-              if (typeof e === "string") {
-                alias.push({
-                  aliasOf,
-                  base,
-                  path: e,
-                  originalPath: e,
-                  importName: importNameFromPath(importPath + e),
-                });
-              } else if (typeof e === "object") {
-                alias.push({
-                  aliasOf,
-                  base,
-                  path: path.replace(e.find, e.replace),
-                  originalPath: originalPath.replace(e.find, e.replace),
-                  importName: importNameFromPath(
-                    importPath.replace(e.find, e.replace),
-                  ),
-                });
-              }
-            }
-          } else if (typeof opt?.alias === "object") {
-            alias.push({
-              aliasOf,
-              base,
-              path: path.replace(opt.alias.find, opt.alias.replace),
-              originalPath: originalPath.replace(
-                opt.alias.find,
-                opt.alias.replace,
-              ),
-              importName: importNameFromPath(
-                importPath.replace(opt.alias.find, opt.alias.replace),
-              ),
-            });
-          } else if (typeof opt?.alias === "string") {
-            alias.push({
-              aliasOf,
-              base,
-              path: opt.alias,
-              originalPath: opt.alias,
-              importName: importNameFromPath(importPath + opt.alias),
-            });
-          }
-
-          entries.push({ route, alias });
+          entries.push({
+            route,
+          });
         }
 
         return entries;
@@ -196,14 +151,4 @@ export async function sourceFilesParsers(
   }
 
   return parsers;
-}
-
-function importNameFromPath(path: string): string {
-  return [
-    path
-      .split(/\[/)[0]
-      .replace(/^\W+|\W+$/g, "")
-      .replace(/\W+/g, "_"),
-    crc32(path),
-  ].join("_");
 }

@@ -55,24 +55,6 @@ api = false
 ["cms/[...path].html"]
 # will generate {apiDir}/cms/[...path].html.ts
 
-## aliases
-
-# to serve both /users/login and /login
-["users/login"]
-alias = "login"
-
-# to serve all of /users/login, /users/authorize and /login
-["users/login"]
-alias = [ "users/authorize", "login" ]
-
-# dynamic aliases, will serve /users/[id] and /customers/[id]
-["users/[id]"]
-alias = { find = "users", replace = "customers" }
-
-## provide meta object
-["some-route"]
-meta = { restricted = true, privileges = { role = "manager" } }
-
 */
 
 type Workers = typeof import("./workers");
@@ -122,14 +104,9 @@ export async function apiGenerator(
 
   for (const { file, parser } of await sourceFilesParsers(config, options)) {
     srcWatchers[file] = async () => {
-      for (const { route, alias } of await parser()) {
-        routeMap[route.path] = route;
-        for (const a of alias) {
-          routeMap[a.path] = {
-            ...route,
-            ...a,
-          };
-        }
+      for (const { route } of await parser()) {
+        // using fileFullpath to match file provided by watcher
+        routeMap[route.fileFullpath] = route;
       }
     };
   }

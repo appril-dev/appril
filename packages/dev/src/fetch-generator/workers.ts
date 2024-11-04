@@ -61,10 +61,6 @@ async function generateRouteAssets({
 }: {
   route: ApiRoute;
 }) {
-  if (route.aliasOf) {
-    return;
-  }
-
   const { typeDeclarations, fetchDefinitions } = await extractApiAssets(
     (await fsx.exists(route.fileFullpath))
       ? await fsx.readFile(route.fileFullpath, "utf8")

@@ -2,7 +2,7 @@ import crc32 from "crc/crc32";
 
 import { sanitizePath } from "@appril/dev-utils";
 
-import type { RouteSection } from "./types";
+import type { RouteOptions, RouteSection } from "./types";
 
 export { defaults } from "@appril/configs";
 export * from "./types";
@@ -75,6 +75,28 @@ export function routeSections(path: string, file: string): Array<RouteSection> {
       param,
     } satisfies RouteSection;
   });
+}
+
+export function routeAlias(opt: RouteOptions | undefined): Array<string> {
+  if (typeof opt?.alias === "string") {
+    return [opt.alias];
+  }
+
+  if (Array.isArray(opt?.alias)) {
+    return opt.alias;
+  }
+
+  return [];
+}
+
+export function importNameFromPath(path: string): string {
+  return [
+    path
+      .split(/\[/)[0]
+      .replace(/^\W+|\W+$/g, "")
+      .replace(/\W+/g, "_"),
+    crc32(path),
+  ].join("_");
 }
 
 export function httpMethodByApi(apiMethod: string): string {

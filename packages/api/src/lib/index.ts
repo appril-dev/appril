@@ -1,5 +1,9 @@
 import qs from "qs";
 
+export type HostOpt =
+  | string
+  | { hostname: string; port?: number; secure?: boolean };
+
 export const stringify = (data: Record<string, unknown>) => {
   return qs.stringify(data, {
     arrayFormat: "brackets",
@@ -19,4 +23,24 @@ export function join(...args: Array<unknown>): string {
     );
   }
   return args.join("/").replace(/\/+/g, "/");
+}
+
+export function createHost(host: HostOpt): string {
+  if (typeof host === "string") {
+    return host;
+  }
+
+  if (typeof host === "object") {
+    return [
+      host.secure ? "https://" : "http://",
+      host.hostname,
+      host.port ? `:${host.port}` : "",
+    ]
+      .join("")
+      .replace(/\/+$/, "");
+  }
+
+  throw new Error(
+    "Expected host to be a string or an object containing following keys: { hostname: string; port?: number; secure?: boolean }",
+  );
 }

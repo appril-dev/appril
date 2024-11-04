@@ -69,13 +69,6 @@ dataLoader = "@/pages/orders.data"
 # file should export loader as default function.
 # loader will receive params as first argument.
 
-# aliased dataLoader
-
-["admins/[id]"]
-dataLoader = { alias = "admins" }
-# will use admins default dataLoader rather than generate own.
-# unexpected errors if admin has no dataLoader or has custom dataLoader.
-
 ## provide meta
 ["some-page"]
 meta = { restricted = true, privileges = { role = "manager" } }
@@ -106,6 +99,7 @@ export async function solidPages(
     : undefined;
 
   const watchHandler: WatchHandler = (watcher) => {
+    // pagesDir watched already by vite, not duplicating
     for (const pattern of [...Object.keys(srcWatchers)]) {
       watcher.add(pattern);
     }

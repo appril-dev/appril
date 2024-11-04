@@ -8,5 +8,7 @@ export type FetchRoute ={{#each routes}}  {{#unless @first}}| {{/unless}}"{{orig
 
 export default {
 {{#each routes}}  "{{originalPath}}": {{importName}},
+{{#each alias }}  "{{this}}": {{../importName}},
+{{/each}}
 {{/each}}
 }
