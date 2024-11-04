@@ -46,7 +46,9 @@ try {
 }
 
 async function run(
-  parsedOptions: Record<keyof typeof options, string | boolean | undefined>,
+  parsedOptions: Partial<
+    Record<keyof typeof options, string | boolean | undefined>
+  >,
 ) {
   // should run only inside app root
   const root = resolveCwd();
