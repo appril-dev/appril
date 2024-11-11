@@ -11,6 +11,7 @@
   "overrides": [
     {
       "include": [
+        "./packages/create/src/root/**",
         "./packages/dev/**",
         "./packages/dbxt-migrate/**",
         "./packages/pgxt-cli/**"
