@@ -1,0 +1,9 @@
+import createRouter from "{{importPathmap.core}}/router";
+import routeStack from "{{importPathmap.lib}}/routes";
+
+const router = createRouter(routeStack, {
+  // only run last matched route when there are multiple matches
+  exclusive: true,
+});
+
+export default router;

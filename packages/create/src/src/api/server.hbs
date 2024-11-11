@@ -1,45 +1,4 @@
-import { parseArgs } from "node:util";
-import { unlink, chmod } from "node:fs/promises";
-
+import createServer from "{{importPathmap.core}}/server";
 import createApp from "./app";
 
-const {
-  values: { port, sock },
-} = parseArgs({
-  options: {
-    port: {
-      type: "string",
-      short: "p",
-    },
-    sock: {
-      type: "string",
-      short: "s",
-    },
-  },
-});
-
-if (![port, sock].some((e) => e)) {
-  console.error("Please provide either -p/--port number or -s/--sock path");
-  process.exit(1);
-}
-
-console.log("\n  ➜ Starting Server", { port, sock });
-
-if (sock) {
-  await unlink(sock).catch((error) => {
-    if (error.code === "ENOENT") {
-      return;
-    }
-    console.error(error.message);
-    process.exit(1);
-  });
-}
-
-const app = await createApp();
-
-app.listen(port || sock, async () => {
-  if (sock) {
-    await chmod(sock, 0o777);
-  }
-  console.log("\n  ➜ Server Started ✨\n");
-});
+createServer(createApp)

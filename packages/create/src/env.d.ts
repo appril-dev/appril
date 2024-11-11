@@ -3,6 +3,10 @@ declare module "*.hbs" {
   export default src;
 }
 
+declare module "@/core/api/use" {
+  export default () => [];
+}
+
 declare module "@/config" {
   export const DEV: boolean;
 }

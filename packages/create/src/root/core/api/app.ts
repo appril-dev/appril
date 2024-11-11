@@ -1,11 +1,20 @@
-/// <reference path="./env.d.ts" />
+import Koa from "koa";
 
-import { type Middleware, useGlobal } from "@appril/api/router";
-import { bodyparser } from "@appril/api/bodyparser";
+import type { DefaultContext, DefaultState, Middleware } from "@appril/api";
+import withQueryparser from "@appril/api/queryparser";
 
-useGlobal("bodyparser", bodyparser.json()).before("post", "put", "patch");
+export default () => {
+  const app = withQueryparser(new Koa<DefaultState, DefaultContext>());
 
-export const errorHandler: Middleware = async (ctx, next) => {
+  app.on("error", console.error);
+
+  // errorHandler goes first
+  app.use(errorHandler);
+
+  return app;
+};
+
+const errorHandler: Middleware = async (ctx, next) => {
   try {
     await next();
   } catch (error) {

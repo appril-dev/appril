@@ -1,43 +1,17 @@
-/// <reference path="./env.d.ts" />
+import { type UseSpec, use } from "@appril/api";
+import bodyparser from "@appril/api/bodyparser";
 
-import {
-  type ParameterizedContext,
-  type Middleware,
-  use,
-} from "@appril/api/router";
+export default (): Array<UseSpec> => [
+  use(bodyparser.json(), {
+    slot: "bodyparser",
+    before: ["post", "put", "patch"],
+  }),
 
-import {
-  type JsonOptions,
-  type FormOptions,
-  type RawOptions,
-  bodyparser,
-} from "@appril/api/bodyparser";
-
-export const passthrough: Middleware = (_ctx, next) => next();
-
-export const useJsonBodyparser = (opts: JsonOptions = {}) => {
-  return use("bodyparser", bodyparser.json(opts)).before(
-    "post",
-    "put",
-    "patch",
-  );
-};
-
-export const useFormBodyparser = (opts: FormOptions = {}) => {
-  return use("bodyparser", bodyparser.form(opts)).before(
-    "post",
-    "put",
-    "patch",
-  );
-};
-
-export const useRawBodyparser = (opts: RawOptions = {}) => {
-  return use("bodyparser", bodyparser.raw(opts)).before("post", "put", "patch");
-};
-
-export const usePayload = (handler: (ctx: ParameterizedContext) => unknown) => {
-  return use("payload", (ctx, next) => {
-    ctx.payload = handler(ctx);
-    return next();
-  });
-};
+  use(
+    (ctx, next) => {
+      ctx.payload = "body" in ctx.request ? ctx.request.body : ctx.query;
+      return next();
+    },
+    { slot: "payload" },
+  ),
+];

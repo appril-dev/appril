@@ -23,6 +23,7 @@ import viteBaseTpl from "./root/vite.base.hbs";
 
 import srcConfigTpl from "./src/config/index.hbs";
 import srcApiAppTpl from "./src/api/app.hbs";
+import srcApiRouterTpl from "./src/api/router.hbs";
 import srcApiServerTpl from "./src/api/server.hbs";
 
 const onState: PromptObject["onState"] = (state) => {
@@ -217,23 +218,21 @@ async function init() {
     for (const [file, template] of [
       ["config/index.ts", srcConfigTpl],
       ["api/app.ts", srcApiAppTpl],
+      ["api/router.ts", srcApiRouterTpl],
       ["api/server.ts", srcApiServerTpl],
     ]) {
       const context = {
         ...baseContext,
         importPathmap: {
-          app: [
-            defaults.appPrefix,
-            defaults.coreDir,
-            defaults.apiDir,
-            "app",
-          ].join("/"),
-          routes: [srcFolder, libApiDir, "routes"].join("/"),
+          core: [defaults.appPrefix, defaults.coreDir, defaults.apiDir].join(
+            "/",
+          ),
+          lib: [srcFolder, libApiDir].join("/"),
         },
         baseurl:
           srcFolders.length === 1 || /front|src/.test(srcFolder)
             ? "/"
-            : join("/", srcFolder.replace("@", "")),
+            : join("/", srcFolder.replace(/^\W+/, "")),
       };
 
       await renderToFile(dstdir(srcFolder, file), template, context, {

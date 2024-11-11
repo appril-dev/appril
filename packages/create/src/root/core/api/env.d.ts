@@ -1,9 +1,14 @@
-export declare module "@appril/api/router" {
+export declare module "@appril/api" {
   interface DefaultState {}
 
   interface DefaultContext {
     payload: unknown;
   }
 
-  interface UseIdentities {}
+  interface UseSlots {
+    bodyparser: string;
+    payload: string;
+    "validate:payload": string;
+    "validate:params": string;
+  }
 }
