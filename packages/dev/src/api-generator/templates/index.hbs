@@ -1,13 +1,22 @@
 import api, {
   type DefaultState,
   type DefaultContext,
-  type DefinitionI,
-  type UseDefinitionI,
-} from "@appril/api/router";
+  type RouteSpecI,
+  type RouteSpec,
+  type UseSpecI,
+  type UseSpec,
+  type HTTPMethod,
+  type Middleware,
+} from "@appril/api";
+
+import { routeMiddlewareMapper } from "@appril/api/lib";
+
+import useGlobalFactory from "{{importPathmap.api}}/use";
+import useRulesFactory from "./_rules";
 
 type DefaultParamsT = {{route.params.literal}};
 
-export const use: UseDefinitionI<
+export const use: UseSpecI<
   DefaultState,
   DefaultContext & { params: DefaultParamsT }
 > = api.use;
@@ -17,14 +26,19 @@ type Factory<
   StateT = DefaultState,
   ContextT = DefaultContext & { params: ParamsT }
 > = (
-  a: { use: UseDefinitionI<StateT, ContextT> } & Record<
-    {{#each apiMethods}}| "{{this}}"{{/each}},
-    DefinitionI<StateT, ContextT>
+  a: { use: UseSpecI<StateT, ContextT> } & Record<
+    keyof Omit<typeof api, "use">,
+    RouteSpecI<StateT, ContextT>
   >
-) => Array<any>;
+) => Array<UseSpec<any, any> | RouteSpec<any, any>>;
 
 export default <
   ParamsT extends DefaultParamsT = DefaultParamsT
->(
-  factory: Factory<ParamsT>
-) => factory(api);
+>(factory: Factory<ParamsT>): Array<{
+  method: HTTPMethod,
+  middleware: Array<Middleware>
+}> => routeMiddlewareMapper("{{route.file}}", {
+  paramsSchema: {{paramsSchema}},
+  factorySpecs: factory(api as never),
+  useGlobalSpecs: [useGlobalFactory(), useRulesFactory()].flat(),
+});

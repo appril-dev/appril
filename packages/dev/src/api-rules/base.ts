@@ -70,7 +70,6 @@ export function generateRulesFile(
     appRoot,
     sourceFolder,
     typeDeclarations,
-    paramsType,
     payloadTypes,
     zodSchema,
     zodErrors,
@@ -80,7 +79,6 @@ export function generateRulesFile(
     appRoot: string;
     sourceFolder: string;
     typeDeclarations: Array<TypeDeclaration>;
-    paramsType: string | undefined;
     payloadTypes: Array<PayloadType>;
     zodSchema?: string | undefined;
     zodErrors?: Array<string>;
@@ -88,13 +86,6 @@ export function generateRulesFile(
     overwrite?: boolean;
   },
 ) {
-  const paramsSchema = route.params.schema.map((e) => ({
-    ...e,
-    isNumber: paramsType
-      ? new RegExp(`('|")?${e.name}\\1\\??:(\\s+)?number\\b`).test(paramsType)
-      : false,
-  }));
-
   const libApiDir = format(defaults.libDirFormat, defaults.apiDir);
 
   return renderToFile(
@@ -103,7 +94,6 @@ export function generateRulesFile(
     {
       route,
       typeDeclarations,
-      paramsSchema: JSON.stringify(paramsSchema),
       payloadTypes,
       zodSchema,
       zodErrors,

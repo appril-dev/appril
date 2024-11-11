@@ -8,7 +8,7 @@ import chokidar, { type FSWatcher } from "chokidar";
 import { chunk } from "lodash-es";
 import { fileGenerator } from "@appril/dev-utils";
 
-import { defaults, type ApiRoute, type PluginOptionsResolved } from "@/base";
+import { type ApiRoute, type PluginOptionsResolved, defaults } from "@/base";
 
 import {
   type WorkerPayload,
@@ -124,7 +124,6 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
       appRoot,
       sourceFolder,
       typeDeclarations: [],
-      paramsType: undefined,
       payloadTypes: [],
       importZodErrorHandlerFrom,
       overwrite: false, // skip if exists

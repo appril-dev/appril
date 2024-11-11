@@ -1,12 +1,11 @@
 import { join } from "node:path";
 import { format } from "node:util";
 
-import { APIMethods } from "@appril/api/router";
 import { fileGenerator } from "@appril/dev-utils";
 
 import { type ApiRoute, defaults } from "@/base";
+import { extractApiAssets } from "@/ast";
 
-import baseTpl from "./templates/base.hbs";
 import indexTpl from "./templates/index.hbs";
 import routeTpl from "./templates/route.hbs";
 import routesTpl from "./templates/routes.hbs";
@@ -27,11 +26,6 @@ export async function bootstrap(data: {
   sourceFolder = data.sourceFolder;
 
   generateFile = fileGenerator(data.appRoot).generateFile;
-
-  await generateFile(
-    join(defaults.libDir, sourceFolder, libApiDir, "base.ts"),
-    { template: baseTpl, context: {} },
-  );
 
   await generateFile(join(sourceFolder, defaults.dataSourceFile), "", {
     overwrite: false,
@@ -65,6 +59,18 @@ async function generateRouteFiles({
   route,
   template,
 }: { route: ApiRoute; template: string | undefined }) {
+  const { paramsType } = await extractApiAssets({
+    file: route.fileFullpath,
+    relpathResolver: (path) => path,
+  });
+
+  const paramsSchema = route.params.schema.map((e) => ({
+    ...e,
+    isNumber: paramsType
+      ? new RegExp(`('|")?${e.name}\\1\\??:(\\s+)?number\\b`).test(paramsType)
+      : false,
+  }));
+
   await generateFile(
     join(
       defaults.libDir,
@@ -77,10 +83,14 @@ async function generateRouteFiles({
       template: indexTpl,
       context: {
         importPathmap: {
+          core: [defaults.appPrefix, defaults.coreDir, defaults.apiDir].join(
+            "/",
+          ),
+          api: [sourceFolder, defaults.apiDir].join("/"),
           lib: [sourceFolder, libApiDir].join("/"),
         },
-        apiMethods: Object.keys(APIMethods),
         route,
+        paramsSchema: JSON.stringify(paramsSchema),
       },
     },
   );

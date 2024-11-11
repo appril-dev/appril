@@ -1,57 +1,27 @@
 import { join } from "node:path";
 
-import { type Meta, type RouteEndpoint, routeMapper } from "@appril/api/router";
-
 import { baseurl, apiurl } from "{{importPathmap.config}}";
-import { injectPayload } from "{{importPathmap.lib}}/base";
-import router from "{{importPathmap.api}}/router";
 
-{{#each routes}}
-  import {{importName}} from "{{../importPathmap.api}}/{{importPath}}";
-  import {{importName}}_rules from "{{../importPathmap.lib}}/{{importPath}}/_rules";
+{{#each routes}}import {{importName}} from "{{../importPathmap.api}}/{{importPath}}";
 {{/each}}
 
 export type ApiRoute ={{#each routes}}
   | "{{originalPath}}"{{/each}}
 
-export const routeStack: Array<{
-  path: string;
-  originalPath: string;
-  file: string;
-  endpoints: Array<RouteEndpoint>;
-  meta?: Meta;
-}> = []
-
+export default [
 {{#each routes}}
-routeStack.push({
-  path: join(
-    baseurl,
-    {{#if base}}"{{base}}"{{else}}apiurl{{/if}},
-    "{{path}}"
-  ),
-  originalPath: "{{originalPath}}",
-  file: "{{file}}",
-  endpoints: routeMapper([
-    injectPayload(),
-    {{importName}}_rules(),
-    {{importName}}
-  ].flat()),
-  {{#if meta}}
-  meta: {{meta}},
-  {{/if}}
-})
-
+  {
+    path: join(
+      baseurl,
+      {{#if base}}"{{base}}"{{else}}apiurl{{/if}},
+      "{{path}}"
+    ),
+    originalPath: "{{originalPath}}",
+    file: "{{file}}",
+    endpoints: {{importName}},
+    {{#if meta}}
+    meta: {{meta}},
+    {{/if}}
+  },
 {{/each}}
-
-for (const { path, originalPath, endpoints } of routeStack) {
-  for (const { method, middleware } of endpoints) {
-    router.register(
-      path.replace(/\+/g, "\\+"),
-      [method],
-      middleware as Array<never>,
-      { name: originalPath },
-    );
-  }
-}
-
-export default router.routes();
+];

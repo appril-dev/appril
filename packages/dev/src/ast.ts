@@ -1,9 +1,8 @@
 import fsx from "fs-extra";
 // TODO: consider github.com/dsherret/ts-morph
 import tsquery from "@phenomnomnominal/tsquery";
-
 import ts from "typescript";
-import { httpMethodByApi } from "./base";
+import { httpMethodByApi } from "@appril/api/lib";
 
 export type FetchDefinition = {
   method: string;
@@ -290,19 +289,22 @@ export function extractTypeReferences(node: ts.Node) {
     .map((e) => e.typeName.getText());
 }
 
-export async function extractApiAssets(
-  fileContent: string,
-  {
-    relpathResolver,
-  }: {
-    relpathResolver: RelpathResolver;
-  },
-): Promise<{
+export async function extractApiAssets({
+  file,
+  relpathResolver,
+}: {
+  file: string;
+  relpathResolver: RelpathResolver;
+}): Promise<{
   typeDeclarations: Array<TypeDeclaration>;
   paramsType: string | undefined;
   payloadTypes: Record<string, string>;
   fetchDefinitions: Array<FetchDefinition>;
 }> {
+  const fileContent = (await fsx.exists(file))
+    ? await fsx.readFile(file, "utf8")
+    : "";
+
   const ast = tsquery.ast(fileContent);
 
   const typeDeclarations = extractTypeDeclarations(ast, { relpathResolver });
@@ -322,12 +324,13 @@ export async function extractApiAssets(
   const fetchDefinitions: Record<string, FetchDefinition> = {};
 
   for (const { method, payloadType, returnType } of handlers) {
+    const httpMethod = httpMethodByApi(method);
     if (payloadType) {
-      payloadTypes[method] = payloadType;
+      payloadTypes[httpMethod] = payloadType;
     }
     fetchDefinitions[method] = {
       method,
-      httpMethod: httpMethodByApi(method),
+      httpMethod,
       payloadType,
       bodyType: returnType,
     };

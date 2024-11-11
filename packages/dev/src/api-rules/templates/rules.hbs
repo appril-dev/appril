@@ -1,6 +1,4 @@
-import { use } from "@appril/api/router";
-
-import { refineParams } from "{{importPathmap.lib}}/base";
+import { type UseSpec, use } from "@appril/api";
 
 {{#if importZodErrorHandlerFrom}}
 import { zodErrorHandler } from "{{importZodErrorHandlerFrom}}";
@@ -16,35 +14,6 @@ function zodErrorHandler(error: any) {
 
 {{zodSchema}}
 
-const validateParams = () => use<
-  never,
-  {
-    params: Record<string, unknown>
-  }
->((ctx, next) => {
-  try {
-    {{route.params.id}}Schema.parse(ctx.params)
-  } catch (error: any) {
-    throw zodErrorHandler(error)
-  }
-  return next()
-})
-
-const validatePayload = () => [
-  {{#if zodSchema}}
-  {{#each payloadTypes}}
-  use<never, { payload: {} }>((ctx, next) => {
-    try {
-      {{id}}Schema.parse(ctx.payload)
-    } catch (error: any) {
-      throw zodErrorHandler(error)
-    }
-    return next()
-  }).before("{{method}}"),
-  {{/each}}
-  {{/if}}
-].flat()
-
 {{#if zodErrors.length}}
 console.error("\n[ \x1b[31m{{route.file}}\x1b[0m ]: failed building zod schema(s)")
 {{#each zodErrors}}
@@ -52,8 +21,41 @@ console.error(`{{this}}`)
 {{/each}}
 {{/if}}
 
+const validateParams = [
+  use<never, { params: Record<string, unknown> }>(
+    (ctx, next) => {
+      try {
+        {{route.params.id}}Schema.parse(ctx.params)
+      } catch (error: any) {
+        throw zodErrorHandler(error)
+      }
+      return next()
+    },
+    { slot: "validate:params" },
+  ) as unknown as UseSpec,
+]
+
+const validatePayload = [
+  {{#if zodSchema}}
+  use(
+    (ctx, next) => {
+      {{#each payloadTypes}}
+      if (ctx.request.method === "{{method}}") {
+        try {
+          {{id}}Schema.parse(ctx.payload)
+        } catch (error: any) {
+          throw zodErrorHandler(error)
+        }
+      }
+      {{/each}}
+      return next()
+    },
+    { slot: "validate:payload" },
+  ),
+  {{/if}}
+]
+
 export default () => [
-  refineParams({{paramsSchema}}),
-  validateParams(),
-  validatePayload(),
+  validateParams,
+  validatePayload,
 ].flat()

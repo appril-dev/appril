@@ -61,16 +61,12 @@ async function generateRouteAssets({
 }: {
   route: ApiRoute;
 }) {
-  const { typeDeclarations, fetchDefinitions } = await extractApiAssets(
-    (await fsx.exists(route.fileFullpath))
-      ? await fsx.readFile(route.fileFullpath, "utf8")
-      : "",
-    {
-      relpathResolver(path) {
-        return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
-      },
+  const { typeDeclarations, fetchDefinitions } = await extractApiAssets({
+    file: route.fileFullpath,
+    relpathResolver(path) {
+      return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
     },
-  );
+  });
 
   await generateFile(
     join(

@@ -98,7 +98,3 @@ export function importNameFromPath(path: string): string {
     crc32(path),
   ].join("_");
 }
-
-export function httpMethodByApi(apiMethod: string): string {
-  return apiMethod === "del" ? "DELETE" : apiMethod.toUpperCase();
-}

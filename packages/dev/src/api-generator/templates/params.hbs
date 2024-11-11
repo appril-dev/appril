@@ -1,7 +1,7 @@
 {
   {{#each schema}}
   {{#if isRest}}
-  "{{name}}": Array<string | number>;
+  "{{name}}"?: string;
   {{else}}
   "{{name}}"{{#if isOpt}}?{{/if}}: string | number;
   {{/if}}
