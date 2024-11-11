@@ -41,6 +41,6 @@
     "@appril/api": "workspace:^",
     "@appril/configs": "workspace:^",
     "@types/follow-redirects": "^1.14.4",
-    "@types/qs": "^6.9.16"
+    "@types/qs": "^6.9.17"
   }
 }
