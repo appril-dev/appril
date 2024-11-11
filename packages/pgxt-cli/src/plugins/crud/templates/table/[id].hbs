@@ -1,3 +1,8 @@
+import { routeMiddlewareMapper } from "@appril/api/lib";
+
+import useGlobalFactory from "{{importPathmap.api}}/use";
+import useRulesFactory from "{{importPathmap.lib}}/_rules";
+
 import {
   type RecordT,
   type UpdateT,
@@ -7,7 +12,7 @@ import {
   deleteWrapper,
 } from ".";
 
-export { head, options, post, put } from "@appril/api/router";
+export { head, options, post, put } from "@appril/api";
 
 export * from "./typeLiterals";
 
@@ -43,4 +48,8 @@ export default <
   ParamsT extends DefaultParamsT = DefaultParamsT
 >(
   factory: Factory<ParamsT>
-) => factory({ use, get, patch, del });
+) => routeMiddlewareMapper("{{route.file}}", {
+  paramsSchema: [{ name: "id", isNumber: true }],
+  factorySpecs: factory({ use, get, patch, del }),
+  useGlobalSpecs: [useGlobalFactory(), useRulesFactory()].flat(),
+});

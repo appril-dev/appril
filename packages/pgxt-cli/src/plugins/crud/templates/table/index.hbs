@@ -1,8 +1,12 @@
+import { routeMiddlewareMapper } from "@appril/api/lib";
+
 import tableInit from "{{importPathmap.table}}";
-import factory from "..";
+import useGlobalFactory from "{{importPathmap.api}}/use";
+import useRulesFactory from "{{importPathmap.lib}}/_rules";
+import crudFactory from "..";
 import type { RecordT, InsertT } from "./typeLiterals";
 
-export { head, options, patch, put, del } from "@appril/api/router";
+export { head, options, patch, put, del } from "@appril/api";
 export * from "./typeLiterals";
 
 export const columns = [
@@ -21,7 +25,7 @@ export const {
   deleteWrapper,
   retrieveWrapper,
   listWrapper,
-} = factory<
+} = crudFactory<
   "{{table.moduleName}}",
   ColumnT
 >(
@@ -52,4 +56,8 @@ export default (
     get: typeof get;
     post: typeof post;
   }) => Array<any>
-) => factory({ use, get, post });
+) => routeMiddlewareMapper("{{route.file}}", {
+  paramsSchema: [],
+  factorySpecs: factory({ use, get, post }),
+  useGlobalSpecs: [useGlobalFactory(), useRulesFactory()].flat(),
+});

@@ -1,14 +1,12 @@
-import {
+import api, {
   type DefaultState,
   type DefaultContext,
   type ParameterizedContext,
   type Middleware,
-  type UseDefinition,
-  type UseIdentities,
-  type MiddlewareDefinition,
-  definitionFactory,
-  useDefinitionFactory,
-} from "@appril/api/router";
+  type UseOpt,
+  type UseSpec,
+  type RouteSpec,
+} from "@appril/api";
 
 import type { QueryBuilder } from "@appril/dbxt";
 import type { Knex } from "knex";
@@ -79,7 +77,7 @@ export default <
         ctx: WrapperContext<StateT, ContextT, ParamsT>,
         worker: WorkerT,
       ) => Promise<unknown>,
-    ): MiddlewareDefinition;
+    ): RouteSpec;
   }
 
   interface UseWrapper<
@@ -90,16 +88,16 @@ export default <
       ContextT = object,
       T = WrapperMiddleware<StateT, ContextT, ParamsT>
     >(
-      a: T | Array<T>,
-    ): UseDefinition;
+      use: T | Array<T>,
+    ): UseSpec;
     <
       StateT = object,
       ContextT = object,
       T = WrapperMiddleware<StateT, ContextT, ParamsT>
     >(
-      a: keyof UseIdentities,
-      b: T | Array<T>,
-    ): UseDefinition;
+      use: T | Array<T>,
+      opt?: UseOpt,
+    ): UseSpec;
   }
 
   type GenericMiddleware = Middleware<DefaultState, {
@@ -110,10 +108,8 @@ export default <
   function useWrapper<ParamsT>(): UseWrapper<
     ParamsT
   > {
-    return (...a: Array<unknown>) => {
-      return useDefinitionFactory([
-        [initMiddleware, ...a].flat()
-      ])
+    return (use, opt?: UseOpt) => {
+      return api.use([initMiddleware, use].flat() as Array<never>, opt)
     }
   }
 
@@ -122,7 +118,7 @@ export default <
     WorkerT
   > {
     return (handler) => {
-      return definitionFactory("post", [
+      return api.definitionFactory("post", [
         initMiddleware,
         async (ctx, next) => {
           const worker = async (data: never) => {
@@ -143,7 +139,7 @@ export default <
     WorkerT
   > {
     return (handler) => {
-      return definitionFactory("patch", [
+      return api.definitionFactory("patch", [
         initMiddleware,
         async (ctx, next) => {
           const worker = async (data: never) => {
@@ -180,7 +176,7 @@ export default <
     WorkerT
   > {
     return (handler) => {
-      return definitionFactory("del", [
+      return api.definitionFactory("del", [
         initMiddleware,
         async (ctx, next) => {
           const worker = async () => {
@@ -206,7 +202,7 @@ export default <
     WorkerT
   > {
     return (handler) => {
-      return definitionFactory("get", [
+      return api.definitionFactory("get", [
         initMiddleware,
         async (ctx, next) => {
           const worker = async () => {
@@ -231,7 +227,7 @@ export default <
     WorkerT
   > {
     return (handler) => {
-      return definitionFactory("get", [
+      return api.definitionFactory("get", [
         initMiddleware,
         async (ctx, next) => {
           const worker = async () => {
