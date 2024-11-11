@@ -1,5 +1,8 @@
 import qs from "qs";
 
+export * from "./route";
+export * from "./debug";
+
 export type HostOpt =
   | string
   | { hostname: string; port?: number; secure?: boolean };

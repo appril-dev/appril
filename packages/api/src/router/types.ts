@@ -39,26 +39,8 @@ export interface DefaultState {}
 // biome-ignore lint:
 export interface DefaultContext {}
 
-export interface UseIdentities {
-  payload: string;
-  bodyparser: string;
-}
-
 // biome-ignore lint:
 export interface Meta {}
-
-export type Middleware<StateT = DefaultState, ContextT = DefaultContext> = (
-  ctx: ParameterizedContext<StateT, ContextT>,
-  next: import("koa").Next,
-) => unknown;
-
-export type MiddlewareDefinition<
-  StateT = DefaultState,
-  ContextT = DefaultContext,
-> = {
-  method: APIMethod;
-  middleware: Array<Middleware<StateT, ContextT>>;
-};
 
 export type ParameterizedContext<
   StateT = DefaultState,
@@ -73,41 +55,32 @@ export type ParameterizedContext<
     >
 >;
 
-// use throw inside handler to say NotFound (or another error):
-// throw [ 404, "Not Found" ]
-// throw [ 400, "Bad Request" ]
-/** biome-ignore lint: */
-type ManagedMiddlewareReturn = any | Promise<any>;
+export type Middleware<StateT = DefaultState, ContextT = DefaultContext> = (
+  ctx: ParameterizedContext<StateT, ContextT>,
+  next: import("koa").Next,
+) => unknown;
 
 export type ManagedMiddleware<
   StateT = DefaultState,
   ContextT = DefaultContext,
-> = (ctx: ParameterizedContext<StateT, ContextT>) => ManagedMiddlewareReturn;
+> = (ctx: ParameterizedContext<StateT, ContextT>) => unknown | Promise<unknown>;
 
-export type UseScope = APIMethod | Array<APIMethod>;
-export type UseScopeGlobal = APIMethod;
-
-export type UseDefinitionBase<
-  StateT = DefaultState,
-  ContextT = DefaultContext,
-> = {
-  use: Array<Middleware<StateT, ContextT>>;
-  name?: keyof UseIdentities;
+export type RouteSpec<StateT = DefaultState, ContextT = DefaultContext> = {
+  method: APIMethod;
+  middleware: Array<Middleware<StateT, ContextT>>;
 };
 
-export type UseFactory<TScope> = {
-  before: (...p: Array<TScope>) => UseDefinition<TScope>;
-  "@before": (m: APIMethod, p?: string) => boolean;
-  after: (...p: Array<TScope>) => UseDefinition<TScope>;
-  "@after": (m: APIMethod, p?: string) => boolean;
-};
+export interface RouteSpecI<StateT = DefaultState, ContextT = DefaultContext> {
+  <StateC = object, ContextC = object>(
+    a: ManagedMiddleware<StateT & StateC, ContextT & ContextC>,
+  ): RouteSpec; // TODO: providing generics here somehow is breaking context typing
 
-export type UseDefinition<
-  /**/
-  TScope = UseScope,
-> = UseDefinitionBase & UseFactory<TScope>;
+  <StateC = object, ContextC = object>(
+    a: Array<Middleware<StateT & StateC, ContextT & ContextC>>,
+  ): RouteSpec;
+}
 
-export interface DefinitionI<StateT = DefaultState, ContextT = DefaultContext> {
+/* export interface DefinitionI<StateT = DefaultState, ContextT = DefaultContext> {
   <StateB = object, ContextB = object>(
     a: ManagedMiddleware<StateT & StateB, ContextT & ContextB>,
   ): MiddlewareDefinition<StateT & StateB, ContextT & ContextB>;
@@ -115,36 +88,35 @@ export interface DefinitionI<StateT = DefaultState, ContextT = DefaultContext> {
   <StateB = object, ContextB = object>(
     a: Array<Middleware<StateT & StateB, ContextT & ContextB>>,
   ): MiddlewareDefinition<StateT & StateB, ContextT & ContextB>;
-}
+} */
 
-export interface UseDefinitionI<
-  StateT = DefaultState,
-  ContextT = DefaultContext,
-> {
-  <StateB = object, ContextB = object>(
-    a:
-      | Middleware<StateT & StateB, ContextT & ContextB>
-      | Array<Middleware<StateT & StateB, ContextT & ContextB>>,
-  ): UseDefinition;
-  <StateB = object, ContextB = object>(
-    a: keyof UseIdentities,
-    b:
-      | Middleware<StateT & StateB, ContextT & ContextB>
-      | Array<Middleware<StateT & StateB, ContextT & ContextB>>,
-  ): UseDefinition;
-}
+// biome-ignore lint:
+export interface UseSlots {}
 
-export interface UseDefinitionGlobalI {
-  (a: Middleware | Array<Middleware>): UseDefinition<UseScopeGlobal>;
-  (
-    a: keyof UseIdentities,
-    b: Middleware | Array<Middleware>,
-  ): UseDefinition<UseScopeGlobal>;
-}
-
-export type RouteDefinition = UseDefinition | MiddlewareDefinition;
-
-export type RouteEndpoint = {
-  method: HTTPMethod;
-  middleware: Array<Middleware>;
+export type UseOpt = {
+  slot?: keyof UseSlots;
+  before?: APIMethod | Array<APIMethod>;
+  after?: APIMethod | Array<APIMethod>;
 };
+
+export type UseSpec<StateT = DefaultState, ContextT = DefaultContext> = {
+  use: Array<Middleware<StateT, ContextT>>;
+} & {
+  slot?: keyof UseSlots;
+  before?: Array<APIMethod>;
+  after?: Array<APIMethod>;
+};
+
+export interface UseSpecI<StateT = DefaultState, ContextT = DefaultContext> {
+  <State = object, Context = object>(
+    use:
+      | Middleware<StateT & State, ContextT & Context>
+      | Array<Middleware<StateT & State, ContextT & Context>>,
+  ): UseSpec<StateT & State, ContextT & Context>;
+  <State = object, Context = object>(
+    use:
+      | Middleware<StateT & State, ContextT & Context>
+      | Array<Middleware<StateT & State, ContextT & Context>>,
+    opt?: UseOpt,
+  ): UseSpec<StateT & State, ContextT & Context>;
+}

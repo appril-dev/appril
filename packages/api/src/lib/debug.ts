@@ -1,6 +1,6 @@
 import { green, blue, red, grey, black, bgBlue, dim } from "kleur/colors";
 
-import type { RouteEndpoint } from "./types";
+import type { HTTPMethod, Middleware } from "../router/types";
 
 type Printer = (line: string) => void;
 
@@ -22,7 +22,7 @@ export function routePrinter(
   route: {
     path: string;
     file: string;
-    endpoints: Array<RouteEndpoint>;
+    endpoints: Array<{ method: HTTPMethod; middleware: Array<Middleware> }>;
   },
   printer: Printer | boolean = false,
 ) {
