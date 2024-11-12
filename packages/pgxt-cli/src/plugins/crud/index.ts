@@ -1,11 +1,10 @@
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { format } from "node:util";
 
 import { stringify } from "smol-toml";
-
-import type { TableDeclaration, ColumnDeclaration } from "@appril/pgxt";
 import { defaults } from "@appril/configs";
 import { fileGenerator, render } from "@appril/dev-utils";
+import type { TableDeclaration, ColumnDeclaration } from "@appril/pgxt";
 
 import { type GeneratorPlugin, BANNER } from "@/base";
 
@@ -24,19 +23,28 @@ import indexTpl from "./templates/index.hbs";
 type TableSetup = { dataLoader?: boolean; page?: boolean };
 
 export default (
-  srcFolder: string,
+  sourceFolderOrConfig:
+    | string
+    | {
+        sourceFolder: string;
+        // postgres schema name. only one schema per plugin call.
+        // to generate for multiple schemas call plugin multiple times, once per schema.
+        schema?: string;
+        // folder name to place generated files into. defaults to crud
+        baseDir?: string;
+        // base url for routes. defaults to baseDir
+        baseUrl?: string;
+      },
   tableMap: Record<string, boolean | TableSetup>,
-  config?: {
-    // postgres schema name. only one schema per plugin call.
-    // to generate for multiple schemas call plugin multiple times, once per schema.
-    schema?: string;
-    // folder name to place generated files into. defaults to crud
-    baseDir?: string;
-    // base url for routes. defaults to baseDir
-    baseUrl?: string;
-  },
 ): GeneratorPlugin => {
-  const { schema = "public", baseDir = "crud", ...rest } = { ...config };
+  const {
+    sourceFolder,
+    schema = "public",
+    baseDir = "crud",
+    ...rest
+  } = typeof sourceFolderOrConfig === "string"
+    ? { sourceFolder: sourceFolderOrConfig }
+    : { ...sourceFolderOrConfig };
 
   const { baseUrl = baseDir } = rest;
 
@@ -53,7 +61,7 @@ export default (
     const libBaseDir = format(defaults.libDirFormat, baseDir);
 
     await generateFile(
-      join(defaults.libDir, srcFolder, libBaseDir, "index.ts"),
+      join(defaults.libDir, sourceFolder, libBaseDir, "index.ts"),
       {
         template: indexTpl,
         context: {},
@@ -89,14 +97,14 @@ export default (
         columns,
         typeLiterals,
         importPathmap: {
-          lib: [srcFolder, libBaseDir, table.name].join("/"),
+          lib: [sourceFolder, libBaseDir, table.name].join("/"),
           table: [
             defaults.appPrefix,
             format(defaults.libDirFormat, pgxtConfig.baseDir),
             table.fullName,
           ].join("/"),
           tableApi: [
-            srcFolder,
+            sourceFolder,
             format(defaults.libDirFormat, defaults.apiDir),
             table.name,
           ].join("/"),
@@ -111,13 +119,13 @@ export default (
         ["typeLiterals.ts", tableTypeLiteralsTpl],
       ] as const) {
         await generateFile(
-          join(defaults.libDir, srcFolder, libBaseDir, table.name, file),
+          join(defaults.libDir, sourceFolder, libBaseDir, table.name, file),
           { template, context },
         );
       }
     }
 
-    const relpathToLib = join("..", defaults.libDir, srcFolder, libBaseDir);
+    const relpathToLib = join("..", defaults.libDir, sourceFolder, libBaseDir);
 
     const reducer = (map: Record<string, unknown>, table: TableDeclaration) => {
       let page: boolean | undefined;
@@ -152,7 +160,7 @@ export default (
 
     await generateFile(
       join(
-        srcFolder,
+        sourceFolder,
         [
           `_${baseDir}`,
           ...(schema === "public" ? [] : [`_${schema}`]),
