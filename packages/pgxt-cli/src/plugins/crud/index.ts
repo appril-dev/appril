@@ -90,7 +90,8 @@ export default (
         typeLiterals,
         importPathmap: {
           api: [srcFolder, defaults.apiDir].join("/"),
-          lib: [
+          lib: [srcFolder, libBaseDir, table.name].join("/"),
+          libApi: [
             srcFolder,
             format(defaults.libDirFormat, defaults.apiDir),
             table.name,

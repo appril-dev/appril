@@ -1,4 +1,7 @@
-import routeFactory, { type RecordT, type InsertT } from "{{importPathmap.api}}";
+import routeFactory, {
+  type RecordT,
+  type InsertT,
+} from "{{importPathmap.lib}}";
 
 export default routeFactory(({ get, post }) => [
   get(async (ctx, worker): Promise<Array<RecordT>> => {

@@ -1,7 +1,7 @@
 import routeFactory, {
   type RecordT,
   type UpdateT,
-} from "{{importPathmap.api}}/[id]";
+} from "{{importPathmap.lib}}/[id]";
 
 export default routeFactory(({ get, patch, del }) => [
   get(async (ctx, worker): Promise<RecordT> => {
