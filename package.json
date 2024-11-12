@@ -1,7 +1,7 @@
 {
   "type": "module",
   "private": true,
-  "nodeVersion": "22.6.0",
+  "nodeVersion": "22.11.0",
   "packageManager": "pnpm@9.11.0",
   "pnpm": {
     "requiredScripts": [
