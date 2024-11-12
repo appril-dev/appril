@@ -21,7 +21,7 @@ console.error(`{{this}}`)
 {{/each}}
 {{/if}}
 
-const validateParams = [
+const validateParams = () => [
   use<never, { params: Record<string, unknown> }>(
     (ctx, next) => {
       try {
@@ -35,7 +35,7 @@ const validateParams = [
   ) as unknown as UseSpec,
 ]
 
-const validatePayload = [
+const validatePayload = () => [
   {{#if zodSchema}}
   use(
     (ctx, next) => {
@@ -56,6 +56,6 @@ const validatePayload = [
 ]
 
 export default () => [
-  validateParams,
-  validatePayload,
+  validateParams(),
+  validatePayload(),
 ].flat()

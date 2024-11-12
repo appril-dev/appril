@@ -16,6 +16,13 @@ import useRulesFactory from "./_rules";
 
 type DefaultParamsT = {{route.params.literal}};
 
+export const paramsSchema = {{paramsSchema}};
+
+export const useGlobalSpecs = () => [
+  useGlobalFactory(),
+  useRulesFactory(),
+].flat();
+
 export const use: UseSpecI<
   DefaultState,
   DefaultContext & { params: DefaultParamsT }
@@ -38,7 +45,7 @@ export default <
   method: HTTPMethod,
   middleware: Array<Middleware>
 }> => routeMiddlewareMapper("{{route.file}}", {
-  paramsSchema: {{paramsSchema}},
+  paramsSchema,
   factorySpecs: factory(api as never),
-  useGlobalSpecs: [useGlobalFactory(), useRulesFactory()].flat(),
+  useGlobalSpecs: useGlobalSpecs(),
 });
