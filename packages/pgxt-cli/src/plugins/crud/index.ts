@@ -89,17 +89,16 @@ export default (
         columns,
         typeLiterals,
         importPathmap: {
-          api: [srcFolder, defaults.apiDir].join("/"),
           lib: [srcFolder, libBaseDir, table.name].join("/"),
-          libApi: [
-            srcFolder,
-            format(defaults.libDirFormat, defaults.apiDir),
-            table.name,
-          ].join("/"),
           table: [
             defaults.appPrefix,
             format(defaults.libDirFormat, pgxtConfig.baseDir),
             table.fullName,
+          ].join("/"),
+          tableApi: [
+            srcFolder,
+            format(defaults.libDirFormat, defaults.apiDir),
+            table.name,
           ].join("/"),
         },
       };

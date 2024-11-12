@@ -1,7 +1,6 @@
 import { routeMiddlewareMapper } from "@appril/api/lib";
 
-import useGlobalFactory from "{{importPathmap.api}}/use";
-import useRulesFactory from "{{importPathmap.libApi}}/_rules";
+import { paramsSchema, useGlobalSpecs } from "{{importPathmap.tableApi}}/[id]";
 
 import {
   type RecordT,
@@ -49,7 +48,7 @@ export default <
 >(
   factory: Factory<ParamsT>
 ) => routeMiddlewareMapper("{{route.file}}", {
-  paramsSchema: [{ name: "id", isNumber: true }],
+  paramsSchema,
   factorySpecs: factory({ use, get, patch, del }),
-  useGlobalSpecs: [useGlobalFactory(), useRulesFactory()].flat(),
+  useGlobalSpecs: useGlobalSpecs(),
 });
