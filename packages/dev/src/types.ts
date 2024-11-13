@@ -4,6 +4,8 @@ export type PluginOptions = {
   apiurl: string;
 
   apiRules?: {
+    maxCpus?: number;
+    traverseMaxDepth?: number;
     importZodErrorHandlerFrom?: string;
   };
 

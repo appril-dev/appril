@@ -21,6 +21,7 @@ export type WorkerPayload = {
   route: ApiRoute;
   appRoot: string;
   sourceFolder: string;
+  traverseMaxDepth: number;
   importZodErrorHandlerFrom: string | undefined;
 };
 
@@ -33,8 +34,8 @@ export type HashMap = {
 export type DiscoveredTypeDeclaration = {
   file: string;
   name: string;
+  nameRegex: RegExp;
   text: string;
-  typeReferences: Array<string>;
   included?: boolean;
 };
 

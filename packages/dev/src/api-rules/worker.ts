@@ -2,14 +2,14 @@ import { parentPort } from "node:worker_threads";
 import { dirname, parse, join } from "node:path";
 
 import fsx from "fs-extra";
-import ts from "typescript";
 import crc32 from "crc/crc32";
+import { Project, type SourceFile } from "ts-morph";
 import { generate } from "ts-to-zod";
 
 import { render, renderToFile } from "@appril/dev-utils";
 
 import { defaults } from "@/base";
-import { extractApiAssets, extractTypeReferences } from "@/ast";
+import { extractApiAssets } from "@/ast";
 
 import {
   generateRulesFile,
@@ -39,6 +39,7 @@ async function worker({
   route,
   appRoot,
   sourceFolder,
+  traverseMaxDepth,
   importZodErrorHandlerFrom,
 }: WorkerPayload) {
   console.log([route.file, "rebuilding assets"]);
@@ -91,72 +92,106 @@ async function worker({
   const discoverTypeDeclarations = (
     schemaFile: string,
   ): Array<DiscoveredTypeDeclaration> => {
-    const tsconfig = ts.getParsedCommandLineOfConfigFile(
-      join(appRoot, "tsconfig.json"),
-      undefined,
-      ts.sys as never,
-    );
+    const project = new Project({
+      tsConfigFilePath: join(appRoot, "tsconfig.json"),
+      skipAddingFilesFromTsConfig: true,
+    });
 
-    const compilerOptions: ts.CompilerOptions = {
-      declaration: true,
-      emitDeclarationOnly: true,
-      isolatedDeclarations: true,
-      verbatimModuleSyntax: true,
-      paths: tsconfig?.options?.paths,
-      pathsBasePath: tsconfig?.options?.pathsBasePath,
-    };
+    const compilerOptions = project.getCompilerOptions();
 
-    const discoveredTypeDeclarations: Array<DiscoveredTypeDeclaration> = [];
+    if (!compilerOptions?.paths) {
+      process.exit(1);
+    }
 
-    const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
-    const host = ts.createCompilerHost(compilerOptions);
+    const prefixes = [
+      /^\./,
+      Object.keys(compilerOptions.paths).map(
+        (e) => new RegExp(`^${e.replace("*", "")}`),
+      ),
+    ].flat();
 
-    host.writeFile = (
-      _fileName,
-      _text,
-      _writeByteOrderMark,
-      _onError,
-      sourceFiles,
-    ) => {
-      for (const sourceFile of sourceFiles || []) {
-        ts.forEachChild(sourceFile, (node) => {
-          if (ts.isTypeAliasDeclaration(node)) {
-            const name = node.name.text;
-            if (!discoveredTypeDeclarations.some((e) => e.name === name)) {
-              discoveredTypeDeclarations.unshift({
-                file: sourceFile.fileName,
-                name,
-                text: printer.printNode(
-                  ts.EmitHint.Unspecified,
-                  node,
-                  sourceFile,
-                ),
-                typeReferences: extractTypeReferences(node),
-              });
-            }
-          }
-        });
+    const sourceFile = project.addSourceFileAtPath(schemaFile);
+
+    const sourceFiles: Array<[string, SourceFile, number]> = [
+      [schemaFile, sourceFile, 0],
+    ];
+
+    const traverseSourceFiles = (sourceFile: SourceFile, depth = 0) => {
+      if (depth > traverseMaxDepth) {
+        return;
+      }
+
+      for (const declaration of [
+        sourceFile.getImportDeclarations(),
+        sourceFile.getExportDeclarations(),
+      ].flat()) {
+        const modulePath = declaration.getModuleSpecifierValue();
+
+        if (!modulePath || !prefixes.some((e) => e.test(modulePath))) {
+          continue;
+        }
+
+        const file = declaration.getModuleSpecifierSourceFile();
+
+        if (!file) {
+          continue;
+        }
+
+        const path = file.getFilePath();
+
+        if (sourceFiles.some(([p]) => p === path)) {
+          continue;
+        }
+
+        sourceFiles.push([path, file, depth]);
+
+        traverseSourceFiles(file, depth + 1);
       }
     };
 
-    const program = ts.createProgram([schemaFile], compilerOptions, host);
+    traverseSourceFiles(sourceFile);
 
-    program.emit();
+    const discoveredTypeDeclarations: Array<DiscoveredTypeDeclaration> = [];
 
-    for (const typeAlias of discoveredTypeDeclarations) {
-      const nameRegex = new RegExp(`\\b${typeAlias.name}\\b`);
-      typeAlias.included = [
-        // included if required by paramsType
-        paramsType ? nameRegex.test(paramsType) : false,
-        // or required by payloadTypes
-        payloadTypes.some((e) => {
-          return e.id === typeAlias.name || e.text.match(nameRegex);
-        }),
-        // or required by another included types
-        discoveredTypeDeclarations.some((e) => {
-          return e.included ? e.typeReferences.includes(typeAlias.name) : false;
-        }),
-      ].some((e) => e);
+    for (const [path, file] of sourceFiles) {
+      for (const node of [file.getTypeAliases(), file.getEnums()].flat()) {
+        const name = node.getName();
+        const nameRegex = new RegExp(`\\b${name}\\b`);
+        if (discoveredTypeDeclarations.some((e) => e.name === name)) {
+          continue;
+        }
+        discoveredTypeDeclarations.push({
+          file: path,
+          name,
+          nameRegex,
+          text: node.getText(),
+          included: [
+            // included if required by paramsType
+            paramsType ? nameRegex.test(paramsType) : false,
+            // or required by payloadTypes
+            payloadTypes.some((e) => e.id === name || e.text.match(nameRegex)),
+          ].some((e) => e),
+        });
+      }
+    }
+
+    const [included, excluded] = discoveredTypeDeclarations.reduce(
+      (
+        a: [Array<DiscoveredTypeDeclaration>, Array<DiscoveredTypeDeclaration>],
+        e,
+      ) => {
+        a[e.included ? 0 : 1].push(e);
+        return a;
+      },
+      [[], []],
+    );
+
+    // including types not directly required by params/payload
+    // but used by those types
+    for (const typeAlias of excluded) {
+      if (included.some((e) => e.text.match(typeAlias.nameRegex))) {
+        typeAlias.included = true;
+      }
     }
 
     return discoveredTypeDeclarations;

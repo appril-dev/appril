@@ -283,12 +283,6 @@ export function extractReturnType(
   return typeNode?.getText();
 }
 
-export function extractTypeReferences(node: ts.Node) {
-  return tsquery
-    .match<ts.TypeReferenceNode>(node, "TypeReference")
-    .map((e) => e.typeName.getText());
-}
-
 export async function extractApiAssets({
   file,
   relpathResolver,

@@ -1,6 +1,5 @@
 import { basename, join } from "node:path";
 import { format } from "node:util";
-import { cpus } from "node:os";
 import { Worker } from "node:worker_threads";
 
 import type { ResolvedConfig } from "vite";
@@ -27,6 +26,8 @@ let sourceFolder: string;
 // then later consumed by watchers
 let routes: Array<ApiRoute>;
 
+let maxCpus: number;
+let traverseMaxDepth: number;
 let importZodErrorHandlerFrom: string | undefined;
 let generateFile: ReturnType<typeof fileGenerator>["generateFile"];
 
@@ -51,11 +52,15 @@ export async function bootstrap(data: {
   command: ResolvedConfig["command"];
   watchOptions: PluginOptionsResolved["watchOptions"];
   routes: Array<ApiRoute>;
+  maxCpus: number;
+  traverseMaxDepth: number;
   importZodErrorHandlerFrom?: string;
 }) {
   appRoot = data.appRoot;
   sourceFolder = data.sourceFolder;
   routes = data.routes;
+  maxCpus = data.maxCpus;
+  traverseMaxDepth = data.traverseMaxDepth;
   importZodErrorHandlerFrom = data.importZodErrorHandlerFrom;
   generateFile = fileGenerator(appRoot).generateFile;
 
@@ -164,7 +169,7 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
 
   // running in parallel to make use of all cpu cores.
   // splitting tasks into batches, each batch runs N workers at time.
-  for (const batch of chunk(staleRoutes, cpus().length)) {
+  for (const batch of chunk(staleRoutes, maxCpus)) {
     await Promise.allSettled(
       batch.map((route) => {
         return new Promise((resolve) => {
@@ -194,6 +199,7 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
             route,
             appRoot,
             sourceFolder,
+            traverseMaxDepth,
             importZodErrorHandlerFrom,
           } satisfies WorkerPayload);
         });

@@ -1,4 +1,5 @@
 import { resolve, join } from "node:path";
+import { cpus } from "node:os";
 
 import {
   type PluginOptionsResolved,
@@ -19,8 +20,9 @@ export async function apiRules(
 ) {
   const { appRoot, sourceFolder } = options;
 
-  // biome-ignore format:
   const {
+    maxCpus = Math.ceil(cpus().length / 2),
+    traverseMaxDepth = 3,
     importZodErrorHandlerFrom,
   } = options.apiRules;
 
@@ -87,6 +89,8 @@ export async function apiRules(
     command: config.command,
     watchOptions: options.watchOptions,
     routes: Object.values(routeMap),
+    maxCpus,
+    traverseMaxDepth,
     importZodErrorHandlerFrom,
   };
 
