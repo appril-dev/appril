@@ -1,9 +1,9 @@
 import { routeMiddlewareMapper } from "@appril/api/lib";
 
 import tableInit from "{{importPathmap.table}}";
-import { paramsSchema, useGlobalSpecs } from "{{importPathmap.tableApi}}";
+import { paramsSchema, useGlobalSpecs } from "..";
 
-import crudFactory from "..";
+import crudFactory from "{{importPathmap.libCrud}}";
 import type { RecordT, InsertT } from "./typeLiterals";
 
 export { head, options, patch, put, del } from "@appril/api";

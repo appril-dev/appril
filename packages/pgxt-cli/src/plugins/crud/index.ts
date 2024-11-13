@@ -58,15 +58,12 @@ export default (
       return !tableMap || tableMap[table.name] ? [table] : [];
     });
 
-    const libBaseDir = format(defaults.libDirFormat, baseDir);
+    const libApiDir = format(defaults.libDirFormat, defaults.apiDir);
 
-    await generateFile(
-      join(defaults.libDir, sourceFolder, libBaseDir, "index.ts"),
-      {
-        template: indexTpl,
-        context: {},
-      },
-    );
+    await generateFile(join(defaults.libDir, sourceFolder, `${baseDir}.ts`), {
+      template: indexTpl,
+      context: {},
+    });
 
     for (const table of tables) {
       const typeLiterals: Array<string> = [];
@@ -97,16 +94,17 @@ export default (
         columns,
         typeLiterals,
         importPathmap: {
-          lib: [sourceFolder, libBaseDir, table.name].join("/"),
+          lib: [sourceFolder, libApiDir, table.name, baseDir].join("/"),
+          libCrud: [
+            defaults.appPrefix,
+            defaults.libDir,
+            sourceFolder,
+            baseDir,
+          ].join("/"),
           table: [
             defaults.appPrefix,
             format(defaults.libDirFormat, pgxtConfig.baseDir),
             table.fullName,
-          ].join("/"),
-          tableApi: [
-            sourceFolder,
-            format(defaults.libDirFormat, defaults.apiDir),
-            table.name,
           ].join("/"),
         },
       };
@@ -119,13 +117,20 @@ export default (
         ["typeLiterals.ts", tableTypeLiteralsTpl],
       ] as const) {
         await generateFile(
-          join(defaults.libDir, sourceFolder, libBaseDir, table.name, file),
+          join(
+            defaults.libDir,
+            sourceFolder,
+            libApiDir,
+            table.name,
+            baseDir,
+            file,
+          ),
           { template, context },
         );
       }
     }
 
-    const relpathToLib = join("..", defaults.libDir, sourceFolder, libBaseDir);
+    const relpathToLib = join("..", defaults.libDir, sourceFolder, libApiDir);
 
     const reducer = (map: Record<string, unknown>, table: TableDeclaration) => {
       let page: boolean | undefined;
@@ -141,13 +146,13 @@ export default (
       map[`${base}/`] = {
         dataLoader,
         page,
-        apiTemplate: join(relpathToLib, table.name, "index.tpl"),
+        apiTemplate: join(relpathToLib, table.name, baseDir, "index.tpl"),
       };
 
       map[`${base}/[id]`] = {
         page: false,
         dataLoader: dataLoader ? { alias: base } : undefined,
-        apiTemplate: join(relpathToLib, table.name, "[id].tpl"),
+        apiTemplate: join(relpathToLib, table.name, baseDir, "[id].tpl"),
       };
 
       return map;
