@@ -1,11 +1,11 @@
 import { join, dirname } from "node:path";
 import { format } from "node:util";
 
-import fsx from "fs-extra";
 import { fileGenerator } from "@appril/dev-utils";
+import { httpMethodByApi } from "@appril/api/lib";
 
 import { type ApiRoute, defaults } from "@/base";
-import { extractApiAssets } from "@/ast";
+import { extractApiAssets, type FetchDefinition } from "@/ast";
 
 import fetchTpl from "./templates/fetch.hbs";
 import indexTpl from "./templates/index.hbs";
@@ -61,12 +61,25 @@ async function generateRouteAssets({
 }: {
   route: ApiRoute;
 }) {
-  const { typeDeclarations, fetchDefinitions } = await extractApiAssets({
+  const { typeDeclarations, managedMiddleware } = await extractApiAssets({
     file: route.fileFullpath,
     relpathResolver(path) {
       return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
     },
   });
+
+  const fetchDefinitions: Record<string, FetchDefinition> = {};
+
+  for (const [method, { payloadType, returnType }] of Object.entries(
+    managedMiddleware,
+  )) {
+    fetchDefinitions[method] = {
+      method,
+      httpMethod: httpMethodByApi(method),
+      payloadType,
+      bodyType: returnType,
+    };
+  }
 
   await generateFile(
     join(

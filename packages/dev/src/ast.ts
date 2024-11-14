@@ -3,6 +3,17 @@ import fsx from "fs-extra";
 import tsquery from "@phenomnomnominal/tsquery";
 import ts from "typescript";
 import { httpMethodByApi } from "@appril/api/lib";
+import { APIMethods, type APIMethod, type HTTPMethod } from "@appril/api";
+
+export type ManagedMiddlewareMap = Partial<
+  Record<
+    APIMethod,
+    {
+      payloadType: string | undefined;
+      returnType: string | undefined;
+    }
+  >
+>;
 
 export type FetchDefinition = {
   method: string;
@@ -29,23 +40,16 @@ export type TypeDeclaration = {
   };
 };
 
-export function extractMiddlewareHandlers<
-  MethodsOfInterest extends readonly string[] = [],
->(
+export function extractManagedMiddleware(
   ast: ts.SourceFile,
-  methodsOfInterest: readonly string[],
-): Array<{
-  method: MethodsOfInterest[number];
-  payloadType: string | undefined;
-  returnType: string | undefined;
-}> {
+): ManagedMiddlewareMap {
   const [callExpression] = tsquery.match(
     ast,
     "ExportAssignment > CallExpression",
   );
 
   if (!callExpression) {
-    return [];
+    return {};
   }
 
   const [arrayLiteralExpression] = tsquery
@@ -59,19 +63,19 @@ export function extractMiddlewareHandlers<
     .filter((e) => e.parent?.parent === callExpression);
 
   if (!arrayLiteralExpression) {
-    return [];
+    return {};
   }
 
-  const methodsLiteral = methodsOfInterest.join("|");
+  const methodsLiteral = Object.values(APIMethods).join("|");
 
-  let callExpressions: Array<[ts.CallExpression, string]> = tsquery
+  let callExpressions: Array<[ts.CallExpression, APIMethod]> = tsquery
     .match(
       arrayLiteralExpression,
       `CallExpression > Identifier[name=/^(${methodsLiteral})$/]`,
     )
     .flatMap((e) =>
       e.parent?.parent === arrayLiteralExpression
-        ? [[e.parent as ts.CallExpression, e.getText()]]
+        ? [[e.parent as ts.CallExpression, e.getText() as APIMethod]]
         : [],
     );
 
@@ -83,30 +87,29 @@ export function extractMiddlewareHandlers<
       )
       .flatMap((e) =>
         e.parent?.parent?.parent === arrayLiteralExpression
-          ? [[e.parent.parent as ts.CallExpression, e.getText()]]
+          ? [[e.parent.parent as ts.CallExpression, e.getText() as APIMethod]]
           : [],
       );
   }
 
-  const handlers = [];
+  const managedMiddleware: ManagedMiddlewareMap = {};
 
   for (const [callExpression, method] of callExpressions) {
-    const [managedMiddleware] = tsquery
+    const [managedMiddlewareExpression] = tsquery
       .match(callExpression, "ArrowFunction, FunctionExpression")
       .filter((e) => e.parent === callExpression);
 
     const generics = extractGenerics(callExpression);
 
-    handlers.push({
-      method,
+    managedMiddleware[method] = {
       payloadType: generics[1] ? extractPayloadType(generics[1]) : undefined,
       returnType: managedMiddleware
-        ? extractReturnType(managedMiddleware)
+        ? extractReturnType(managedMiddlewareExpression)
         : undefined,
-    });
+    };
   }
 
-  return handlers;
+  return managedMiddleware;
 }
 
 export function extractTypeDeclarations(
@@ -292,8 +295,9 @@ export async function extractApiAssets({
 }): Promise<{
   typeDeclarations: Array<TypeDeclaration>;
   paramsType: string | undefined;
-  payloadTypes: Record<string, string>;
-  fetchDefinitions: Array<FetchDefinition>;
+  payloadTypes: Partial<Record<HTTPMethod, string>>;
+  returnTypes: Partial<Record<HTTPMethod, string>>;
+  managedMiddleware: ManagedMiddlewareMap;
 }> {
   const fileContent = (await fsx.exists(file))
     ? await fsx.readFile(file, "utf8")
@@ -304,36 +308,28 @@ export async function extractApiAssets({
   const typeDeclarations = extractTypeDeclarations(ast, { relpathResolver });
   const paramsType = extractParamsType(ast);
 
-  const handlers = extractMiddlewareHandlers(ast, [
-    "head",
-    "options",
-    "get",
-    "put",
-    "patch",
-    "post",
-    "del",
-  ]);
+  const managedMiddleware = extractManagedMiddleware(ast);
 
-  const payloadTypes: Record<string, string> = {};
-  const fetchDefinitions: Record<string, FetchDefinition> = {};
+  const payloadTypes: Partial<Record<HTTPMethod, string>> = {};
+  const returnTypes: Partial<Record<HTTPMethod, string>> = {};
 
-  for (const { method, payloadType, returnType } of handlers) {
+  for (const [method, { payloadType, returnType }] of Object.entries(
+    managedMiddleware,
+  )) {
     const httpMethod = httpMethodByApi(method);
     if (payloadType) {
       payloadTypes[httpMethod] = payloadType;
     }
-    fetchDefinitions[method] = {
-      method,
-      httpMethod,
-      payloadType,
-      bodyType: returnType,
-    };
+    if (returnType) {
+      returnTypes[httpMethod] = returnType;
+    }
   }
 
   return {
     typeDeclarations,
     paramsType,
     payloadTypes,
-    fetchDefinitions: Object.values(fetchDefinitions),
+    returnTypes,
+    managedMiddleware,
   };
 }
