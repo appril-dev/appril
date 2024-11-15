@@ -45,6 +45,7 @@ export interface Meta {}
 export type ParameterizedContext<
   StateT = DefaultState,
   ContextT = DefaultContext,
+  ResponseBodyT = unknown,
 > = import("koa").ParameterizedContext<
   StateT,
   ContextT &
@@ -52,43 +53,40 @@ export type ParameterizedContext<
       // dropping default params
       import("koa__router").RouterParamContext<StateT, ContextT>,
       "params"
-    >
+    >,
+  ResponseBodyT
 >;
 
-export type Middleware<StateT = DefaultState, ContextT = DefaultContext> = (
-  ctx: ParameterizedContext<StateT, ContextT>,
+export type Middleware<
+  StateT = DefaultState,
+  ContextT = DefaultContext,
+  ResponseBodyT = unknown,
+> = (
+  ctx: ParameterizedContext<StateT, ContextT, ResponseBodyT>,
   next: import("koa").Next,
 ) => unknown;
 
-export type ManagedMiddleware<
+export type RouteSpec<
   StateT = DefaultState,
   ContextT = DefaultContext,
-> = (ctx: ParameterizedContext<StateT, ContextT>) => unknown | Promise<unknown>;
-
-export type RouteSpec<StateT = DefaultState, ContextT = DefaultContext> = {
+  ResponseBodyT = unknown,
+> = {
   method: APIMethod;
-  middleware: Array<Middleware<StateT, ContextT>>;
+  middleware: Array<Middleware<StateT, ContextT, ResponseBodyT>>;
 };
 
-export interface RouteSpecI<StateT = DefaultState, ContextT = DefaultContext> {
+export interface RouteSpecI<
+  StateT = DefaultState,
+  ContextT = DefaultContext,
+  ResponseBodyT = unknown,
+> {
   <StateC = object, ContextC = object>(
-    a: ManagedMiddleware<StateT & StateC, ContextT & ContextC>,
+    a: Middleware<StateT & StateC, ContextT & ContextC, ResponseBodyT>,
   ): RouteSpec; // TODO: providing generics here somehow is breaking context typing
-
   <StateC = object, ContextC = object>(
-    a: Array<Middleware<StateT & StateC, ContextT & ContextC>>,
+    a: Array<Middleware<StateT & StateC, ContextT & ContextC, ResponseBodyT>>,
   ): RouteSpec;
 }
-
-/* export interface DefinitionI<StateT = DefaultState, ContextT = DefaultContext> {
-  <StateB = object, ContextB = object>(
-    a: ManagedMiddleware<StateT & StateB, ContextT & ContextB>,
-  ): MiddlewareDefinition<StateT & StateB, ContextT & ContextB>;
-
-  <StateB = object, ContextB = object>(
-    a: Array<Middleware<StateT & StateB, ContextT & ContextB>>,
-  ): MiddlewareDefinition<StateT & StateB, ContextT & ContextB>;
-} */
 
 // biome-ignore lint:
 export interface UseSlots {}

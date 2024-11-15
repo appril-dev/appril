@@ -6,20 +6,13 @@ import type {
   RouteSpecI,
   UseSpecI,
   UseOpt,
+  Middleware,
 } from "./types";
 
-export const use: UseSpecI = (use, opt?: UseOpt) => {
-  if (typeof use !== "function") {
-    if (Array.isArray(use)) {
-      if (use.some((e) => typeof e !== "function")) {
-        throw new Error("Provided array contains non-function entries");
-      }
-    } else {
-      throw new Error("Expecting a function or an array of functions");
-    }
-  }
+export const use: UseSpecI = (arg, opt?: UseOpt) => {
+  assertValidMiddleware(arg);
   return {
-    use: [use].flat(),
+    use: [arg].flat(),
     slot: opt?.slot,
     before: opt?.before ? [opt.before].flat() : undefined,
     after: opt?.after ? [opt.after].flat() : undefined,
@@ -37,25 +30,25 @@ export const del: RouteSpecI = (arg) => definitionFactory("del", arg);
 export function definitionFactory<
   StateT = DefaultState,
   ContextT extends DefaultContext = DefaultContext,
->(method: APIMethod, arg: unknown): RouteSpec<StateT, ContextT> {
-  if (typeof arg === "function") {
-    return {
-      method,
-      middleware: [
-        async (ctx, next) => {
-          ctx.body = await arg(ctx);
-          return next();
-        },
-      ],
-    };
-  }
+  ResponseBodyT = unknown,
+>(method: APIMethod, arg: unknown): RouteSpec<StateT, ContextT, ResponseBodyT> {
+  assertValidMiddleware(arg);
+  return {
+    method,
+    middleware: [arg].flat() as Array<
+      Middleware<StateT, ContextT, ResponseBodyT>
+    >,
+  };
+}
 
-  if (Array.isArray(arg)) {
-    return {
-      method,
-      middleware: [arg].flat(),
-    };
+function assertValidMiddleware(arg: unknown) {
+  if (typeof arg !== "function") {
+    if (Array.isArray(arg)) {
+      if (arg.some((e) => typeof e !== "function")) {
+        throw new Error("Provided array contains non-function entries");
+      }
+    } else {
+      throw new Error("Expecting a function or an array of functions");
+    }
   }
-
-  throw new Error("Expected to receive a function or an array of functions");
 }
