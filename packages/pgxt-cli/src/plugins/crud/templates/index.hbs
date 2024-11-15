@@ -26,10 +26,7 @@ export const config = {
   sidePages: 4,
 };
 
-export default <
-  TableName extends Knex.TableNames,
-  ColumnT
->(
+export default <TableName extends Knex.TableNames, ColumnT>(
   dbxt: QueryBuilder<TableName>,
   columns: readonly ColumnT[],
   opt: {
@@ -38,277 +35,281 @@ export default <
     sidePages?: number;
   },
 ) => {
-
-  type CrudContext = {
+  type CrudContext<WorkerT extends GenericWorker> = {
     readonly dbxt: QueryBuilder<TableName>;
     readonly queryBuilder: QueryBuilder<TableName>;
     readonly primaryKey: string;
     returning?: readonly ColumnT[] | Knex.Raw;
     returningExclude?: readonly ColumnT[] | Knex.Raw;
+    worker: WorkerT;
   };
 
   type WrapperContext<
     StateT,
     ContextT,
-    ParamsT
+    ParamsT,
+    WorkerT extends GenericWorker,
   > = ParameterizedContext<
     DefaultState & StateT,
-    DefaultContext & ContextT & { params: ParamsT; crud: CrudContext }
-  >
+    DefaultContext & ContextT & { params: ParamsT; crud: CrudContext<WorkerT> },
+    Awaited<ReturnType<WorkerT>>
+  >;
 
-  type WrapperMiddleware<
-    StateT,
-    ContextT,
-    ParamsT
-  > = Middleware<
-    DefaultState & StateT,
-    WrapperContext<StateT, ContextT, ParamsT>
-  >
-
-  interface Wrapper<
-    ParamsT,
-    WorkerT
-  > {
-    <
-      StateT = object,
-      ContextT = object
-    >(
-      handler: (
-        ctx: WrapperContext<StateT, ContextT, ParamsT>,
-        worker: WorkerT,
-      ) => Promise<unknown>,
-    ): RouteSpec;
-  }
-
-  interface UseWrapper<
-    ParamsT
-  > {
+  interface Wrapper<ParamsT, WorkerT extends GenericWorker> {
     <
       StateT = object,
       ContextT = object,
-      T = WrapperMiddleware<StateT, ContextT, ParamsT>
+      ResponseBodyT = Awaited<ReturnType<WorkerT>>,
+    >(
+      handler: Middleware<
+        StateT,
+        WrapperContext<StateT, ContextT, ParamsT, WorkerT>,
+        ResponseBodyT
+      >,
+    ): RouteSpec;
+    <
+      StateT = object,
+      ContextT = object,
+      ResponseBodyT = Awaited<ReturnType<WorkerT>>,
+    >(
+      handler: Array<
+        Middleware<
+          StateT,
+          WrapperContext<StateT, ContextT, ParamsT, WorkerT>,
+          ResponseBodyT
+        >
+      >,
+    ): RouteSpec;
+  }
+
+  interface UseWrapper<ParamsT> {
+    <
+      StateT = object,
+      ContextT = object,
+      T = Middleware<
+        StateT,
+        WrapperContext<StateT, ContextT, ParamsT, GenericWorker>
+      >,
     >(
       use: T | Array<T>,
     ): UseSpec;
     <
       StateT = object,
       ContextT = object,
-      T = WrapperMiddleware<StateT, ContextT, ParamsT>
+      T = Middleware<
+        StateT,
+        WrapperContext<StateT, ContextT, ParamsT, GenericWorker>
+      >,
     >(
       use: T | Array<T>,
       opt?: UseOpt,
     ): UseSpec;
   }
 
-  type GenericMiddleware = Middleware<DefaultState, {
-    params: Record<string, string>;
-    crud: CrudContext;
-  }>;
+  type GenericWorker = (...args: Array<never>) => Promise<unknown>;
 
-  function useWrapper<ParamsT>(): UseWrapper<
-    ParamsT
-  > {
+  function useWrapper<ParamsT>(): UseWrapper<ParamsT> {
     return (use, opt?: UseOpt) => {
-      return api.use([initMiddleware, use].flat() as Array<never>, opt)
-    }
+      return api.use(
+        [initMiddleware(async () => {}), use].flat() as Array<never>,
+        opt,
+      );
+    };
   }
 
-  function createWrapper<ParamsT, WorkerT>(): Wrapper<
+  function createWrapper<ParamsT, WorkerT extends GenericWorker>(): Wrapper<
     ParamsT,
     WorkerT
   > {
     return (handler) => {
       return api.definitionFactory("post", [
-        initMiddleware,
-        async (ctx, next) => {
-          const worker = async (data: never) => {
-            const [item] = await ctx.crud.dbxt
-              .insert(data)
-              .returning(ctx.crud.returning as readonly string[]);
-            return item;
-          }
-          ctx.body = await handler(ctx as never, worker as never)
-          return next();
-        }
-      ] as Array<GenericMiddleware>)
-    }
+        initMiddleware(async function (
+          this: WrapperContext<DefaultState, DefaultContext, ParamsT, WorkerT>,
+          data,
+        ) {
+          const [item] = await this.crud.dbxt
+            .insert(data as never)
+            .returning(this.crud.returning as readonly string[]);
+          return item;
+        }),
+        handler,
+      ] as Array<never>);
+    };
   }
 
-  function updateWrapper<ParamsT, WorkerT>(): Wrapper<
+  function updateWrapper<ParamsT, WorkerT extends GenericWorker>(): Wrapper<
     ParamsT,
     WorkerT
   > {
     return (handler) => {
       return api.definitionFactory("patch", [
-        initMiddleware,
-        async (ctx, next) => {
-          const worker = async (data: never) => {
-            const updates = Object.entries(data).reduce((map: Record<string,unknown>, [k, v]) => {
+        initMiddleware(async function (
+          this: WrapperContext<DefaultState, DefaultContext, ParamsT, WorkerT>,
+          data,
+        ) {
+          const updates = Object.entries(data as never).reduce(
+            (map: Record<string, unknown>, [k, v]) => {
               if (v !== undefined) {
-                map[k] = v
+                map[k] = v;
               }
-              return map
-            }, {})
+              return map;
+            },
+            {},
+          );
 
-            const [item] = Object.keys(updates).length
-              ? await ctx.crud.queryBuilder
-                  .where(ctx.crud.primaryKey, ctx.params.id)
-                  .update(data)
-                  .returning(ctx.crud.returning as readonly string[])
-              : await ctx.crud.dbxt
-                  .where(ctx.crud.primaryKey, ctx.params.id)
-                  .select(ctx.crud.returning as readonly string[])
+          const { id } = this.params as { id: number };
 
-            // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
-            ctx.assert(item, 404);
+          const [item] = Object.keys(updates).length
+            ? await this.crud.queryBuilder
+                .where(this.crud.primaryKey, id)
+                .update(data as never)
+                .returning(this.crud.returning as readonly string[])
+            : await this.crud.dbxt
+                .where(this.crud.primaryKey, id)
+                .select(this.crud.returning as readonly string[]);
 
-            return item;
-          }
-          ctx.body = await handler(ctx as never, worker as never)
-          return next()
-        }
-      ] as Array<GenericMiddleware>)
-    }
+          this.assert(item, 404);
+
+          return item;
+        }),
+        handler,
+      ] as Array<never>);
+    };
   }
 
-  function deleteWrapper<ParamsT, WorkerT>(): Wrapper<
+  function deleteWrapper<ParamsT, WorkerT extends GenericWorker>(): Wrapper<
     ParamsT,
     WorkerT
   > {
     return (handler) => {
       return api.definitionFactory("del", [
-        initMiddleware,
-        async (ctx, next) => {
-          const worker = async () => {
-            const [item] = await ctx.crud.queryBuilder
-              .where(ctx.crud.primaryKey, ctx.params.id)
-              .delete()
-              .returning(ctx.crud.returning as readonly string[]);
+        initMiddleware(async function (
+          this: WrapperContext<DefaultState, DefaultContext, ParamsT, WorkerT>,
+        ) {
+          const { id } = this.params as { id: number };
 
-            // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
-            ctx.assert(item, 404);
+          const [item] = await this.crud.queryBuilder
+            .where(this.crud.primaryKey, id)
+            .delete()
+            .returning(this.crud.returning as readonly string[]);
 
-            return item;
-          }
-          ctx.body = await handler(ctx as never, worker as never)
-          return next()
-        }
-      ] as Array<GenericMiddleware>)
-    }
+          this.assert(item, 404);
+
+          return item;
+        }),
+        handler,
+      ] as Array<never>);
+    };
   }
 
-  function retrieveWrapper<ParamsT, WorkerT>(): Wrapper<
+  function retrieveWrapper<ParamsT, WorkerT extends GenericWorker>(): Wrapper<
     ParamsT,
     WorkerT
   > {
     return (handler) => {
       return api.definitionFactory("get", [
-        initMiddleware,
-        async (ctx, next) => {
-          const worker = async () => {
-            const item = await ctx.crud.queryBuilder
-              .where(ctx.crud.primaryKey, ctx.params.id)
-              .first(ctx.crud.returning as readonly string[]);
+        initMiddleware(async function (
+          this: WrapperContext<DefaultState, DefaultContext, ParamsT, WorkerT>,
+        ) {
+          const { id } = this.params as { id: number };
 
-            // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/issues/59300
-            ctx.assert(item, 404);
+          const item = await this.crud.queryBuilder
+            .where(this.crud.primaryKey, id)
+            .first(this.crud.returning as readonly string[]);
 
-            return item;
-          }
-          ctx.body = await handler(ctx as never, worker as never)
-          return next()
-        }
-      ] as Array<GenericMiddleware>)
-    }
+          this.assert(item, 404);
+
+          return item;
+        }),
+        handler,
+      ] as Array<never>);
+    };
   }
 
-  function listWrapper<ParamsT, WorkerT>(): Wrapper<
+  function listWrapper<ParamsT, WorkerT extends GenericWorker>(): Wrapper<
     ParamsT,
     WorkerT
   > {
     return (handler) => {
       return api.definitionFactory("get", [
-        initMiddleware,
-        async (ctx, next) => {
-          const worker = async () => {
-            const { crud } = ctx;
+        initMiddleware(async function (
+          this: WrapperContext<DefaultState, DefaultContext, ParamsT, WorkerT>,
+        ) {
+          const { crud } = this;
 
-            const totalItems = await crud.queryBuilder.clone().countRows();
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
+          const totalItems = await crud.queryBuilder.clone().countRows();
+          const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-            let currentPage = Number(ctx.query._page || 0);
+          let currentPage = Number(this.query._page || 0);
 
-            if (currentPage < 1) {
-              currentPage = 1;
-            }
-
-            if (currentPage > totalPages) {
-              currentPage = totalPages;
-            }
-
-            let nextPage = currentPage + 1;
-
-            if (nextPage > totalPages) {
-              nextPage = 0;
-            }
-
-            let prevPage = currentPage - 1;
-
-            if (prevPage < 1) {
-              prevPage = 0;
-            }
-
-            let minPage = currentPage - sidePages;
-
-            if (currentPage + sidePages > totalPages) {
-              minPage = totalPages - sidePages * 2;
-            }
-
-            if (minPage < 1) {
-              minPage = 1;
-            }
-
-            let maxPage = currentPage + sidePages;
-
-            if (currentPage < sidePages) {
-              maxPage = sidePages * 2;
-            }
-
-            if (maxPage > totalPages) {
-              maxPage = totalPages;
-            }
-
-            let offset = (currentPage - 1) * itemsPerPage;
-
-            if (offset < 0) {
-              offset = 0;
-            }
-
-            const pager = {
-              totalItems,
-              totalPages,
-              currentPage,
-              nextPage,
-              prevPage,
-              offset,
-            } as Pager;
-
-            const items = await crud.queryBuilder
-              .select(ctx.crud.returning as readonly string[])
-              .offset(offset)
-              .limit(itemsPerPage);
-
-            return {
-              items,
-              pager,
-            };
-
+          if (currentPage < 1) {
+            currentPage = 1;
           }
-          ctx.body = await handler(ctx as never, worker as never)
-          return next()
-        }
-      ] as Array<GenericMiddleware>)
-    }
+
+          if (currentPage > totalPages) {
+            currentPage = totalPages;
+          }
+
+          let nextPage = currentPage + 1;
+
+          if (nextPage > totalPages) {
+            nextPage = 0;
+          }
+
+          let prevPage = currentPage - 1;
+
+          if (prevPage < 1) {
+            prevPage = 0;
+          }
+
+          let minPage = currentPage - sidePages;
+
+          if (currentPage + sidePages > totalPages) {
+            minPage = totalPages - sidePages * 2;
+          }
+
+          if (minPage < 1) {
+            minPage = 1;
+          }
+
+          let maxPage = currentPage + sidePages;
+
+          if (currentPage < sidePages) {
+            maxPage = sidePages * 2;
+          }
+
+          if (maxPage > totalPages) {
+            maxPage = totalPages;
+          }
+
+          let offset = (currentPage - 1) * itemsPerPage;
+
+          if (offset < 0) {
+            offset = 0;
+          }
+
+          const pager = {
+            totalItems,
+            totalPages,
+            currentPage,
+            nextPage,
+            prevPage,
+            offset,
+          } as Pager;
+
+          const items = await crud.queryBuilder
+            .select(crud.returning as readonly string[])
+            .offset(offset)
+            .limit(itemsPerPage);
+
+          return {
+            items,
+            pager,
+          };
+        }),
+        handler,
+      ] as Array<never>);
+    };
   }
 
   const { primaryKey, itemsPerPage, sidePages } = {
@@ -316,58 +317,74 @@ export default <
     ...opt,
   };
 
-  let returning: readonly ColumnT[] | Knex.Raw | undefined
-  let returningExclude: readonly ColumnT[] = []
+  let returning: readonly ColumnT[] | Knex.Raw | undefined;
+  let returningExclude: readonly ColumnT[] = [];
 
-  const crudContext: Record<
-    keyof CrudContext,
-    PropertyDescriptor
-  > = {
-    dbxt: {
-      get() { return dbxt },
-      enumerable: true,
-    },
-    queryBuilder: {
-      get: dbxt.clone,
-      enumerable: true,
-    },
-    primaryKey: {
-      value: primaryKey,
-      enumerable: true,
-    },
-    returning: {
-      get() {
-        return returning || (
-          returningExclude.length
-            ? columns.filter((e) => !returningExclude.includes(e))
-            : "*"
-        )
+  const crudContext = (
+    worker: GenericWorker,
+  ): Record<keyof CrudContext<GenericWorker>, PropertyDescriptor> => {
+    return {
+      worker: {
+        value: worker,
+        enumerable: true,
       },
-      set(val) { returning = val },
-      enumerable: true,
-    },
-    returningExclude: {
-      get() { return returningExclude },
-      set(val) { returningExclude = Array.isArray(val) ? val : [] },
-      enumerable: true,
-    },
+      dbxt: {
+        get() {
+          return dbxt;
+        },
+        enumerable: true,
+      },
+      queryBuilder: {
+        get: dbxt.clone,
+        enumerable: true,
+      },
+      primaryKey: {
+        value: primaryKey,
+        enumerable: true,
+      },
+      returning: {
+        get() {
+          return (
+            returning ||
+            (returningExclude.length
+              ? columns.filter((e) => !returningExclude.includes(e))
+              : "*")
+          );
+        },
+        set(val) {
+          returning = val;
+        },
+        enumerable: true,
+      },
+      returningExclude: {
+        get() {
+          return returningExclude;
+        },
+        set(val) {
+          returningExclude = Array.isArray(val) ? val : [];
+        },
+        enumerable: true,
+      },
+    };
   };
 
-  const ctxExtend = {
-    crud: Object.defineProperties({}, crudContext),
+  const ctxExtend = (worker: GenericWorker) => {
+    return { crud: Object.defineProperties({}, crudContext(worker)) };
   };
 
-  const initMiddleware: Middleware = (ctx, next) => {
-    for (const [key, value] of Object.entries(ctxExtend)) {
-      key in ctx ||
-        Object.defineProperty(ctx, key, {
-          value,
-          configurable: false,
-          writable: false,
-          enumerable: true,
-        });
-    }
-    return next();
+  const initMiddleware = (worker: GenericWorker): Middleware => {
+    return (ctx, next) => {
+      for (const [key, value] of Object.entries(ctxExtend(worker.bind(ctx)))) {
+        key in ctx ||
+          Object.defineProperty(ctx, key, {
+            value,
+            configurable: false,
+            writable: false,
+            enumerable: true,
+          });
+      }
+      return next();
+    };
   };
 
   return {

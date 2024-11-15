@@ -6,15 +6,15 @@ import routeFactory, {
 } from "{{importPathmap.lib}}/[id]";
 
 export default routeFactory(({ get, patch, del }) => [
-  get(async (ctx, worker): Promise<RetrieveResponse> => {
-    return worker();
+  get<never, object, RetrieveResponse>(async (ctx) => {
+    ctx.body = await ctx.crud.worker();
   }),
 
-  patch<never, { payload: UpdateT }>(async (ctx, worker): Promise<UpdateResponse> => {
-    return worker(ctx.payload);
+  patch<never, { payload: UpdateT }, UpdateResponse>(async (ctx) => {
+    ctx.body = await ctx.crud.worker(ctx.payload);
   }),
 
-  del(async (ctx, worker): Promise<DeleteResponse> => {
-    return worker();
+  del<never, object, DeleteResponse>(async (ctx) => {
+    ctx.body = await ctx.crud.worker();
   }),
 ]);
