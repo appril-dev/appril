@@ -4,7 +4,7 @@ import tableInit from "{{importPathmap.table}}";
 import { paramsSchema, useGlobalSpecs } from "..";
 
 import crudFactory from "{{importPathmap.libCrud}}";
-import type { RecordT, InsertT } from "./typeLiterals";
+import type { InsertT, ListResponse, CreateResponse } from "./typeLiterals";
 
 export { head, options, patch, put, del } from "@appril/api";
 export * from "./typeLiterals";
@@ -42,12 +42,12 @@ export const use = useWrapper<ParamsT>()
 
 export const get = listWrapper<
   ParamsT,
-  () => Promise<Array<RecordT>>
+  () => Promise<ListResponse>
 >()
 
 export const post = createWrapper<
   ParamsT,
-  (payload: InsertT) => Promise<RecordT>
+  (payload: InsertT) => Promise<CreateResponse>
 >()
 
 export default (

@@ -1,3 +1,5 @@
+import type { Pager } from "{{importPathmap.libCrud}}";
+
 {{#each typeLiterals}}
 {{this}}
 {{/each}}
@@ -19,7 +21,7 @@ export type InsertT = {
   {{/each}}
 }
 
-export type UpdateT ={
+export type UpdateT = {
   {{#each columns}}
 {{#each comments}}  /** {{this}} */
 {{/each}}
@@ -27,3 +29,13 @@ export type UpdateT ={
   {{/unless}}
   {{/each}}
 }
+
+export type ListResponse = {
+  items: Array<RecordT>;
+  pager: Pager;
+}
+
+export type CreateResponse   = RecordT;
+export type RetrieveResponse = RecordT;
+export type UpdateResponse   = RecordT;
+export type DeleteResponse   = RecordT;

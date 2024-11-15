@@ -1,18 +1,20 @@
 import routeFactory, {
-  type RecordT,
+  type RetrieveResponse,
+  type UpdateResponse,
+  type DeleteResponse,
   type UpdateT,
 } from "{{importPathmap.lib}}/[id]";
 
 export default routeFactory(({ get, patch, del }) => [
-  get(async (ctx, worker): Promise<RecordT> => {
+  get(async (ctx, worker): Promise<RetrieveResponse> => {
     return worker();
   }),
 
-  patch<never, { payload: UpdateT }>(async (ctx, worker): Promise<RecordT> => {
+  patch<never, { payload: UpdateT }>(async (ctx, worker): Promise<UpdateResponse> => {
     return worker(ctx.payload);
   }),
 
-  del(async (ctx, worker): Promise<RecordT> => {
+  del(async (ctx, worker): Promise<DeleteResponse> => {
     return worker();
   }),
 ]);

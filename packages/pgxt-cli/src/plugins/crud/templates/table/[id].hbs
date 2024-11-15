@@ -3,8 +3,10 @@ import { routeMiddlewareMapper } from "@appril/api/lib";
 import { paramsSchema, useGlobalSpecs } from "../[id]";
 
 import {
-  type RecordT,
   type UpdateT,
+  type RetrieveResponse,
+  type UpdateResponse,
+  type DeleteResponse,
   useWrapper,
   retrieveWrapper,
   updateWrapper,
@@ -21,26 +23,26 @@ export const use = useWrapper<DefaultParamsT>()
 
 export const get = retrieveWrapper<
   DefaultParamsT,
-  () => Promise<RecordT>
+  () => Promise<RetrieveResponse>
 >()
 
 export const patch = updateWrapper<
   DefaultParamsT,
-  (payload: UpdateT) => Promise<RecordT>
+  (payload: UpdateT) => Promise<UpdateResponse>
 >()
 
 export const del = deleteWrapper<
   DefaultParamsT,
-  () => Promise<RecordT>
+  () => Promise<DeleteResponse>
 >()
 
 type Factory<
   ParamsT
 > = (a: {
   use: ReturnType<typeof useWrapper<ParamsT>>;
-  get: ReturnType<typeof retrieveWrapper<ParamsT, () => Promise<RecordT>>>;
-  patch: ReturnType<typeof updateWrapper<ParamsT, (p: UpdateT) => Promise<RecordT>>>;
-  del: ReturnType<typeof deleteWrapper<ParamsT, () => Promise<RecordT>>>;
+  get: ReturnType<typeof retrieveWrapper<ParamsT, () => Promise<RetrieveResponse>>>;
+  patch: ReturnType<typeof updateWrapper<ParamsT, (p: UpdateT) => Promise<UpdateResponse>>>;
+  del: ReturnType<typeof deleteWrapper<ParamsT, () => Promise<DeleteResponse>>>;
 }) => Array<any>
 
 export default <
