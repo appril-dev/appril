@@ -7,15 +7,9 @@ import crc32 from "crc/crc32";
 import fsx from "fs-extra";
 
 import { type ApiRoute, defaults } from "@/base";
-import type { TypeDeclaration } from "@/ast";
+import type { PayloadType, ResponseType, TypeDeclaration } from "@/ast";
 
 import rulesTpl from "./templates/rules.hbs";
-
-export type PayloadType = {
-  id: string;
-  method: string;
-  text: string;
-};
 
 export type WorkerPayload = {
   route: ApiRoute;
@@ -72,6 +66,7 @@ export function generateRulesFile(
     sourceFolder,
     typeDeclarations,
     payloadTypes,
+    returnTypes,
     zodSchema,
     zodErrors,
     importZodErrorHandlerFrom,
@@ -81,6 +76,7 @@ export function generateRulesFile(
     sourceFolder: string;
     typeDeclarations: Array<TypeDeclaration>;
     payloadTypes: Array<PayloadType>;
+    returnTypes: Array<ResponseType>;
     zodSchema?: string | undefined;
     zodErrors?: Array<string>;
     importZodErrorHandlerFrom: string | undefined;
@@ -96,6 +92,7 @@ export function generateRulesFile(
       route,
       typeDeclarations,
       payloadTypes,
+      returnTypes,
       zodSchema,
       zodErrors,
       importZodErrorHandlerFrom,

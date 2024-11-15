@@ -2,24 +2,16 @@ import fsx from "fs-extra";
 // TODO: consider github.com/dsherret/ts-morph
 import tsquery from "@phenomnomnominal/tsquery";
 import ts from "typescript";
-import { httpMethodByApi } from "@appril/api/lib";
+import crc32 from "crc/crc32";
 import { APIMethods, type APIMethod, type HTTPMethod } from "@appril/api";
 
-export type ManagedMiddlewareMap = Partial<
-  Record<
-    APIMethod,
-    {
-      payloadType: string | undefined;
-      returnType: string | undefined;
-    }
-  >
->;
+import type { ApiRoute } from "./types";
+import { httpMethodByApi } from "@appril/api/lib";
 
-export type FetchDefinition = {
-  method: string;
-  httpMethod: string;
-  payloadType?: string;
-  bodyType?: string;
+export type ManagedMiddleware = {
+  apiMethod: APIMethod;
+  payloadType: string | undefined;
+  returnType: string | undefined;
 };
 
 export type RelpathResolver = (path: string) => string;
@@ -42,14 +34,14 @@ export type TypeDeclaration = {
 
 export function extractManagedMiddleware(
   ast: ts.SourceFile,
-): ManagedMiddlewareMap {
+): Array<ManagedMiddleware> {
   const [callExpression] = tsquery.match(
     ast,
     "ExportAssignment > CallExpression",
   );
 
   if (!callExpression) {
-    return {};
+    return [];
   }
 
   const [arrayLiteralExpression] = tsquery
@@ -63,7 +55,7 @@ export function extractManagedMiddleware(
     .filter((e) => e.parent?.parent === callExpression);
 
   if (!arrayLiteralExpression) {
-    return {};
+    return [];
   }
 
   const methodsLiteral = Object.values(APIMethods).join("|");
@@ -92,21 +84,22 @@ export function extractManagedMiddleware(
       );
   }
 
-  const managedMiddleware: ManagedMiddlewareMap = {};
+  const managedMiddleware: Array<ManagedMiddleware> = [];
 
-  for (const [callExpression, method] of callExpressions) {
+  for (const [callExpression, apiMethod] of callExpressions) {
     const [managedMiddlewareExpression] = tsquery
       .match(callExpression, "ArrowFunction, FunctionExpression")
       .filter((e) => e.parent === callExpression);
 
     const generics = extractGenerics(callExpression);
 
-    managedMiddleware[method] = {
+    managedMiddleware.push({
+      apiMethod,
       payloadType: generics[1] ? extractPayloadType(generics[1]) : undefined,
       returnType: managedMiddleware
         ? extractReturnType(managedMiddlewareExpression)
         : undefined,
-    };
+    });
   }
 
   return managedMiddleware;
@@ -286,21 +279,35 @@ export function extractReturnType(
   return typeNode?.getText();
 }
 
+export type PayloadType = {
+  id: string;
+  apiMethod: APIMethod;
+  httpMethod: HTTPMethod;
+  text: string;
+};
+
+export type ResponseType = {
+  id: string;
+  apiMethod: APIMethod;
+  httpMethod: HTTPMethod;
+  text: string;
+};
+
 export async function extractApiAssets({
-  file,
+  route,
   relpathResolver,
 }: {
-  file: string;
+  route: ApiRoute;
   relpathResolver: RelpathResolver;
 }): Promise<{
   typeDeclarations: Array<TypeDeclaration>;
   paramsType: string | undefined;
-  payloadTypes: Partial<Record<HTTPMethod, string>>;
-  returnTypes: Partial<Record<HTTPMethod, string>>;
-  managedMiddleware: ManagedMiddlewareMap;
+  payloadTypes: Array<PayloadType>;
+  returnTypes: Array<ResponseType>;
+  managedMiddleware: Array<ManagedMiddleware>;
 }> {
-  const fileContent = (await fsx.exists(file))
-    ? await fsx.readFile(file, "utf8")
+  const fileContent = (await fsx.exists(route.fileFullpath))
+    ? await fsx.readFile(route.fileFullpath, "utf8")
     : "";
 
   const ast = tsquery.ast(fileContent);
@@ -310,18 +317,26 @@ export async function extractApiAssets({
 
   const managedMiddleware = extractManagedMiddleware(ast);
 
-  const payloadTypes: Partial<Record<HTTPMethod, string>> = {};
-  const returnTypes: Partial<Record<HTTPMethod, string>> = {};
+  const payloadTypes: Array<PayloadType> = [];
+  const returnTypes: Array<ResponseType> = [];
 
-  for (const [method, { payloadType, returnType }] of Object.entries(
-    managedMiddleware,
-  )) {
-    const httpMethod = httpMethodByApi(method);
+  for (const { apiMethod, payloadType, returnType } of managedMiddleware) {
+    const httpMethod = httpMethodByApi(apiMethod);
     if (payloadType) {
-      payloadTypes[httpMethod] = payloadType;
+      payloadTypes.push({
+        id: ["PayloadT", crc32(route.importName + apiMethod)].join(""),
+        apiMethod,
+        httpMethod,
+        text: payloadType,
+      });
     }
     if (returnType) {
-      returnTypes[httpMethod] = returnType;
+      returnTypes.push({
+        id: ["ReturnT", crc32(route.importName + apiMethod)].join(""),
+        apiMethod,
+        httpMethod,
+        text: returnType,
+      });
     }
   }
 

@@ -5,10 +5,11 @@ import { fileGenerator } from "@appril/dev-utils";
 import { httpMethodByApi } from "@appril/api/lib";
 
 import { type ApiRoute, defaults } from "@/base";
-import { extractApiAssets, type FetchDefinition } from "@/ast";
+import { extractApiAssets } from "@/ast";
 
 import fetchTpl from "./templates/fetch.hbs";
 import indexTpl from "./templates/index.hbs";
+import type { APIMethod, HTTPMethod } from "@appril/api";
 
 let sourceFolder: string;
 let generateFile: ReturnType<typeof fileGenerator>["generateFile"];
@@ -56,29 +57,34 @@ export async function handleRouteFileUpdate({
   await generateRouteAssets({ route });
 }
 
+type FetchDefinition = {
+  apiMethod: APIMethod;
+  httpMethod: HTTPMethod;
+  payloadType?: string;
+  returnType?: string;
+};
+
 async function generateRouteAssets({
   route,
 }: {
   route: ApiRoute;
 }) {
   const { typeDeclarations, managedMiddleware } = await extractApiAssets({
-    file: route.fileFullpath,
+    route,
     relpathResolver(path) {
       return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
     },
   });
 
-  const fetchDefinitions: Record<string, FetchDefinition> = {};
+  const fetchDefinitions: Array<FetchDefinition> = [];
 
-  for (const [method, { payloadType, returnType }] of Object.entries(
-    managedMiddleware,
-  )) {
-    fetchDefinitions[method] = {
-      method,
-      httpMethod: httpMethodByApi(method),
+  for (const { apiMethod, payloadType, returnType } of managedMiddleware) {
+    fetchDefinitions.push({
+      apiMethod,
+      httpMethod: httpMethodByApi(apiMethod),
       payloadType,
-      bodyType: returnType,
-    };
+      returnType,
+    });
   }
 
   await generateFile(

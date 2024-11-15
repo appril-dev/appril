@@ -60,7 +60,7 @@ async function generateRouteFiles({
   template,
 }: { route: ApiRoute; template: string | undefined }) {
   const { paramsType } = await extractApiAssets({
-    file: route.fileFullpath,
+    route,
     relpathResolver: (path) => path,
   });
 

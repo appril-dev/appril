@@ -2,10 +2,8 @@ import { parentPort } from "node:worker_threads";
 import { dirname, parse, join } from "node:path";
 
 import fsx from "fs-extra";
-import crc32 from "crc/crc32";
-import { Project, type SourceFile } from "ts-morph";
+import { Project, type SourceFile, SyntaxKind } from "ts-morph";
 import { generate } from "ts-to-zod";
-
 import { render, renderToFile } from "@appril/dev-utils";
 
 import { defaults } from "@/base";
@@ -16,7 +14,6 @@ import {
   generateHashMap,
   libFilePath,
   type DiscoveredTypeDeclaration,
-  type PayloadType,
   type WorkerPayload,
 } from "./base";
 
@@ -44,54 +41,7 @@ async function worker({
 }: WorkerPayload) {
   console.log([route.file, "rebuilding assets"]);
 
-  const generateZodSchema = async (): Promise<{
-    zodSchema?: string | undefined;
-    zodErrors?: Array<string> | undefined;
-    discoveredTypeDeclarations?: Array<DiscoveredTypeDeclaration>;
-  }> => {
-    const schemaFile = libFilePath(route, "schema", { appRoot, sourceFolder });
-
-    // writing extracted types to schemaFile
-    await renderToFile(schemaFile, schemaTsTpl, {
-      typeDeclarations,
-      payloadTypes,
-    });
-
-    // and feeding it to Typescript api to discover all types used by route
-    const discoveredTypeDeclarations =
-      paramsType || payloadTypes.length
-        ? discoverTypeDeclarations(schemaFile)
-        : [];
-
-    // then rewriting schemaFile. it should contain all relevant type literals
-    const sourceText = render(schemaZodTpl, {
-      discoveredTypeDeclarations,
-      paramsType: { ...route.params, customSchema: paramsType },
-    });
-
-    await fsx.writeFile(schemaFile, sourceText);
-
-    // and feeding it to ts-to-zod api to get zod schema
-    const { getZodSchemasFile, errors: zodErrors } = generate({
-      sourceText,
-      keepComments: true,
-      getSchemaName: (e) => `${e}Schema`,
-    });
-
-    if (zodErrors.length) {
-      return { zodErrors };
-    }
-
-    // providing relative path to schemaFile
-    // as ts-to-zod api may use it to import circular references
-    const zodSchema = getZodSchemasFile(`./${parse(schemaFile).name}`);
-
-    return { zodSchema, discoveredTypeDeclarations };
-  };
-
-  const discoverTypeDeclarations = (
-    schemaFile: string,
-  ): Array<DiscoveredTypeDeclaration> => {
+  const discoverTypeDeclarations = (): Array<DiscoveredTypeDeclaration> => {
     const project = new Project({
       tsConfigFilePath: join(appRoot, "tsconfig.json"),
       skipAddingFilesFromTsConfig: true,
@@ -154,7 +104,19 @@ async function worker({
     const discoveredTypeDeclarations: Array<DiscoveredTypeDeclaration> = [];
 
     for (const [path, file] of sourceFiles) {
-      for (const node of [file.getTypeAliases(), file.getEnums()].flat()) {
+      for (const node of [
+        file.getTypeAliases().filter((e) => {
+          const kind = e.getTypeNode()?.getKind();
+          return kind
+            ? [
+                SyntaxKind.TypeLiteral,
+                SyntaxKind.TypeReference,
+                SyntaxKind.UnionType,
+              ].includes(kind)
+            : false;
+        }),
+        file.getEnums(),
+      ].flat()) {
         const name = node.getName();
         const nameRegex = new RegExp(`\\b${name}\\b`);
         if (discoveredTypeDeclarations.some((e) => e.name === name)) {
@@ -166,10 +128,12 @@ async function worker({
           nameRegex,
           text: node.getText(),
           included: [
-            // included if required by paramsType
+            // included if referenced in paramsType
             paramsType ? nameRegex.test(paramsType) : false,
-            // or required by payloadTypes
+            // or referenced in payloadTypes
             payloadTypes.some((e) => e.id === name || e.text.match(nameRegex)),
+            // or referenced in returnTypes
+            returnTypes.some((e) => e.id === name || e.text.match(nameRegex)),
           ].some((e) => e),
         });
       }
@@ -197,35 +161,64 @@ async function worker({
     return discoveredTypeDeclarations;
   };
 
-  const apiAssets = await extractApiAssets({
-    file: route.fileFullpath,
-    relpathResolver(path) {
-      return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
-    },
+  const generateZodSchemas = async (): Promise<{
+    zodSchema?: string | undefined;
+    zodErrors?: Array<string> | undefined;
+  }> => {
+    // and feeding it to ts-to-zod api to get zod schema
+    const { getZodSchemasFile, errors: zodErrors } = generate({
+      sourceText: typeLiterals,
+      keepComments: true,
+      getSchemaName: (e) => `${e}Schema`,
+    });
+
+    if (zodErrors.length) {
+      return { zodErrors };
+    }
+
+    // providing relative path to schemaFile
+    // as ts-to-zod api may use it to import circular references
+    const zodSchema = getZodSchemasFile(`./${parse(schemaFile).name}`);
+
+    return { zodSchema };
+  };
+
+  const { typeDeclarations, paramsType, payloadTypes, returnTypes } =
+    await extractApiAssets({
+      route,
+      relpathResolver(path) {
+        return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
+      },
+    });
+
+  const schemaFile = libFilePath(route, "schema", { appRoot, sourceFolder });
+
+  await renderToFile(schemaFile, schemaTsTpl, {
+    typeDeclarations,
+    payloadTypes,
+    returnTypes,
   });
 
-  const { typeDeclarations, paramsType } = apiAssets;
+  const discoveredTypeDeclarations =
+    paramsType || payloadTypes.length || returnTypes.length
+      ? discoverTypeDeclarations()
+      : [];
 
-  const payloadTypes = Object.entries(apiAssets.payloadTypes).map(
-    ([method, text]: [m: string, t: string]): PayloadType => {
-      return {
-        id: ["PayloadT", crc32(route.importName + method)].join(""),
-        method,
-        text,
-      };
-    },
-  );
+  const typeLiterals = render(schemaZodTpl, {
+    discoveredTypeDeclarations,
+    paramsType: { ...route.params, customSchema: paramsType },
+  });
 
-  const { zodSchema, zodErrors, discoveredTypeDeclarations } =
-    await generateZodSchema();
+  await fsx.writeFile(schemaFile, typeLiterals);
 
-  parentPort?.postMessage({ discoveredTypeDeclarations });
+  const { zodSchema, zodErrors } = await generateZodSchemas();
 
   await generateRulesFile(route, {
     appRoot,
     sourceFolder,
     typeDeclarations,
     payloadTypes,
+    returnTypes,
     importZodErrorHandlerFrom,
     zodSchema,
     zodErrors,
@@ -238,14 +231,14 @@ async function worker({
       route,
       // even if zod schema generation failed, writing an empty hashmap file
       // to be sure next rebuild will run regardless
-      discoveredTypeDeclarations
-        ? discoveredTypeDeclarations.flatMap((e) => {
-            return e.included ? [e.file] : [];
-          })
-        : [],
+      discoveredTypeDeclarations.flatMap((e) => {
+        return e.included ? [e.file] : [];
+      }),
       { appRoot, sourceFolder },
     ),
   );
 
-  process.exit(0);
+  parentPort?.postMessage({ discoveredTypeDeclarations });
+
+  process.nextTick(() => process.exit(0));
 }

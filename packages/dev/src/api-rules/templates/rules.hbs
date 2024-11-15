@@ -37,25 +37,60 @@ const validateParams = () => [
 
 const validatePayload = () => [
   {{#if zodSchema}}
+  {{#each payloadTypes}}
   use(
     (ctx, next) => {
-      {{#each payloadTypes}}
-      if (ctx.request.method === "{{method}}") {
-        try {
-          {{id}}Schema.parse(ctx.payload)
-        } catch (error: any) {
-          throw zodErrorHandler(error)
-        }
+      try {
+        {{id}}Schema.parse(ctx.payload)
+      } catch (error: any) {
+        throw zodErrorHandler(error)
       }
-      {{/each}}
       return next()
     },
-    { slot: "validate:payload" },
+    { slot: "validate:payload", before: "{{apiMethod}}" },
   ),
+  {{/each}}
   {{/if}}
 ]
+
+const validateResponse = () => [
+  {{#if zodSchema}}
+  {{#each returnTypes}}
+  use(
+    (ctx, next) => {
+      try {
+        {{id}}Schema.parse(ctx.body)
+      } catch (error: any) {
+        throw zodErrorHandler(error)
+      }
+      return next()
+    },
+    { slot: "validate:response", after: "{{apiMethod}}" },
+  ),
+  {{/each}}
+  {{/if}}
+]
+
+export const paramsSchema = {{route.params.id}}Schema;
+
+export const requestSchemas = {
+{{#if zodSchema}}
+{{#each payloadTypes}}
+  {{httpMethod}}: {{id}}Schema,
+{{/each}}
+{{/if}}
+}
+
+export const responseSchemas = {
+{{#if zodSchema}}
+{{#each returnTypes}}
+  {{httpMethod}}: {{id}}Schema,
+{{/each}}
+{{/if}}
+}
 
 export default () => [
   validateParams(),
   validatePayload(),
+  validateResponse(),
 ].flat()

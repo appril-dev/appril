@@ -130,6 +130,7 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
       sourceFolder,
       typeDeclarations: [],
       payloadTypes: [],
+      returnTypes: [],
       importZodErrorHandlerFrom,
       overwrite: false, // skip if exists
     });
