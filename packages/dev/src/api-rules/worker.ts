@@ -183,13 +183,21 @@ async function worker({
     return { zodSchema };
   };
 
-  const { typeDeclarations, paramsType, payloadTypes, returnTypes } =
+  const { typeDeclarations, paramsType, routeSpecSignatures } =
     await extractApiAssets({
       route,
       relpathResolver(path) {
         return join(sourceFolder, defaults.apiDir, dirname(route.file), path);
       },
     });
+
+  const payloadTypes = routeSpecSignatures.flatMap((e) =>
+    e.payloadType ? [e.payloadType] : [],
+  );
+
+  const returnTypes = routeSpecSignatures.flatMap((e) =>
+    e.returnType ? [e.returnType] : [],
+  );
 
   const schemaFile = libFilePath(route, "schema", { appRoot, sourceFolder });
 

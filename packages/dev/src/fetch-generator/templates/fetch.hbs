@@ -28,26 +28,26 @@ function formatPath(params: {{route.fetchParams.id}}): string {
 function fetchMapper(
   api: import("@appril/fetch").FetchMapper,
 ) {
-  {{#each fetchDefinitions}}
-  function {{method}}(
+  {{#each routeSpecSignatures}}
+  function {{apiMethod}}(
     params: {{../route.fetchParams.id}},
     payload{{#unless payloadType}}?{{/unless}}: import(
       "{{../importPathmap.fetchFile}}"
     ).MaybeRef<
       {{#if payloadType}}
-      {{payloadType}}
+      {{payloadType.text}}
       {{else}}
       Record<string, unknown>
       {{/if}}
     >,
   ): Promise<
     {{#if returnType}}
-    {{returnType}}
+    {{returnType.text}}
     {{else}}
     unknown
     {{/if}}
   > {
-    return api.{{method}}(
+    return api.{{apiMethod}}(
       formatPath(params),
       unref(payload || {}),
     )
@@ -56,8 +56,8 @@ function fetchMapper(
   {{/each}}
 
   return {
-    {{#each fetchDefinitions}}
-    {{method}},
+    {{#each routeSpecSignatures}}
+    {{apiMethod}},
     {{/each}}
   }
 }
@@ -66,8 +66,8 @@ export const fetch = fetchMapper(
   fetchFactory(baseurl)
 )
 
-{{#each fetchDefinitions}}
-export const {{method}} = fetch.{{method}};
+{{#each routeSpecSignatures}}
+export const {{apiMethod}} = fetch.{{apiMethod}};
 {{/each}}
 
 export const resolve = (
@@ -91,8 +91,8 @@ export const href = (
 ) => createHost(host) + resolve(params, query);
 
 export default {
-  {{#each fetchDefinitions}}
-  {{method}}: fetch.{{method}},
+  {{#each routeSpecSignatures}}
+  {{apiMethod}}: fetch.{{apiMethod}},
   {{/each}}
   fetch,
   resolve,

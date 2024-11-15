@@ -8,10 +8,25 @@ import { APIMethods, type APIMethod, type HTTPMethod } from "@appril/api";
 import type { ApiRoute } from "./types";
 import { httpMethodByApi } from "@appril/api/lib";
 
-export type ManagedMiddleware = {
+export type PayloadType = {
+  id: string;
   apiMethod: APIMethod;
-  payloadType: string | undefined;
-  returnType: string | undefined;
+  httpMethod: HTTPMethod;
+  text: string;
+};
+
+export type ResponseType = {
+  id: string;
+  apiMethod: APIMethod;
+  httpMethod: HTTPMethod;
+  text: string;
+};
+
+export type RouteSpecSignature = {
+  apiMethod: APIMethod;
+  httpMethod: HTTPMethod;
+  payloadType: PayloadType | undefined;
+  returnType: ResponseType | undefined;
 };
 
 export type RelpathResolver = (path: string) => string;
@@ -32,9 +47,10 @@ export type TypeDeclaration = {
   };
 };
 
-export function extractManagedMiddleware(
+export function extractRouteSpecSignatures(
+  route: ApiRoute,
   ast: ts.SourceFile,
-): Array<ManagedMiddleware> {
+): Array<RouteSpecSignature> {
   const [callExpression] = tsquery.match(
     ast,
     "ExportAssignment > CallExpression",
@@ -84,7 +100,7 @@ export function extractManagedMiddleware(
       );
   }
 
-  const managedMiddleware: Array<ManagedMiddleware> = [];
+  const signatures: Array<RouteSpecSignature> = [];
 
   for (const [callExpression, apiMethod] of callExpressions) {
     const [managedMiddlewareExpression] = tsquery
@@ -93,16 +109,41 @@ export function extractManagedMiddleware(
 
     const generics = extractGenerics(callExpression);
 
-    managedMiddleware.push({
+    const httpMethod = httpMethodByApi(apiMethod);
+
+    const payloadTypeText = generics[1]
+      ? extractPayloadType(generics[1])
+      : undefined;
+
+    const payloadType = payloadTypeText
+      ? {
+          id: ["PayloadT", crc32(route.importName + apiMethod)].join(""),
+          apiMethod,
+          httpMethod,
+          text: payloadTypeText,
+        }
+      : undefined;
+
+    const returnTypeText = extractReturnType(managedMiddlewareExpression);
+
+    const returnType = returnTypeText
+      ? {
+          id: ["ReturnT", crc32(route.importName + apiMethod)].join(""),
+          apiMethod,
+          httpMethod,
+          text: returnTypeText,
+        }
+      : undefined;
+
+    signatures.push({
       apiMethod,
-      payloadType: generics[1] ? extractPayloadType(generics[1]) : undefined,
-      returnType: managedMiddleware
-        ? extractReturnType(managedMiddlewareExpression)
-        : undefined,
+      httpMethod,
+      payloadType,
+      returnType,
     });
   }
 
-  return managedMiddleware;
+  return signatures;
 }
 
 export function extractTypeDeclarations(
@@ -279,20 +320,6 @@ export function extractReturnType(
   return typeNode?.getText();
 }
 
-export type PayloadType = {
-  id: string;
-  apiMethod: APIMethod;
-  httpMethod: HTTPMethod;
-  text: string;
-};
-
-export type ResponseType = {
-  id: string;
-  apiMethod: APIMethod;
-  httpMethod: HTTPMethod;
-  text: string;
-};
-
 export async function extractApiAssets({
   route,
   relpathResolver,
@@ -302,9 +329,7 @@ export async function extractApiAssets({
 }): Promise<{
   typeDeclarations: Array<TypeDeclaration>;
   paramsType: string | undefined;
-  payloadTypes: Array<PayloadType>;
-  returnTypes: Array<ResponseType>;
-  managedMiddleware: Array<ManagedMiddleware>;
+  routeSpecSignatures: Array<RouteSpecSignature>;
 }> {
   const fileContent = (await fsx.exists(route.fileFullpath))
     ? await fsx.readFile(route.fileFullpath, "utf8")
@@ -315,36 +340,11 @@ export async function extractApiAssets({
   const typeDeclarations = extractTypeDeclarations(ast, { relpathResolver });
   const paramsType = extractParamsType(ast);
 
-  const managedMiddleware = extractManagedMiddleware(ast);
-
-  const payloadTypes: Array<PayloadType> = [];
-  const returnTypes: Array<ResponseType> = [];
-
-  for (const { apiMethod, payloadType, returnType } of managedMiddleware) {
-    const httpMethod = httpMethodByApi(apiMethod);
-    if (payloadType) {
-      payloadTypes.push({
-        id: ["PayloadT", crc32(route.importName + apiMethod)].join(""),
-        apiMethod,
-        httpMethod,
-        text: payloadType,
-      });
-    }
-    if (returnType) {
-      returnTypes.push({
-        id: ["ReturnT", crc32(route.importName + apiMethod)].join(""),
-        apiMethod,
-        httpMethod,
-        text: returnType,
-      });
-    }
-  }
+  const routeSpecSignatures = extractRouteSpecSignatures(route, ast);
 
   return {
     typeDeclarations,
     paramsType,
-    payloadTypes,
-    returnTypes,
-    managedMiddleware,
+    routeSpecSignatures,
   };
 }
