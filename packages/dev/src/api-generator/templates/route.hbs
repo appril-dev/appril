@@ -2,6 +2,6 @@ import routeFactory from "{{importPathmap.base}}";
 
 export default routeFactory(({ get }) => [
   get(async (ctx) => {
-    return "Automatically generated route: [ {{route.originalPath}} ]"
+    ctx.body = "Automatically generated route: [ {{route.originalPath}} ]"
   }),
 ])

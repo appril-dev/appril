@@ -1,14 +1,9 @@
-import { type UseSpec, use } from "@appril/api";
-
 {{#if importZodErrorHandlerFrom}}
 import { zodErrorHandler } from "{{importZodErrorHandlerFrom}}";
 {{else}}
 import { fromZodError } from "zod-validation-error";
 function zodErrorHandler(error: any) {
-  return fromZodError(error, {
-    prefix: null,
-    issueSeparator: ";\n",
-  })
+  return fromZodError(error, { prefix: null, issueSeparator: ";\n" })
 };
 {{/if}}
 
@@ -21,59 +16,51 @@ console.error(`{{this}}`)
 {{/each}}
 {{/if}}
 
-const validateParams = () => [
-  use<never, { params: Record<string, unknown> }>(
-    (ctx, next) => {
-      try {
-        {{route.params.id}}Schema.parse(ctx.params)
-      } catch (error: any) {
-        throw zodErrorHandler(error)
-      }
-      return next()
-    },
-    { slot: "validate:params" },
-  ) as unknown as UseSpec,
-]
+const validateParams = (
+  ctx: import("@appril/api").ParameterizedContext,
+) => {
+  try {
+    {{route.params.id}}Schema.parse(ctx.params)
+  } catch (error: any) {
+    throw zodErrorHandler(error)
+  }
+}
 
-const validatePayload = () => [
+const validatePayload = {
   {{#if zodSchema}}
   {{#each payloadTypes}}
-  use(
-    (ctx, next) => {
-      try {
-        {{id}}Schema.parse(ctx.payload)
-      } catch (error: any) {
-        throw zodErrorHandler(error)
-      }
-      return next()
-    },
-    { slot: "validate:payload", before: "{{apiMethod}}" },
-  ),
+  {{apiMethod}}(
+    ctx: import("@appril/api").ParameterizedContext,
+  ) {
+    try {
+      {{id}}Schema.parse(ctx.payload)
+    } catch (error: any) {
+      throw zodErrorHandler(error)
+    }
+  },
   {{/each}}
   {{/if}}
-]
+}
 
-const validateResponse = () => [
+const validateResponse = {
   {{#if zodSchema}}
   {{#each returnTypes}}
-  use(
-    (ctx, next) => {
-      try {
-        {{id}}Schema.parse(ctx.body)
-      } catch (error: any) {
-        throw zodErrorHandler(error)
-      }
-      return next()
-    },
-    { slot: "validate:response", after: "{{apiMethod}}" },
-  ),
+  {{apiMethod}}(
+    ctx: import("@appril/api").ParameterizedContext,
+  ) {
+    try {
+      {{id}}Schema.parse(ctx.body)
+    } catch (error: any) {
+      throw zodErrorHandler(error)
+    }
+  },
   {{/each}}
   {{/if}}
-]
+}
 
-export const paramsSchema = {{route.params.id}}Schema;
+const paramsSchema = {{route.params.id}}Schema;
 
-export const requestSchemas = {
+const payloadSchemas = {
 {{#if zodSchema}}
 {{#each payloadTypes}}
   {{httpMethod}}: {{id}}Schema,
@@ -81,7 +68,7 @@ export const requestSchemas = {
 {{/if}}
 }
 
-export const responseSchemas = {
+const responseSchemas = {
 {{#if zodSchema}}
 {{#each returnTypes}}
   {{httpMethod}}: {{id}}Schema,
@@ -89,8 +76,15 @@ export const responseSchemas = {
 {{/if}}
 }
 
-export default () => [
-  validateParams(),
-  validatePayload(),
-  validateResponse(),
-].flat()
+export default () => {
+  return {
+    params: validateParams,
+    payload: validatePayload,
+    response:  validateResponse,
+    schemas: {
+      params: paramsSchema,
+      payload: payloadSchemas,
+      response: responseSchemas,
+    }
+  }
+}

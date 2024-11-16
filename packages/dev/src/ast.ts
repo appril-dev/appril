@@ -124,7 +124,7 @@ export function extractRouteSpecSignatures(
         }
       : undefined;
 
-    const returnTypeText = extractReturnType(managedMiddlewareExpression);
+    const returnTypeText = generics[2]?.getText();
 
     const returnType = returnTypeText
       ? {
@@ -290,34 +290,6 @@ export function extractPayloadType(node: ts.Node): string | undefined {
   const payloadType = labeledStatement?.getChildren()[2];
 
   return payloadType?.getText();
-}
-
-export function extractReturnType(
-  node: ts.Expression | ts.Node,
-): string | undefined {
-  let [typeNode] = tsquery
-    .match(node, "IntersectionType,TypeReference,TypeLiteral,AnyKeyword")
-    .filter((e) => e.parent === node);
-
-  if (!typeNode) {
-    return;
-  }
-
-  if (/^Promise(\s+)?</.test(typeNode.getText())) {
-    const [wrappedType] = tsquery.match(
-      typeNode,
-      [
-        "IntersectionType:first-child",
-        "TypeReference:first-child",
-        "TypeLiteral:first-child",
-        "AnyKeyword:first-child",
-      ].join(","),
-    );
-
-    typeNode = wrappedType;
-  }
-
-  return typeNode?.getText();
 }
 
 export async function extractApiAssets({

@@ -1,7 +1,9 @@
 import type {
+  APIMethod,
   DefaultContext,
   HTTPMethod,
   Middleware,
+  ParameterizedContext,
   RouteSpec,
   UseSpec,
 } from "../router";
@@ -12,25 +14,26 @@ type ParamsSchema = Array<
 
 export const routeMiddlewareMapper = (
   routeName: string,
-  {
-    paramsSchema,
-    factorySpecs,
-    useGlobalSpecs,
-  }: {
+  setup: {
     paramsSchema: ParamsSchema;
-    factorySpecs: Array<UseSpec | RouteSpec>;
-    useGlobalSpecs: Array<UseSpec>;
+    specs: Array<UseSpec | RouteSpec>;
+    useSpecs: Array<UseSpec>;
+    rules: {
+      params: (ctx: ParameterizedContext) => void;
+      payload: Partial<Record<APIMethod, (ctx: ParameterizedContext) => void>>;
+      response: Partial<Record<APIMethod, (ctx: ParameterizedContext) => void>>;
+    };
   },
 ) => {
-  const useSpecs: Array<UseSpec> = [];
   const specs: Array<RouteSpec> = [];
+  const useSpecs: Array<UseSpec> = [];
 
   const stack: Array<{
     method: HTTPMethod;
     middleware: Array<Middleware>;
   }> = [];
 
-  for (const [i, entry] of factorySpecs.entries()) {
+  for (const [i, entry] of setup.specs.entries()) {
     if (Array.isArray((entry as unknown as UseSpec).use)) {
       useSpecs.push(entry as unknown as UseSpec);
     } else if (Array.isArray((entry as unknown as RouteSpec).middleware)) {
@@ -43,7 +46,7 @@ export const routeMiddlewareMapper = (
   }
 
   // excluding global specs that are overridden by a factory spec, regardless method
-  const useSpecsGlobal = useGlobalSpecs.filter(({ slot }) => {
+  const useSpecsGlobal = setup.useSpecs.filter(({ slot }) => {
     return slot ? !useSpecs.some((e) => e.slot === slot) : true;
   });
 
@@ -52,6 +55,7 @@ export const routeMiddlewareMapper = (
   for (const { method, middleware } of specs) {
     const before = [];
     const after = [];
+
     for (const use of useStack) {
       if (use.after?.length) {
         if (use.after.includes(method)) {
@@ -64,10 +68,39 @@ export const routeMiddlewareMapper = (
         before.push(...(use as UseSpec).use);
       }
     }
+
+    const validateParams: Array<Middleware> = [
+      (ctx, next) => {
+        setup.rules.params(ctx);
+        return next();
+      },
+    ];
+
+    const validatePayload: Array<Middleware> = setup.rules.payload[method]
+      ? [
+          (ctx, next) => {
+            setup.rules.payload[method]?.(ctx);
+            return next();
+          },
+        ]
+      : [];
+
+    const validateResponse: Array<Middleware> = setup.rules.response[method]
+      ? [
+          async (ctx, next) => {
+            await next();
+            setup.rules.response[method]?.(ctx);
+          },
+        ]
+      : [];
+
     stack.push({
       method: httpMethodByApi(method),
       middleware: [
-        paramsCoerce(paramsSchema),
+        paramsCoerce(setup.paramsSchema),
+        validateParams,
+        validatePayload,
+        validateResponse,
         before,
         middleware,
         after,

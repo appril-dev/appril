@@ -11,17 +11,12 @@ import api, {
 
 import { routeMiddlewareMapper } from "@appril/api/lib";
 
-import useGlobalFactory from "{{importPathmap.api}}/use";
-import useRulesFactory from "./_rules";
+import useFactory from "{{importPathmap.api}}/use";
+import rulesFactory from "./_rules";
 
 type DefaultParamsT = {{route.params.literal}};
 
 export const paramsSchema = {{paramsSchema}};
-
-export const useGlobalSpecs = () => [
-  useGlobalFactory(),
-  useRulesFactory(),
-].flat();
 
 export const use: UseSpecI<
   DefaultState,
@@ -46,6 +41,7 @@ export default <
   middleware: Array<Middleware>
 }> => routeMiddlewareMapper("{{route.file}}", {
   paramsSchema,
-  factorySpecs: factory(api as never),
-  useGlobalSpecs: useGlobalSpecs(),
+  specs: factory(api as never),
+  useSpecs: useFactory(),
+  rules: rulesFactory(),
 });

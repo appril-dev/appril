@@ -94,6 +94,7 @@ export default (
         columns,
         typeLiterals,
         importPathmap: {
+          api: [sourceFolder, defaults.apiDir].join("/"),
           lib: [sourceFolder, libApiDir, table.name, baseDir].join("/"),
           libCrud: [
             defaults.appPrefix,

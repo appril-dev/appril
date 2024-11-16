@@ -1,7 +1,9 @@
 import { routeMiddlewareMapper } from "@appril/api/lib";
 
 import tableInit from "{{importPathmap.table}}";
-import { paramsSchema, useGlobalSpecs } from "..";
+import useFactory from "{{importPathmap.api}}/use";
+import rulesFactory from "../_rules";
+import { paramsSchema } from "..";
 
 import crudFactory from "{{importPathmap.libCrud}}";
 import type { InsertT, ListResponse, CreateResponse } from "./typeLiterals";
@@ -58,6 +60,7 @@ export default (
   }) => Array<any>
 ) => routeMiddlewareMapper("{{route.file}}", {
   paramsSchema,
-  factorySpecs: factory({ use, get, post }),
-  useGlobalSpecs: useGlobalSpecs(),
+  specs: factory({ use, get, post }),
+  useSpecs: useFactory(),
+  rules: rulesFactory(),
 });
