@@ -80,11 +80,21 @@ export interface RouteSpecI<
   ContextT = DefaultContext,
   ResponseBodyT = unknown,
 > {
-  <StateC = object, ContextC = object>(
-    a: Middleware<StateT & StateC, ContextT & ContextC, ResponseBodyT>,
+  <StateC = object, ContextC = object, ResponseBodyC = unknown>(
+    a: Middleware<
+      StateT & StateC,
+      ContextT & ContextC,
+      ResponseBodyT & ResponseBodyC
+    >,
   ): RouteSpec; // TODO: providing generics here somehow is breaking context typing
-  <StateC = object, ContextC = object>(
-    a: Array<Middleware<StateT & StateC, ContextT & ContextC, ResponseBodyT>>,
+  <StateC = object, ContextC = object, ResponseBodyC = unknown>(
+    a: Array<
+      Middleware<
+        StateT & StateC,
+        ContextT & ContextC,
+        ResponseBodyT & ResponseBodyC
+      >
+    >,
   ): RouteSpec;
 }
 
