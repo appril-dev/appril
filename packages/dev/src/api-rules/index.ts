@@ -18,7 +18,7 @@ export async function apiRules(
   options: PluginOptionsResolved,
   { workerPool }: { workerPool: Workers },
 ) {
-  const { appRoot, sourceFolder } = options;
+  const { appRoot, sourceFolder, openapi } = options;
 
   const {
     maxCpus = Math.ceil(cpus().length / 2),
@@ -46,24 +46,18 @@ export async function apiRules(
       if (srcWatchers[file]) {
         // updating routeMap
         await srcWatchers[file]();
-
         // then feeding routeMap to worker
         await workerPool.handleSrcFileUpdate({
           file,
           routes: Object.values(routeMap),
         });
-
-        return;
-      }
-
-      if (routeMap[file]) {
+      } else if (routeMap[file]) {
         // some route updated, rebuilding assets
         if (routeMap[file]) {
           await workerPool.handleRouteFileUpdate({
             route: routeMap[file],
           });
         }
-        return;
       }
     });
   };
@@ -92,6 +86,7 @@ export async function apiRules(
     maxCpus,
     traverseMaxDepth,
     importZodErrorHandlerFrom,
+    openapi,
   };
 
   return {

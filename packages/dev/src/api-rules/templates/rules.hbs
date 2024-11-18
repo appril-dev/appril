@@ -17,11 +17,14 @@ console.error(`{{this}}`)
 {{/if}}
 
 const validateParams = (
-  ctx: import("@appril/api").ParameterizedContext,
+  ctx: import("@appril/api").ParameterizedContext<
+    never,
+    { params: Record<string, unknown> }
+  >,
 ) => {
   try {
     {{route.params.id}}Schema.parse(ctx.params)
-  } catch (error: any) {
+  } catch (error) {
     throw zodErrorHandler(error)
   }
 }
@@ -34,7 +37,7 @@ const validatePayload = {
   ) {
     try {
       {{id}}Schema.parse(ctx.payload)
-    } catch (error: any) {
+    } catch (error) {
       throw zodErrorHandler(error)
     }
   },
@@ -50,7 +53,7 @@ const validateResponse = {
   ) {
     try {
       {{id}}Schema.parse(ctx.body)
-    } catch (error: any) {
+    } catch (error) {
       throw zodErrorHandler(error)
     }
   },
@@ -58,22 +61,22 @@ const validateResponse = {
   {{/if}}
 }
 
-const paramsSchema = {{route.params.id}}Schema;
-
-const payloadSchemas = {
-{{#if zodSchema}}
-{{#each payloadTypes}}
-  {{httpMethod}}: {{id}}Schema,
-{{/each}}
-{{/if}}
-}
-
-const responseSchemas = {
-{{#if zodSchema}}
-{{#each returnTypes}}
-  {{httpMethod}}: {{id}}Schema,
-{{/each}}
-{{/if}}
+export const zodSchemas = {
+  params: {{route.params.id}}Schema,
+  payload: {
+  {{#if zodSchema}}
+  {{#each payloadTypes}}
+    {{httpMethod}}: {{id}}Schema,
+  {{/each}}
+  {{/if}}
+  },
+  response: {
+  {{#if zodSchema}}
+  {{#each returnTypes}}
+    {{httpMethod}}: {{id}}Schema,
+  {{/each}}
+  {{/if}}
+  },
 }
 
 export default () => {
@@ -81,10 +84,5 @@ export default () => {
     params: validateParams,
     payload: validatePayload,
     response:  validateResponse,
-    schemas: {
-      params: paramsSchema,
-      payload: payloadSchemas,
-      response: responseSchemas,
-    }
   }
 }

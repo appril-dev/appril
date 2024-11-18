@@ -48,6 +48,7 @@ export default function apprilDevPlugin(options: PluginOptions): Plugin {
         apiGenerator: {},
         apiMiddleware: undefined,
         solidPages: undefined,
+        openapi: undefined,
         useWorkers: true,
         watchOptions: {
           usePolling: false,

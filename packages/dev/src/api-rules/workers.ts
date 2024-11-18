@@ -5,7 +5,7 @@ import { Worker } from "node:worker_threads";
 import type { ResolvedConfig } from "vite";
 import chokidar, { type FSWatcher } from "chokidar";
 import { chunk } from "lodash-es";
-import { fileGenerator } from "@appril/dev-utils";
+import { fileGenerator, renderToFile } from "@appril/dev-utils";
 
 import { type ApiRoute, type PluginOptionsResolved, defaults } from "@/base";
 
@@ -19,6 +19,10 @@ import {
   libFilePath,
 } from "./base";
 
+import { generateOpenapiSpec } from "../openapi-generator";
+
+import zodTpl from "./templates/zod.hbs";
+
 let appRoot: string;
 let sourceFolder: string;
 
@@ -29,10 +33,10 @@ let routes: Array<ApiRoute>;
 let maxCpus: number;
 let traverseMaxDepth: number;
 let importZodErrorHandlerFrom: string | undefined;
+let openapi: PluginOptionsResolved["openapi"];
 let generateFile: ReturnType<typeof fileGenerator>["generateFile"];
 
-// route files may import type files from anywhere
-// but vite does not watch files outside root
+// api routes may import files that are not watched by vite
 let watcher: FSWatcher | undefined;
 
 const depsMap: Record<string, Set<string>> = {};
@@ -55,12 +59,14 @@ export async function bootstrap(data: {
   maxCpus: number;
   traverseMaxDepth: number;
   importZodErrorHandlerFrom?: string;
+  openapi: PluginOptionsResolved["openapi"];
 }) {
   appRoot = data.appRoot;
   sourceFolder = data.sourceFolder;
   routes = data.routes;
   maxCpus = data.maxCpus;
   traverseMaxDepth = data.traverseMaxDepth;
+  openapi = data.openapi;
   importZodErrorHandlerFrom = data.importZodErrorHandlerFrom;
   generateFile = fileGenerator(appRoot).generateFile;
 
@@ -168,8 +174,8 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
     staleRoutes.push(route);
   }
 
-  // running in parallel to make use of all cpu cores.
-  // splitting tasks into batches, each batch runs N workers at time.
+  // running in parallel to make use of multiple cpu cores.
+  // splitting tasks into batches, each batch runs maxCpus workers at time.
   for (const batch of chunk(staleRoutes, maxCpus)) {
     await Promise.allSettled(
       batch.map((route) => {
@@ -206,5 +212,38 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
         });
       }),
     );
+  }
+
+  await generateSideAssets();
+}
+
+async function generateSideAssets() {
+  const apiLibDir = format(defaults.libDirFormat, defaults.apiDir);
+
+  const zodFile = join(
+    appRoot,
+    defaults.libDir,
+    sourceFolder,
+    apiLibDir,
+    "zod.ts",
+  );
+
+  await renderToFile(zodFile, zodTpl, {
+    routes,
+    importPathmap: {
+      lib: [defaults.appPrefix, defaults.libDir, sourceFolder, apiLibDir].join(
+        "/",
+      ),
+    },
+  });
+
+  if (openapi) {
+    await generateOpenapiSpec({
+      openapi,
+      routes,
+      appRoot,
+      sourceFolder,
+      zodFile,
+    });
   }
 }

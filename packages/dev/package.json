@@ -28,11 +28,12 @@
     "prebuild:001": "pnpm run lint",
     "prebuild:002": "pnpm run tsc",
     "prebuild": "set -e; for i in 0 1 2; do pnpm run prebuild:00${i}; done",
-    "build": "../../esbuild.mjs index worker api-rules/worker"
+    "build": "../../esbuild.mjs index worker api-rules/worker openapi-generator/worker"
   },
   "dependencies": {
     "@appril/configs": "workspace:^",
     "@appril/dev-utils": "workspace:^",
+    "@asteasolutions/zod-to-openapi": "^7.2.0",
     "@phenomnomnominal/tsquery": "^6.1.3",
     "chokidar": "^4.0.1",
     "crc": "^4.3.2",

@@ -1,0 +1,5 @@
+export { z } from "zod";
+
+{{#each routes}}
+export { zodSchemas as {{importName}} } from "{{../importPathmap.lib}}/{{importPath}}/_rules";
+{{/each}}

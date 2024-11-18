@@ -3,6 +3,32 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 export type PluginOptions = {
   apiurl: string;
 
+  openapi?: {
+    outfile: string;
+    openapi: `3.0.${number}` | `3.1.${number}`;
+    info: {
+      title: string;
+      version: string;
+      summary?: string;
+      description?: string;
+      termsOfService?: string;
+      contact?: {
+        name?: string;
+        url?: string;
+        email?: string;
+      };
+      license?: {
+        name: string;
+        identifier?: string;
+        url?: string;
+      };
+    };
+    servers: Array<{
+      url: string;
+      description?: string;
+    }>;
+  };
+
   apiRules?: {
     maxCpus?: number;
     traverseMaxDepth?: number;
@@ -40,7 +66,7 @@ export type PluginOptions = {
   };
 };
 
-type PluginOptionsWithoutDefaults = "apiMiddleware" | "solidPages";
+type PluginOptionsWithoutDefaults = "apiMiddleware" | "solidPages" | "openapi";
 
 export type PluginOptionsResolved = {
   appRoot: string;
