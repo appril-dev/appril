@@ -15,14 +15,17 @@ import { unref } from "{{importPathmap.fetchFile}}";
 
 type {{route.fetchParams.id}} = [ {{route.fetchParams.literal}} ];
 
-function formatPath(params: {{route.fetchParams.id}}): string {
+function formatPath(params: {{route.fetchParams.id}}) {
+  const copy = [ ...params ]
   return [
-{{#each route.fetchParams.tokens}}    "{{this}}",
-{{/each}}
-  ].reduce(
-    (path, token, i) => path.replace(token, String(params[i] ?? "")),
-    "{{route.originalPathParams}}"
-  )
+  {{#each route.pathTokens}}
+    {{#if param}}
+    copy.splice(0, 1)[0],
+    {{else}}
+    "{{orig}}",
+    {{/if}}
+  {{/each}}
+  ].join("/")
 }
 
 function fetchMapper(

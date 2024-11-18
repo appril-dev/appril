@@ -48,7 +48,7 @@ export type PluginOptionsResolved = {
 } & Required<Omit<PluginOptions, PluginOptionsWithoutDefaults>> &
   Pick<PluginOptions, PluginOptionsWithoutDefaults>;
 
-export type RouteSection = {
+export type PathToken = {
   orig: string;
   base: string;
   ext: string;
@@ -103,17 +103,16 @@ export type RouteOptions = {
 export type ApiRoute = {
   base?: string;
   path: string;
+  pathTokens: Array<PathToken>;
   originalPath: string;
-  originalPathParams: string;
   params: {
     id: string;
     literal: string;
-    schema: Array<Required<RouteSection>["param"]>;
+    schema: Array<Required<PathToken>["param"]>;
   };
   fetchParams: {
     id: string;
     literal: string;
-    tokens: Array<string>;
   };
   // relative file path
   file: string;
@@ -124,14 +123,13 @@ export type ApiRoute = {
   meta?: Record<string, unknown>;
   // custom template (not path, template itself)
   template?: string;
-
   alias: Array<string>;
 };
 
 export type SolidPage = {
   path: string;
+  pathTokens: Array<PathToken>;
   originalPath: string;
-  originalPathParams: string;
   file: string;
   fileFullpath: string;
   srcFile: string;
@@ -139,7 +137,6 @@ export type SolidPage = {
   importPath: string;
   params: {
     literal: string;
-    tokens: Array<string>;
   };
   meta?: string;
   dataLoaderGenerator?: {

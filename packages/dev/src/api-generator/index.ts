@@ -87,7 +87,7 @@ export async function apiGenerator(
 
     watcher.on("change", async (file) => {
       if (srcWatchers[file]) {
-        // updating routeMap / aliasMap
+        // updating routeMap
         await srcWatchers[file]();
 
         // then feeding them to worker

@@ -11,7 +11,7 @@ import {
   type RouteOptions,
   type ApiRoute,
   normalizeRoutePath,
-  routeSections,
+  pathTokensFactory,
   defaults,
   routeAlias,
   importNameFromPath,
@@ -55,10 +55,14 @@ export async function sourceFilesParsers(
             continue;
           }
 
-          const sections = routeSections(normalizeRoutePath(_path), srcFile);
-          const originalPath = sections.map((e) => e.orig).join("/");
+          const pathTokens = pathTokensFactory(
+            normalizeRoutePath(_path),
+            srcFile,
+          );
 
-          const path = sections
+          const originalPath = pathTokens.map((e) => e.orig).join("/");
+
+          const path = pathTokens
             .map(({ orig, param, ext }) => {
               if (param) {
                 if (param.isRest) {
@@ -88,7 +92,7 @@ export async function sourceFilesParsers(
 
           const file = importPath + suffix;
 
-          const paramsSchema = sections.flatMap((e) => {
+          const paramsSchema = pathTokens.flatMap((e) => {
             return e.param ? [e.param] : [];
           });
 
@@ -102,10 +106,6 @@ export async function sourceFilesParsers(
               ", ", // intentionally using comma, do not use semicolon!
             );
 
-          const paramsTokens = sections.flatMap((e) => {
-            return e.param ? [e.orig] : [];
-          });
-
           const paramsTypeId = ["ParamsT", crc32(importName)].join("");
 
           const template = opt?.apiTemplate
@@ -117,9 +117,9 @@ export async function sourceFilesParsers(
 
           const route: ApiRoute = {
             base: opt?.base,
-            originalPath,
-            originalPathParams: originalPath.replace(/^index\/?\b/, ""),
             path: join("/", path.replace(/^index\/?\b/, "")),
+            pathTokens,
+            originalPath,
             params: {
               id: paramsTypeId,
               literal: render(paramsTpl, { schema: paramsSchema }).trim(),
@@ -128,7 +128,6 @@ export async function sourceFilesParsers(
             fetchParams: {
               id: paramsTypeId,
               literal: fetchParamsLiteral,
-              tokens: paramsTokens,
             },
             importName,
             importPath,

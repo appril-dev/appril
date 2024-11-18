@@ -11,7 +11,7 @@ import {
   type RouteOptions,
   type SolidPage,
   normalizeRoutePath,
-  routeSections,
+  pathTokensFactory,
   defaults,
   routeAlias,
   importNameFromPath,
@@ -55,10 +55,14 @@ export async function sourceFilesParsers(
             continue;
           }
 
-          const sections = routeSections(normalizeRoutePath(_path), srcFile);
-          const originalPath = sections.map((e) => e.orig).join("/");
+          const pathTokens = pathTokensFactory(
+            normalizeRoutePath(_path),
+            srcFile,
+          );
 
-          const path = sections
+          const originalPath = pathTokens.map((e) => e.orig).join("/");
+
+          const path = pathTokens
             .map(({ param, orig, ext }) => {
               if (param) {
                 if (param.isRest) {
@@ -111,7 +115,7 @@ export async function sourceFilesParsers(
             }
           }
 
-          const paramsLiteral = sections
+          const paramsLiteral = pathTokens
             .flatMap(({ param }) => {
               if (param) {
                 if (param.isRest) {
@@ -124,10 +128,6 @@ export async function sourceFilesParsers(
             })
             .join(", ");
 
-          const paramsTokens = sections.flatMap((e) => {
-            return e.param ? [e.orig] : [];
-          });
-
           const template = opt?.pageTemplate
             ? await fsx.readFile(
                 resolve(dirname(srcFile), opt.pageTemplate),
@@ -137,8 +137,8 @@ export async function sourceFilesParsers(
 
           const page: SolidPage = {
             originalPath,
-            originalPathParams: originalPath.replace(/^index\/?\b/, ""),
             path: join("/", path.replace(/^index\/?\b/, "")),
+            pathTokens,
             file,
             fileFullpath: resolve(config.root, defaults.pagesDir, file),
             srcFile,
@@ -146,7 +146,6 @@ export async function sourceFilesParsers(
             importName,
             params: {
               literal: paramsLiteral,
-              tokens: paramsTokens,
             },
             dataLoaderGenerator,
             dataLoaderConsumer,

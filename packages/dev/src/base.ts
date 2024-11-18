@@ -2,7 +2,7 @@ import crc32 from "crc/crc32";
 
 import { sanitizePath } from "@appril/dev-utils";
 
-import type { RouteOptions, RouteSection } from "./types";
+import type { RouteOptions, PathToken } from "./types";
 
 export { defaults } from "@appril/configs";
 export * from "./types";
@@ -17,7 +17,10 @@ export function normalizeRoutePath(path: string): string {
     .replace(/^\/|\/$/g, "");
 }
 
-export function routeSections(path: string, file: string): Array<RouteSection> {
+export function pathTokensFactory(
+  path: string,
+  file: string,
+): Array<PathToken> {
   // use only normalized paths here
 
   const requiredParamRegex = /^\[([^\]]+)\]$/;
@@ -27,7 +30,7 @@ export function routeSections(path: string, file: string): Array<RouteSection> {
   return path.split("/").map((orig, i) => {
     const [base, ext = ""] = orig.split(/(\.([\w\d-]+)$)/);
 
-    let param: RouteSection["param"] | undefined;
+    let param: PathToken["param"] | undefined;
 
     const paramSplitter = (regex: RegExp): { name: string } => {
       const name = base.replace(regex, "$1");
@@ -73,7 +76,7 @@ export function routeSections(path: string, file: string): Array<RouteSection> {
       base,
       ext,
       param,
-    } satisfies RouteSection;
+    } satisfies PathToken;
   });
 }
 

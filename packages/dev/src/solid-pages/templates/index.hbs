@@ -18,13 +18,18 @@ export const resolvers = {
     type ParamsT = [ {{params.literal}} ];
     type QueryT = Record<string, unknown>;
 
-    const formatPath = (params: ParamsT) => [
-{{#each params.tokens}}    "{{this}}",
-{{/each}}
-    ].reduce(
-      (path, token, i) => path.replace(token, String(params[i] ?? "")),
-      "{{originalPathParams}}"
-    )
+    const formatPath = (params: ParamsT) => {
+      const copy = [ ...params ]
+      return [
+      {{#each pathTokens}}
+        {{#if param}}
+        copy.splice(0, 1)[0],
+        {{else}}
+        "{{orig}}",
+        {{/if}}
+      {{/each}}
+      ].join("/")
+    }
 
     const resolve = (
       params: ParamsT,
