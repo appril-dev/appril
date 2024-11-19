@@ -25,14 +25,6 @@ export type HashMap = {
   deps: Record<string, number>;
 };
 
-export type DiscoveredTypeDeclaration = {
-  file: string;
-  name: string;
-  nameRegex: RegExp;
-  text: string;
-  included?: boolean;
-};
-
 export function libFileBase(
   route: ApiRoute,
   { appRoot, sourceFolder }: { appRoot: string; sourceFolder: string },
@@ -66,7 +58,7 @@ export function generateRulesFile(
     sourceFolder,
     typeDeclarations,
     payloadTypes,
-    returnTypes,
+    responseTypes,
     zodSchema,
     zodErrors,
     importZodErrorHandlerFrom,
@@ -76,7 +68,7 @@ export function generateRulesFile(
     sourceFolder: string;
     typeDeclarations: Array<TypeDeclaration>;
     payloadTypes: Array<PayloadType>;
-    returnTypes: Array<ResponseType>;
+    responseTypes: Array<ResponseType>;
     zodSchema?: string | undefined;
     zodErrors?: Array<string>;
     importZodErrorHandlerFrom: string | undefined;
@@ -92,7 +84,7 @@ export function generateRulesFile(
       route,
       typeDeclarations,
       payloadTypes,
-      returnTypes,
+      responseTypes,
       zodSchema,
       zodErrors,
       importZodErrorHandlerFrom,

@@ -1,12 +1,30 @@
 import fsx from "fs-extra";
-// TODO: consider github.com/dsherret/ts-morph
+// TODO: replace tsquery with ts-morph
 import tsquery from "@phenomnomnominal/tsquery";
+
+import {
+  type SourceFile,
+  type EnumDeclaration,
+  type TypeAliasDeclaration,
+  Project,
+  SyntaxKind,
+} from "ts-morph";
+
 import ts from "typescript";
 import crc32 from "crc/crc32";
 import { APIMethods, type APIMethod, type HTTPMethod } from "@appril/api";
 
 import type { ApiRoute } from "./types";
 import { httpMethodByApi } from "@appril/api/lib";
+
+export type DiscoveredTypeDeclaration = {
+  file: string;
+  name: string;
+  nameRegex: RegExp;
+  text: string;
+  literal?: string;
+  parameters?: Array<string>;
+};
 
 export type PayloadType = {
   id: string;
@@ -26,7 +44,7 @@ export type RouteSpecSignature = {
   apiMethod: APIMethod;
   httpMethod: HTTPMethod;
   payloadType: PayloadType | undefined;
-  returnType: ResponseType | undefined;
+  responseType: ResponseType | undefined;
 };
 
 export type RelpathResolver = (path: string) => string;
@@ -48,7 +66,7 @@ export type TypeDeclaration = {
 };
 
 export function extractRouteSpecSignatures(
-  route: ApiRoute,
+  route: Pick<ApiRoute, "importName">,
   ast: ts.SourceFile,
 ): Array<RouteSpecSignature> {
   const [callExpression] = tsquery.match(
@@ -103,16 +121,16 @@ export function extractRouteSpecSignatures(
   const signatures: Array<RouteSpecSignature> = [];
 
   for (const [callExpression, apiMethod] of callExpressions) {
-    const [managedMiddlewareExpression] = tsquery
-      .match(callExpression, "ArrowFunction, FunctionExpression")
-      .filter((e) => e.parent === callExpression);
-
-    const generics = extractGenerics(callExpression);
+    const [
+      , // state
+      payloadTypeGeneric, // context
+      responseTypeGeneric, // response
+    ] = extractGenerics(callExpression);
 
     const httpMethod = httpMethodByApi(apiMethod);
 
-    const payloadTypeText = generics[1]
-      ? extractPayloadType(generics[1])
+    const payloadTypeText = payloadTypeGeneric
+      ? extractPayloadType(payloadTypeGeneric)
       : undefined;
 
     const payloadType = payloadTypeText
@@ -124,14 +142,14 @@ export function extractRouteSpecSignatures(
         }
       : undefined;
 
-    const returnTypeText = generics[2]?.getText();
+    const responseTypeText = responseTypeGeneric?.getText();
 
-    const returnType = returnTypeText
+    const responseType = responseTypeText
       ? {
-          id: ["ReturnT", crc32(route.importName + apiMethod)].join(""),
+          id: ["ResponseT", crc32(route.importName + apiMethod)].join(""),
           apiMethod,
           httpMethod,
-          text: returnTypeText,
+          text: responseTypeText,
         }
       : undefined;
 
@@ -139,7 +157,7 @@ export function extractRouteSpecSignatures(
       apiMethod,
       httpMethod,
       payloadType,
-      returnType,
+      responseType,
     });
   }
 
@@ -320,3 +338,128 @@ export async function extractApiAssets({
     routeSpecSignatures,
   };
 }
+
+export const discoverTypeDeclarations = (
+  file: string, // abs path to file
+  {
+    tsconfigFile,
+    traverseMaxDepth,
+  }: {
+    tsconfigFile: string;
+    traverseMaxDepth: number;
+  },
+): Array<DiscoveredTypeDeclaration> => {
+  const project = new Project({
+    tsConfigFilePath: tsconfigFile,
+    skipAddingFilesFromTsConfig: true,
+  });
+
+  const compilerOptions = project.getCompilerOptions();
+
+  if (!compilerOptions?.paths) {
+    process.exit(1);
+  }
+
+  const prefixes = [
+    /^\./,
+    Object.keys(compilerOptions.paths).map(
+      (e) => new RegExp(`^${e.replace("*", "")}`),
+    ),
+  ].flat();
+
+  const sourceFile = project.addSourceFileAtPath(file);
+
+  const sourceFiles: Array<[string, SourceFile, number]> = [
+    [file, sourceFile, 0],
+  ];
+
+  const traverseSourceFiles = (sourceFile: SourceFile, depth = 0) => {
+    if (depth > traverseMaxDepth) {
+      return;
+    }
+
+    for (const declaration of [
+      sourceFile.getImportDeclarations(),
+      sourceFile.getExportDeclarations(),
+    ].flat()) {
+      const modulePath = declaration.getModuleSpecifierValue();
+
+      if (!modulePath || !prefixes.some((e) => e.test(modulePath))) {
+        continue;
+      }
+
+      const file = declaration.getModuleSpecifierSourceFile();
+
+      if (!file) {
+        continue;
+      }
+
+      const path = file.getFilePath();
+
+      if (sourceFiles.some(([p]) => p === path)) {
+        continue;
+      }
+
+      sourceFiles.push([path, file, depth]);
+
+      traverseSourceFiles(file, depth + 1);
+    }
+  };
+
+  traverseSourceFiles(sourceFile);
+
+  const discoveredTypeDeclarations: Array<DiscoveredTypeDeclaration> = [];
+
+  for (const [path, file] of sourceFiles) {
+    const nodeMap: Array<
+      [
+        a: EnumDeclaration | TypeAliasDeclaration,
+        b?: string | undefined,
+        c?: Array<string>,
+      ]
+    > = [];
+
+    for (const node of file.getTypeAliases()) {
+      const typeNode = node.getTypeNode();
+      if (
+        [
+          SyntaxKind.TypeLiteral,
+          SyntaxKind.TypeReference,
+          SyntaxKind.UnionType,
+        ].includes(typeNode?.getKind() || SyntaxKind.Unknown)
+      ) {
+        nodeMap.push([
+          node,
+          typeNode?.getText(),
+          node
+            .getChildrenOfKind(SyntaxKind.TypeParameter)
+            .map((e) => e.getName()),
+        ]);
+      }
+    }
+
+    for (const node of file.getEnums()) {
+      nodeMap.push([node]);
+    }
+
+    for (const [node, literal, parameters] of nodeMap) {
+      const name = node.getName();
+      const nameRegex = new RegExp(`\\b${name}\\b`);
+
+      if (discoveredTypeDeclarations.some((e) => e.name === name)) {
+        continue;
+      }
+
+      discoveredTypeDeclarations.push({
+        file: path,
+        name,
+        nameRegex,
+        text: node.getText(),
+        literal,
+        parameters,
+      });
+    }
+  }
+
+  return discoveredTypeDeclarations;
+};

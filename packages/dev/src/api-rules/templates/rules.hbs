@@ -17,13 +17,11 @@ console.error(`{{this}}`)
 {{/if}}
 
 const validateParams = (
-  ctx: import("@appril/api").ParameterizedContext<
-    never,
-    { params: Record<string, unknown> }
-  >,
+  ctx: import("@appril/api").ParameterizedContext,
 ) => {
   try {
-    {{route.params.id}}Schema.parse(ctx.params)
+    const { params } = ctx as never;
+    {{route.params.id}}Schema.parse(params)
   } catch (error) {
     throw zodErrorHandler(error)
   }
@@ -47,7 +45,7 @@ const validatePayload = {
 
 const validateResponse = {
   {{#if zodSchema}}
-  {{#each returnTypes}}
+  {{#each responseTypes}}
   {{apiMethod}}(
     ctx: import("@appril/api").ParameterizedContext,
   ) {
@@ -72,7 +70,7 @@ export const zodSchemas = {
   },
   response: {
   {{#if zodSchema}}
-  {{#each returnTypes}}
+  {{#each responseTypes}}
     {{httpMethod}}: {{id}}Schema,
   {{/each}}
   {{/if}}

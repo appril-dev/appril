@@ -1,7 +1,14 @@
 {{#each discoveredTypeDeclarations}}
-{{#if included}}{{text}}
-{{/if}}
+{{text}}
 {{/each}}
 
 export type {{paramsType.id}} = {{paramsType.literal}}{{#if paramsType.customSchema}} & {{paramsType.customSchema}}
 {{/if}}
+
+{{#each payloadTypes}}
+export type {{id}} = {{text}};
+{{/each}}
+
+{{#each responseTypes}}
+export type {{id}} = {{text}};
+{{/each}}

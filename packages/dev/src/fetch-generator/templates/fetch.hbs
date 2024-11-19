@@ -44,8 +44,8 @@ function fetchMapper(
       {{/if}}
     >,
   ): Promise<
-    {{#if returnType}}
-    {{returnType.text}}
+    {{#if responseType}}
+    {{responseType.text}}
     {{else}}
     unknown
     {{/if}}

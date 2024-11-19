@@ -107,7 +107,7 @@ async function worker({
     { spaces: 2 },
   );
 
-  process.exit(0);
+  process.nextTick(() => process.exit(0));
 }
 
 async function importFile<T>(

@@ -8,10 +8,10 @@ import { chunk } from "lodash-es";
 import { fileGenerator, renderToFile } from "@appril/dev-utils";
 
 import { type ApiRoute, type PluginOptionsResolved, defaults } from "@/base";
+import type { DiscoveredTypeDeclaration } from "@/ast";
 
 import {
   type WorkerPayload,
-  type DiscoveredTypeDeclaration,
   type HashMap,
   extractDepFiles,
   identicalHashMap,
@@ -136,7 +136,7 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
       sourceFolder,
       typeDeclarations: [],
       payloadTypes: [],
-      returnTypes: [],
+      responseTypes: [],
       importZodErrorHandlerFrom,
       overwrite: false, // skip if exists
     });
@@ -190,9 +190,7 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
               discoveredTypeDeclarations?: Array<DiscoveredTypeDeclaration>;
             }) => {
               for (const t of msg.discoveredTypeDeclarations || []) {
-                if (t.included) {
-                  watchDepFile(t.file, route);
-                }
+                watchDepFile(t.file, route);
               }
             },
           );
