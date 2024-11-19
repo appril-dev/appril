@@ -1,12 +1,7 @@
 {
   "extends": ["./packages/configs/src/biome.json"],
   "files": {
-    "include": ["./packages/*/src/**"],
-    "ignore": [
-      "./packages/*/node_modules/*",
-      "./packages/*/pkg/*",
-      "./packages/*/var/*"
-    ]
+    "include": ["./packages/*/src/**"]
   },
   "overrides": [
     {
