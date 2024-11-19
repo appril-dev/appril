@@ -6,7 +6,12 @@ import rulesFactory from "../_rules";
 import { paramsSchema } from "..";
 
 import crudFactory from "{{importPathmap.libCrud}}";
-import type { InsertT, ListResponse, CreateResponse } from "./typeLiterals";
+
+import type {
+  ListResponse,
+  CreatePayload,
+  CreateResponse,
+} from "./typeLiterals";
 
 export { head, options, patch, put, del } from "@appril/api";
 export * from "./typeLiterals";
@@ -40,17 +45,11 @@ export const {
 
 type ParamsT = {}
 
-export const use = useWrapper<ParamsT>()
+export const use = useWrapper<ParamsT>();
 
-export const get = listWrapper<
-  ParamsT,
-  () => Promise<ListResponse>
->()
+export const get = listWrapper<ParamsT, unknown, ListResponse>();
 
-export const post = createWrapper<
-  ParamsT,
-  (payload: InsertT) => Promise<CreateResponse>
->()
+export const post = createWrapper<ParamsT, CreatePayload, CreateResponse>();
 
 export default (
   factory: (a: {
@@ -58,7 +57,7 @@ export default (
     get: typeof get;
     post: typeof post;
   }) => Array<any>
-) => routeMiddlewareMapper("{{route.file}}", {
+) => routeMiddlewareMapper("{{table.name}}/index", {
   paramsSchema,
   specs: factory({ use, get, post }),
   useSpecs: useFactory(),

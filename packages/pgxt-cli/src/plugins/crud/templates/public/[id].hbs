@@ -1,8 +1,8 @@
 import routeFactory, {
   type RetrieveResponse,
+  type UpdatePayload,
   type UpdateResponse,
   type DeleteResponse,
-  type UpdateT,
 } from "{{importPathmap.lib}}/[id]";
 
 export default routeFactory(({ get, patch, del }) => [
@@ -10,7 +10,7 @@ export default routeFactory(({ get, patch, del }) => [
     ctx.body = await ctx.crud.worker();
   }),
 
-  patch<never, { payload: UpdateT }, UpdateResponse>(async (ctx) => {
+  patch<never, { payload: UpdatePayload }, UpdateResponse>(async (ctx) => {
     ctx.body = await ctx.crud.worker(ctx.payload);
   }),
 

@@ -5,53 +5,62 @@ import rulesFactory from "../[id]/_rules";
 import { paramsSchema } from "../[id]";
 
 import {
-  type UpdateT,
-  type RetrieveResponse,
-  type UpdateResponse,
-  type DeleteResponse,
   useWrapper,
   retrieveWrapper,
   updateWrapper,
   deleteWrapper,
 } from ".";
 
-export { head, options, post, put } from "@appril/api";
+import type {
+  RetrieveResponse,
+  UpdatePayload,
+  UpdateResponse,
+  DeleteResponse,
+} from "./typeLiterals";
 
+export { head, options, post, put } from "@appril/api";
 export * from "./typeLiterals";
 
 type DefaultParamsT = { id: number | string }
 
-export const use = useWrapper<DefaultParamsT>()
+export const use = useWrapper<DefaultParamsT>();
 
 export const get = retrieveWrapper<
   DefaultParamsT,
-  () => Promise<RetrieveResponse>
->()
+  unknown,
+  RetrieveResponse
+>();
 
 export const patch = updateWrapper<
   DefaultParamsT,
-  (payload: UpdateT) => Promise<UpdateResponse>
->()
+  UpdatePayload,
+  UpdateResponse
+>();
 
 export const del = deleteWrapper<
   DefaultParamsT,
-  () => Promise<DeleteResponse>
->()
+  unknown,
+  DeleteResponse
+>();
 
-type Factory<
-  ParamsT
-> = (a: {
+type Factory<ParamsT> = (a: {
   use: ReturnType<typeof useWrapper<ParamsT>>;
-  get: ReturnType<typeof retrieveWrapper<ParamsT, () => Promise<RetrieveResponse>>>;
-  patch: ReturnType<typeof updateWrapper<ParamsT, (p: UpdateT) => Promise<UpdateResponse>>>;
-  del: ReturnType<typeof deleteWrapper<ParamsT, () => Promise<DeleteResponse>>>;
-}) => Array<any>
+  get: ReturnType<
+    typeof retrieveWrapper<ParamsT, unknown, RetrieveResponse>
+  >;
+  patch: ReturnType<
+    typeof updateWrapper<ParamsT, UpdatePayload, UpdateResponse>
+  >;
+  del: ReturnType<
+    typeof deleteWrapper<ParamsT, unknown, DeleteResponse>
+  >;
+}) => Array<any>;
 
 export default <
   ParamsT extends DefaultParamsT = DefaultParamsT
 >(
   factory: Factory<ParamsT>
-) => routeMiddlewareMapper("{{route.file}}", {
+) => routeMiddlewareMapper("{{table.name}}/[id]", {
   paramsSchema,
   specs: factory({ use, get, patch, del }),
   useSpecs: useFactory(),

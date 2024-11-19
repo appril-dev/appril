@@ -35,47 +35,61 @@ export default <TableName extends Knex.TableNames, ColumnT>(
     sidePages?: number;
   },
 ) => {
-  type CrudContext<WorkerT extends GenericWorker> = {
+  type CrudContext<WorkerPayloadT = unknown, WorkerReturnT = unknown> = {
     readonly dbxt: QueryBuilder<TableName>;
     readonly queryBuilder: QueryBuilder<TableName>;
     readonly primaryKey: string;
     returning?: readonly ColumnT[] | Knex.Raw;
     returningExclude?: readonly ColumnT[] | Knex.Raw;
-    worker: WorkerT;
+    worker: WorkerPayloadT extends object
+      ? (payload: WorkerPayloadT) => Promise<WorkerReturnT>
+      : () => Promise<WorkerReturnT>;
   };
 
   type WrapperContext<
     StateT,
     ContextT,
     ParamsT,
-    WorkerT extends GenericWorker,
+    WorkerPayloadT = unknown,
+    WorkerReturnT = unknown,
+    ResponseBodyT = WorkerReturnT,
   > = ParameterizedContext<
     DefaultState & StateT,
-    DefaultContext & ContextT & { params: ParamsT; crud: CrudContext<WorkerT> },
-    Awaited<ReturnType<WorkerT>>
+    DefaultContext &
+      ContextT & {
+        params: ParamsT;
+        crud: CrudContext<WorkerPayloadT, WorkerReturnT>;
+      },
+    ResponseBodyT
   >;
 
-  interface Wrapper<ParamsT, WorkerT extends GenericWorker> {
-    <
-      StateT = object,
-      ContextT = object,
-      ResponseBodyT = Awaited<ReturnType<WorkerT>>,
-    >(
+  interface Wrapper<ParamsT, WorkerPayloadT, WorkerReturnT> {
+    <StateT = object, ContextT = object, ResponseBodyT = WorkerReturnT>(
       handler: Middleware<
         StateT,
-        WrapperContext<StateT, ContextT, ParamsT, WorkerT>,
+        WrapperContext<
+          StateT,
+          ContextT,
+          ParamsT,
+          WorkerPayloadT,
+          WorkerReturnT,
+          ResponseBodyT
+        >,
         ResponseBodyT
       >,
     ): RouteSpec;
-    <
-      StateT = object,
-      ContextT = object,
-      ResponseBodyT = Awaited<ReturnType<WorkerT>>,
-    >(
+    <StateT = object, ContextT = object, ResponseBodyT = WorkerReturnT>(
       handler: Array<
         Middleware<
           StateT,
-          WrapperContext<StateT, ContextT, ParamsT, WorkerT>,
+          WrapperContext<
+            StateT,
+            ContextT,
+            ParamsT,
+            WorkerPayloadT,
+            WorkerReturnT,
+            ResponseBodyT
+          >,
           ResponseBodyT
         >
       >,
@@ -86,27 +100,19 @@ export default <TableName extends Knex.TableNames, ColumnT>(
     <
       StateT = object,
       ContextT = object,
-      T = Middleware<
-        StateT,
-        WrapperContext<StateT, ContextT, ParamsT, GenericWorker>
-      >,
+      T = Middleware<StateT, WrapperContext<StateT, ContextT, ParamsT>>,
     >(
       use: T | Array<T>,
     ): UseSpec;
     <
       StateT = object,
       ContextT = object,
-      T = Middleware<
-        StateT,
-        WrapperContext<StateT, ContextT, ParamsT, GenericWorker>
-      >,
+      T = Middleware<StateT, WrapperContext<StateT, ContextT, ParamsT>>,
     >(
       use: T | Array<T>,
       opt?: UseOpt,
     ): UseSpec;
   }
-
-  type GenericWorker = (...args: Array<never>) => Promise<unknown>;
 
   function useWrapper<ParamsT>(): UseWrapper<ParamsT> {
     return (use, opt?: UseOpt) => {
@@ -117,18 +123,25 @@ export default <TableName extends Knex.TableNames, ColumnT>(
     };
   }
 
-  function createWrapper<ParamsT, WorkerT extends GenericWorker>(): Wrapper<
+  function createWrapper<ParamsT, WorkerPayloadT, WorkerReturnT>(): Wrapper<
     ParamsT,
-    WorkerT
+    WorkerPayloadT,
+    WorkerReturnT
   > {
     return (handler) => {
       return api.definitionFactory("post", [
         initMiddleware(async function (
-          this: WrapperContext<DefaultState, DefaultContext, ParamsT, WorkerT>,
+          this: WrapperContext<
+            DefaultState,
+            DefaultContext,
+            ParamsT,
+            WorkerPayloadT,
+            WorkerReturnT
+          >,
           data,
         ) {
           const [item] = await this.crud.dbxt
-            .insert(data as never)
+            .insert(data)
             .returning(this.crud.returning as readonly string[]);
           return item;
         }),
@@ -137,17 +150,24 @@ export default <TableName extends Knex.TableNames, ColumnT>(
     };
   }
 
-  function updateWrapper<ParamsT, WorkerT extends GenericWorker>(): Wrapper<
+  function updateWrapper<ParamsT, WorkerPayloadT, WorkerReturnT>(): Wrapper<
     ParamsT,
-    WorkerT
+    WorkerPayloadT,
+    WorkerReturnT
   > {
     return (handler) => {
       return api.definitionFactory("patch", [
         initMiddleware(async function (
-          this: WrapperContext<DefaultState, DefaultContext, ParamsT, WorkerT>,
+          this: WrapperContext<
+            DefaultState,
+            DefaultContext,
+            ParamsT,
+            WorkerPayloadT,
+            WorkerReturnT
+          >,
           data,
         ) {
-          const updates = Object.entries(data as never).reduce(
+          const updates = Object.entries(data).reduce(
             (map: Record<string, unknown>, [k, v]) => {
               if (v !== undefined) {
                 map[k] = v;
@@ -162,7 +182,7 @@ export default <TableName extends Knex.TableNames, ColumnT>(
           const [item] = Object.keys(updates).length
             ? await this.crud.queryBuilder
                 .where(this.crud.primaryKey, id)
-                .update(data as never)
+                .update(data)
                 .returning(this.crud.returning as readonly string[])
             : await this.crud.dbxt
                 .where(this.crud.primaryKey, id)
@@ -177,14 +197,21 @@ export default <TableName extends Knex.TableNames, ColumnT>(
     };
   }
 
-  function deleteWrapper<ParamsT, WorkerT extends GenericWorker>(): Wrapper<
+  function deleteWrapper<ParamsT, WorkerPayloadT, WorkerReturnT>(): Wrapper<
     ParamsT,
-    WorkerT
+    WorkerPayloadT,
+    WorkerReturnT
   > {
     return (handler) => {
       return api.definitionFactory("del", [
         initMiddleware(async function (
-          this: WrapperContext<DefaultState, DefaultContext, ParamsT, WorkerT>,
+          this: WrapperContext<
+            DefaultState,
+            DefaultContext,
+            ParamsT,
+            WorkerPayloadT,
+            WorkerReturnT
+          >,
         ) {
           const { id } = this.params as { id: number };
 
@@ -202,14 +229,21 @@ export default <TableName extends Knex.TableNames, ColumnT>(
     };
   }
 
-  function retrieveWrapper<ParamsT, WorkerT extends GenericWorker>(): Wrapper<
+  function retrieveWrapper<ParamsT, WorkerPayloadT, WorkerReturnT>(): Wrapper<
     ParamsT,
-    WorkerT
+    WorkerPayloadT,
+    WorkerReturnT
   > {
     return (handler) => {
       return api.definitionFactory("get", [
         initMiddleware(async function (
-          this: WrapperContext<DefaultState, DefaultContext, ParamsT, WorkerT>,
+          this: WrapperContext<
+            DefaultState,
+            DefaultContext,
+            ParamsT,
+            WorkerPayloadT,
+            WorkerReturnT
+          >,
         ) {
           const { id } = this.params as { id: number };
 
@@ -226,14 +260,21 @@ export default <TableName extends Knex.TableNames, ColumnT>(
     };
   }
 
-  function listWrapper<ParamsT, WorkerT extends GenericWorker>(): Wrapper<
+  function listWrapper<ParamsT, WorkerPayloadT, WorkerReturnT>(): Wrapper<
     ParamsT,
-    WorkerT
+    WorkerPayloadT,
+    WorkerReturnT
   > {
     return (handler) => {
       return api.definitionFactory("get", [
         initMiddleware(async function (
-          this: WrapperContext<DefaultState, DefaultContext, ParamsT, WorkerT>,
+          this: WrapperContext<
+            DefaultState,
+            DefaultContext,
+            ParamsT,
+            WorkerPayloadT,
+            WorkerReturnT
+          >,
         ) {
           const { crud } = this;
 
@@ -320,9 +361,11 @@ export default <TableName extends Knex.TableNames, ColumnT>(
   let returning: readonly ColumnT[] | Knex.Raw | undefined;
   let returningExclude: readonly ColumnT[] = [];
 
+  type GenericWorker = (...args: Array<never>) => Promise<unknown>;
+
   const crudContext = (
     worker: GenericWorker,
-  ): Record<keyof CrudContext<GenericWorker>, PropertyDescriptor> => {
+  ): Record<keyof CrudContext, PropertyDescriptor> => {
     return {
       worker: {
         value: worker,

@@ -1,7 +1,7 @@
 import routeFactory, {
   type ListResponse,
+  type CreatePayload,
   type CreateResponse,
-  type InsertT,
 } from "{{importPathmap.lib}}";
 
 export default routeFactory(({ get, post }) => [
@@ -9,7 +9,7 @@ export default routeFactory(({ get, post }) => [
     ctx.body = await ctx.crud.worker();
   }),
 
-  post<never, { payload: InsertT }, CreateResponse>(async (ctx) => {
+  post<never, { payload: CreatePayload }, CreateResponse>(async (ctx) => {
     ctx.body = await ctx.crud.worker(ctx.payload);
   }),
 ]);

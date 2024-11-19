@@ -33,9 +33,11 @@ export type UpdateT = {
 export type ListResponse = {
   items: Array<RecordT>;
   pager: Pager;
-}
+};
 
+export type CreatePayload    = InsertT;
 export type CreateResponse   = RecordT;
 export type RetrieveResponse = RecordT;
+export type UpdatePayload    = UpdateT;
 export type UpdateResponse   = RecordT;
 export type DeleteResponse   = RecordT;
