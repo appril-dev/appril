@@ -50,7 +50,23 @@ export const routeMiddlewareMapper = (
     return slot ? !useSpecs.some((e) => e.slot === slot) : true;
   });
 
-  const useStack = [useSpecsGlobal, useSpecs].flat();
+  // need payload and bodyparser slots to run before validators.
+  // positional opts are ignored for these slots,
+  // they always run before any middleware.
+  const beforeValidators: Array<Middleware> = [];
+
+  const useStack: Array<UseSpec> = [];
+
+  for (const entry of [
+    useSpecsGlobal, // globals should run first
+    useSpecs,
+  ].flat()) {
+    if (!entry.slot || !["bodyparser", "payload"].includes(entry.slot)) {
+      useStack.push(entry);
+    } else {
+      beforeValidators.push(...entry.use);
+    }
+  }
 
   for (const { method, middleware } of specs) {
     const before = [];
@@ -98,6 +114,7 @@ export const routeMiddlewareMapper = (
       method: httpMethodByApi(method),
       middleware: [
         paramsCoerce(setup.paramsSchema),
+        beforeValidators,
         validateParams,
         validatePayload,
         validateResponse,
