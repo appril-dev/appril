@@ -20,7 +20,13 @@ import importTypeTpl from "./templates/types/import.hbs";
 
 import indexTpl from "./templates/index.hbs";
 
-type TableSetup = { dataLoader?: boolean; page?: boolean };
+type TableSetup = {
+  dataLoader?: boolean;
+  page?: boolean;
+  returning?: Array<string>;
+  returningExclude?: Array<string>;
+  exclude?: Array<string>;
+};
 
 export default (
   sourceFolderOrConfig:
@@ -51,12 +57,21 @@ export default (
   return async function crudGenerator(data, pgxtConfig) {
     const { generateFile } = fileGenerator(pgxtConfig.root);
 
-    const tables = data.tables.flatMap((table) => {
+    const tables: Array<[t: TableDeclaration, s: TableSetup]> = [];
+
+    for (const table of data.tables) {
       if (table.schema !== schema || !table.primaryKey) {
-        return [];
+        continue;
       }
-      return !tableMap || tableMap[table.name] ? [table] : [];
-    });
+      if (!tableMap || tableMap[table.name]) {
+        tables.push([
+          table,
+          typeof tableMap[table.name] === "object"
+            ? (tableMap[table.name] as TableSetup)
+            : {},
+        ]);
+      }
+    }
 
     const libApiDir = format(defaults.libDirFormat, defaults.apiDir);
 
@@ -65,7 +80,7 @@ export default (
       context: {},
     });
 
-    for (const table of tables) {
+    for (const [table, setup] of tables) {
       const typeLiterals: Array<string> = [];
       const columns: Array<ColumnDeclaration> = [];
 
@@ -81,18 +96,41 @@ export default (
             : col.importedType.import;
         }
 
-        columns.push({
-          // do not alter column itself as it is a shallow copy!
-          // rather use destructuring
-          ...col,
-          declaredType,
+        if (!setup.exclude || !setup.exclude.includes(col.name)) {
+          columns.push({
+            // do not alter column itself as it is a shallow copy!
+            // rather use destructuring
+            ...col,
+            declaredType,
+          });
+        }
+      }
+
+      let recordColumns = [...columns];
+
+      if (setup.returning) {
+        recordColumns = columns.filter((e) => {
+          return e.isPrimaryKey ? true : setup.returning?.includes(e.name);
+        });
+      } else if (setup.returningExclude) {
+        recordColumns = columns.filter((e) => {
+          return e.isPrimaryKey
+            ? true
+            : !setup.returningExclude?.includes(e.name);
         });
       }
 
       const context = {
         table,
         columns,
+        recordColumns,
         typeLiterals,
+        returning: setup.returning
+          ? JSON.stringify(setup.returning)
+          : undefined,
+        returningExclude: setup.returningExclude
+          ? JSON.stringify(setup.returningExclude)
+          : undefined,
         importPathmap: {
           api: [sourceFolder, defaults.apiDir].join("/"),
           lib: [sourceFolder, libApiDir, table.name, baseDir].join("/"),
@@ -133,27 +171,27 @@ export default (
 
     const relpathToLib = join("..", defaults.libDir, sourceFolder, libApiDir);
 
-    const reducer = (map: Record<string, unknown>, table: TableDeclaration) => {
-      let page: boolean | undefined;
-      let dataLoader: boolean | undefined;
-
-      if (typeof tableMap?.[table.name] === "object") {
-        page = (tableMap[table.name] as TableSetup).page;
-        dataLoader = (tableMap[table.name] as TableSetup).dataLoader;
-      }
-
+    const reducer = (
+      map: Record<string, unknown>,
+      [table, { page, dataLoader, returning, returningExclude, exclude }]: [
+        TableDeclaration,
+        TableSetup,
+      ],
+    ) => {
       const base = join(baseUrl, table.name);
 
       map[`${base}/`] = {
         dataLoader,
         page,
         apiTemplate: join(relpathToLib, table.name, baseDir, "index.tpl"),
+        meta: { returning, returningExclude, exclude },
       };
 
       map[`${base}/[id]`] = {
         page: false,
         dataLoader: dataLoader ? { alias: base } : undefined,
         apiTemplate: join(relpathToLib, table.name, baseDir, "[id].tpl"),
+        meta: { returning, returningExclude, exclude },
       };
 
       return map;

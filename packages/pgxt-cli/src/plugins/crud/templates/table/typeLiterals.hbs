@@ -5,7 +5,7 @@ import type { Pager } from "{{importPathmap.libCrud}}";
 {{/each}}
 
 export type RecordT = {
-  {{#each columns}}
+  {{#each recordColumns}}
 {{#each comments}}  /** {{this}} */
 {{/each}}
   {{name}}: {{declaredType}};

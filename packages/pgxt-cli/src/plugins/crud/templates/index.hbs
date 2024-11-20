@@ -31,6 +31,8 @@ export default <TableName extends Knex.TableNames, ColumnT>(
   columns: readonly ColumnT[],
   opt: {
     primaryKey?: string;
+    returning?: readonly ColumnT[];
+    returningExclude?: readonly ColumnT[];
     itemsPerPage?: number;
     sidePages?: number;
   },
@@ -39,8 +41,6 @@ export default <TableName extends Knex.TableNames, ColumnT>(
     readonly dbxt: QueryBuilder<TableName>;
     readonly queryBuilder: QueryBuilder<TableName>;
     readonly primaryKey: string;
-    returning?: readonly ColumnT[] | Knex.Raw;
-    returningExclude?: readonly ColumnT[] | Knex.Raw;
     worker: WorkerPayloadT extends object
       ? (payload: WorkerPayloadT) => Promise<WorkerReturnT>
       : () => Promise<WorkerReturnT>;
@@ -142,7 +142,7 @@ export default <TableName extends Knex.TableNames, ColumnT>(
         ) {
           const [item] = await this.crud.dbxt
             .insert(data)
-            .returning(this.crud.returning as readonly string[]);
+            .returning(returning as []);
           return item;
         }),
         handler,
@@ -181,12 +181,12 @@ export default <TableName extends Knex.TableNames, ColumnT>(
 
           const [item] = Object.keys(updates).length
             ? await this.crud.queryBuilder
-                .where(this.crud.primaryKey, id)
+                .where(primaryKey as string, id)
                 .update(data)
-                .returning(this.crud.returning as readonly string[])
+                .returning(returning as [])
             : await this.crud.dbxt
-                .where(this.crud.primaryKey, id)
-                .select(this.crud.returning as readonly string[]);
+                .where(primaryKey as string, id)
+                .select(returning);
 
           this.assert(item, 404);
 
@@ -216,9 +216,9 @@ export default <TableName extends Knex.TableNames, ColumnT>(
           const { id } = this.params as { id: number };
 
           const [item] = await this.crud.queryBuilder
-            .where(this.crud.primaryKey, id)
+            .where(primaryKey as string, id)
             .delete()
-            .returning(this.crud.returning as readonly string[]);
+            .returning(returning as []);
 
           this.assert(item, 404);
 
@@ -248,8 +248,8 @@ export default <TableName extends Knex.TableNames, ColumnT>(
           const { id } = this.params as { id: number };
 
           const item = await this.crud.queryBuilder
-            .where(this.crud.primaryKey, id)
-            .first(this.crud.returning as readonly string[]);
+            .where(primaryKey as string, id)
+            .first(returning);
 
           this.assert(item, 404);
 
@@ -339,7 +339,7 @@ export default <TableName extends Knex.TableNames, ColumnT>(
           } as Pager;
 
           const items = await crud.queryBuilder
-            .select(crud.returning as readonly string[])
+            .select(returning)
             .offset(offset)
             .limit(itemsPerPage);
 
@@ -356,10 +356,20 @@ export default <TableName extends Knex.TableNames, ColumnT>(
   const { primaryKey, itemsPerPage, sidePages } = {
     ...config,
     ...opt,
-  };
+  } as { primaryKey: ColumnT; itemsPerPage: number; sidePages: number };
 
-  let returning: readonly ColumnT[] | Knex.Raw | undefined;
-  let returningExclude: readonly ColumnT[] = [];
+  let returning: readonly ColumnT[] | "*" = "*";
+
+  if (opt.returning) {
+    returning = [
+      opt.returning,
+      opt.returning.includes(primaryKey) ? [] : [primaryKey],
+    ].flat();
+  } else if (opt.returningExclude?.length) {
+    returning = columns.filter((e) => {
+      return e === primaryKey ? true : !opt.returningExclude?.includes(e);
+    });
+  }
 
   type GenericWorker = (...args: Array<never>) => Promise<unknown>;
 
@@ -383,29 +393,6 @@ export default <TableName extends Knex.TableNames, ColumnT>(
       },
       primaryKey: {
         value: primaryKey,
-        enumerable: true,
-      },
-      returning: {
-        get() {
-          return (
-            returning ||
-            (returningExclude.length
-              ? columns.filter((e) => !returningExclude.includes(e))
-              : "*")
-          );
-        },
-        set(val) {
-          returning = val;
-        },
-        enumerable: true,
-      },
-      returningExclude: {
-        get() {
-          return returningExclude;
-        },
-        set(val) {
-          returningExclude = Array.isArray(val) ? val : [];
-        },
         enumerable: true,
       },
     };

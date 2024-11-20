@@ -108,7 +108,10 @@ async function generateHashSum(file: string, extra?: string): Promise<number> {
 }
 
 export async function generateRouteHashMap(route: ApiRoute): Promise<number> {
-  return generateHashSum(route.fileFullpath, JSON.stringify(route.params));
+  return generateHashSum(
+    route.fileFullpath,
+    JSON.stringify({ params: route.params, meta: route.meta }),
+  );
 }
 
 // computing hash for route and all it's deps.

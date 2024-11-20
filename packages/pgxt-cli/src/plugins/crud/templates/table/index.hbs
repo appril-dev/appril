@@ -17,12 +17,12 @@ export { head, options, patch, put, del } from "@appril/api";
 export * from "./typeLiterals";
 
 export const columns = [
-{{#each table.columns}}  "{{name}}",
+{{#each columns}}  "{{name}}",
 {{/each}}
 ] as const;
 
 export type ColumnT =
-{{#each table.columns}}  | "{{name}}"
+{{#each columns}}  | "{{name}}"
 {{/each}};
 
 export const {
@@ -40,6 +40,12 @@ export const {
   columns,
   {
     primaryKey: "{{table.primaryKey}}",
+    {{#if returning}}
+    returning: {{returning}},
+    {{/if}}
+    {{#if returningExclude}}
+    returningExclude: {{returningExclude}},
+    {{/if}}
   },
 )
 
