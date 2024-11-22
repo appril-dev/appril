@@ -1,11 +1,12 @@
 import routeFactory, {
+  type ListPayload,
   type ListResponse,
   type CreatePayload,
   type CreateResponse,
 } from "{{importPathmap.lib}}";
 
 export default routeFactory(({ get, post }) => [
-  get<never, object, ListResponse>(async (ctx) => {
+  get<never, { payload: ListPayload }, ListResponse>(async (ctx) => {
     ctx.body = await ctx.crud.worker();
   }),
 

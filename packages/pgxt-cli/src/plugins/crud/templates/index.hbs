@@ -11,19 +11,9 @@ import api, {
 import type { QueryBuilder } from "@appril/dbxt";
 import type { Knex } from "knex";
 
-export type Pager = {
-  totalItems: number;
-  totalPages: number;
-  currentPage: number;
-  nextPage: number;
-  prevPage: number;
-  offset: number;
-};
-
 export const config = {
   primaryKey: "id",
   itemsPerPage: 25,
-  sidePages: 4,
 };
 
 export default <TableName extends Knex.TableNames, ColumnT>(
@@ -33,8 +23,6 @@ export default <TableName extends Knex.TableNames, ColumnT>(
     primaryKey?: string;
     returning?: readonly ColumnT[];
     returningExclude?: readonly ColumnT[];
-    itemsPerPage?: number;
-    sidePages?: number;
   },
 ) => {
   type CrudContext<WorkerPayloadT = unknown, WorkerReturnT = unknown> = {
@@ -276,12 +264,28 @@ export default <TableName extends Knex.TableNames, ColumnT>(
             WorkerReturnT
           >,
         ) {
-          const { crud } = this;
+          let { itemsPerPage } = config;
 
-          const totalItems = await crud.queryBuilder.clone().countRows();
-          const totalPages = Math.ceil(totalItems / itemsPerPage);
+          if (
+            this.query["pager:items_per_page"]
+              ? Number.isFinite(+this.query["pager:items_per_page"])
+              : false
+          ) {
+            itemsPerPage = Number(this.query["pager:items_per_page"]);
+          }
 
-          let currentPage = Number(this.query._page || 0);
+          const itemsTotal = await this.crud.queryBuilder.clone().countRows();
+          const totalPages = Math.ceil(itemsTotal / itemsPerPage);
+
+          let currentPage = 0;
+
+          if (
+            this.query["pager:page"]
+              ? Number.isFinite(+this.query["pager:page"])
+              : false
+          ) {
+            currentPage = Number(this.query["pager:page"]);
+          }
 
           if (currentPage < 1) {
             currentPage = 1;
@@ -291,61 +295,20 @@ export default <TableName extends Knex.TableNames, ColumnT>(
             currentPage = totalPages;
           }
 
-          let nextPage = currentPage + 1;
-
-          if (nextPage > totalPages) {
-            nextPage = 0;
-          }
-
-          let prevPage = currentPage - 1;
-
-          if (prevPage < 1) {
-            prevPage = 0;
-          }
-
-          let minPage = currentPage - sidePages;
-
-          if (currentPage + sidePages > totalPages) {
-            minPage = totalPages - sidePages * 2;
-          }
-
-          if (minPage < 1) {
-            minPage = 1;
-          }
-
-          let maxPage = currentPage + sidePages;
-
-          if (currentPage < sidePages) {
-            maxPage = sidePages * 2;
-          }
-
-          if (maxPage > totalPages) {
-            maxPage = totalPages;
-          }
-
           let offset = (currentPage - 1) * itemsPerPage;
 
           if (offset < 0) {
             offset = 0;
           }
 
-          const pager = {
-            totalItems,
-            totalPages,
-            currentPage,
-            nextPage,
-            prevPage,
-            offset,
-          } as Pager;
-
-          const items = await crud.queryBuilder
+          const items = await this.crud.queryBuilder
             .select(returning)
             .offset(offset)
             .limit(itemsPerPage);
 
           return {
             items,
-            pager,
+            itemsTotal,
           };
         }),
         handler,
@@ -353,7 +316,7 @@ export default <TableName extends Knex.TableNames, ColumnT>(
     };
   }
 
-  const { primaryKey, itemsPerPage, sidePages } = {
+  const { primaryKey } = {
     ...config,
     ...opt,
   } as { primaryKey: ColumnT; itemsPerPage: number; sidePages: number };

@@ -75,10 +75,13 @@ export default (
 
     const libApiDir = format(defaults.libDirFormat, defaults.apiDir);
 
-    await generateFile(join(defaults.libDir, sourceFolder, `${baseDir}.ts`), {
-      template: indexTpl,
-      context: {},
-    });
+    await generateFile(
+      join(defaults.libDir, sourceFolder, libApiDir, `${baseDir}.ts`),
+      {
+        template: indexTpl,
+        context: {},
+      },
+    );
 
     for (const [table, setup] of tables) {
       const typeLiterals: Array<string> = [];
@@ -138,6 +141,7 @@ export default (
             defaults.appPrefix,
             defaults.libDir,
             sourceFolder,
+            libApiDir,
             baseDir,
           ].join("/"),
           table: [
