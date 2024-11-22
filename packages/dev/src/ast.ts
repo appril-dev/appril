@@ -3,6 +3,7 @@ import fsx from "fs-extra";
 import tsquery from "@phenomnomnominal/tsquery";
 
 import {
+  type Node,
   type SourceFile,
   type EnumDeclaration,
   type TypeAliasDeclaration,
@@ -22,8 +23,9 @@ export type DiscoveredTypeDeclaration = {
   name: string;
   nameRegex: RegExp;
   text: string;
-  literal?: string;
   parameters?: Array<string>;
+  referencedTypes?: Array<string>;
+  referencedTypesRecursive?: Array<string>;
 };
 
 export type PayloadType = {
@@ -413,9 +415,9 @@ export const discoverTypeDeclarations = (
   for (const [path, file] of sourceFiles) {
     const nodeMap: Array<
       [
-        a: EnumDeclaration | TypeAliasDeclaration,
-        b?: string | undefined,
-        c?: Array<string>,
+        node: EnumDeclaration | TypeAliasDeclaration,
+        parameters?: Array<string>,
+        referencedTypes?: Array<string>,
       ]
     > = [];
 
@@ -426,14 +428,38 @@ export const discoverTypeDeclarations = (
           SyntaxKind.TypeLiteral,
           SyntaxKind.TypeReference,
           SyntaxKind.UnionType,
+          SyntaxKind.ArrayType,
+          SyntaxKind.IntersectionType,
+          SyntaxKind.LiteralType,
+          SyntaxKind.NumberKeyword,
+          SyntaxKind.StringKeyword,
+          SyntaxKind.BooleanKeyword,
+          SyntaxKind.AnyKeyword,
         ].includes(typeNode?.getKind() || SyntaxKind.Unknown)
       ) {
+        const referencedTypes: Record<string, true> = {};
+
+        const traverse = (node: Node) => {
+          for (const c of node.forEachChildAsArray()) {
+            if (c.getKind() === SyntaxKind.TypeReference) {
+              referencedTypes[c.getText()] = true;
+            }
+            traverse(c);
+          }
+        };
+
+        traverse(node);
+
+        if (typeNode) {
+          traverse(typeNode);
+        }
+
         nodeMap.push([
           node,
-          typeNode?.getText(),
           node
             .getChildrenOfKind(SyntaxKind.TypeParameter)
             .map((e) => e.getName()),
+          Object.keys(referencedTypes),
         ]);
       }
     }
@@ -442,7 +468,7 @@ export const discoverTypeDeclarations = (
       nodeMap.push([node]);
     }
 
-    for (const [node, literal, parameters] of nodeMap) {
+    for (const [node, parameters, referencedTypes] of nodeMap) {
       const name = node.getName();
       const nameRegex = new RegExp(`\\b${name}\\b`);
 
@@ -455,9 +481,24 @@ export const discoverTypeDeclarations = (
         name,
         nameRegex,
         text: node.getText(),
-        literal,
-        parameters,
+        parameters: parameters?.length ? parameters : undefined,
+        referencedTypes: referencedTypes?.length ? referencedTypes : undefined,
       });
+    }
+  }
+
+  for (const t of discoveredTypeDeclarations) {
+    if (t.referencedTypes) {
+      t.referencedTypesRecursive = [];
+      const traverse = (p: DiscoveredTypeDeclaration) => {
+        for (const c of discoveredTypeDeclarations.filter((e) =>
+          p.referencedTypes?.includes(e.name),
+        )) {
+          t.referencedTypesRecursive?.push(...(c.referencedTypes || []));
+          traverse(c);
+        }
+      };
+      traverse(t);
     }
   }
 

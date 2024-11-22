@@ -187,9 +187,9 @@ async function generateRouteAssets(routes: Array<ApiRoute>) {
           worker.on(
             "message",
             (msg: {
-              discoveredTypeDeclarations?: Array<DiscoveredTypeDeclaration>;
+              referencedTypeDeclarations?: Array<DiscoveredTypeDeclaration>;
             }) => {
-              for (const t of msg.discoveredTypeDeclarations || []) {
+              for (const t of msg.referencedTypeDeclarations || []) {
                 watchDepFile(t.file, route);
               }
             },

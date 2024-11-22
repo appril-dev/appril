@@ -3,20 +3,23 @@ import { dirname, parse, join } from "node:path";
 
 import fsx from "fs-extra";
 import { generate } from "ts-to-zod";
-import { render, renderToFile } from "@appril/dev-utils";
+import { renderToFile } from "@appril/dev-utils";
 
 import { defaults } from "@/base";
-import { discoverTypeDeclarations, extractApiAssets } from "@/ast";
+import {
+  discoverTypeDeclarations,
+  extractApiAssets,
+  type DiscoveredTypeDeclaration,
+} from "@/ast";
 
 import {
+  type WorkerPayload,
   generateRulesFile,
   generateHashMap,
   libFilePath,
-  type WorkerPayload,
 } from "./base";
 
-import schemaTsTpl from "./templates/schema-ts.hbs";
-import schemaZodTpl from "./templates/schema-zod.hbs";
+import schemaTpl from "./templates/schema.hbs";
 
 parentPort?.on("message", worker);
 
@@ -79,24 +82,52 @@ async function worker({
 
   const schemaFile = libFilePath(route, "schema", { appRoot, sourceFolder });
 
-  await renderToFile(schemaFile, schemaTsTpl, {
+  await renderToFile(schemaFile, schemaTpl, {
     typeDeclarations,
-  });
-
-  const discoveredTypeDeclarations =
-    paramsType || payloadTypes.length || responseTypes.length
-      ? discoverTypeDeclarations(schemaFile, {
-          tsconfigFile: join(appRoot, "tsconfig.json"),
-          traverseMaxDepth,
-        })
-      : [];
-
-  const typeLiterals = render(schemaZodTpl, {
-    discoveredTypeDeclarations,
     paramsType: { ...route.params, customSchema: paramsType },
     payloadTypes,
     responseTypes,
   });
+
+  const discoveredTypeDeclarations: Array<
+    DiscoveredTypeDeclaration & { included?: boolean }
+  > = discoverTypeDeclarations(schemaFile, {
+    tsconfigFile: join(appRoot, "tsconfig.json"),
+    traverseMaxDepth,
+  });
+
+  for (const t of discoveredTypeDeclarations) {
+    if (t.parameters) {
+      // ts-to-zod does not support generics
+      continue;
+    }
+    t.included = [
+      route.params.id === t.name,
+      paramsType ? t.nameRegex.test(paramsType) : false,
+      payloadTypes.some((e) => e.id === t.name || t.nameRegex.test(e.text)),
+      responseTypes.some((e) => e.id === t.name || t.nameRegex.test(e.text)),
+    ].some((e) => e === true);
+  }
+
+  // including types that was not explicitly referenced
+  // but are referenced by included types
+  for (const candidate of discoveredTypeDeclarations.filter(
+    (e) => !e.included,
+  )) {
+    // filtering on every iteration to pick ones that was included after iteration started
+    candidate.included = discoveredTypeDeclarations.some((e) => {
+      return e.included
+        ? e.referencedTypes?.includes(candidate.name) ||
+            e.referencedTypesRecursive?.includes(candidate.name)
+        : false;
+    });
+  }
+
+  const referencedTypeDeclarations = discoveredTypeDeclarations.filter(
+    (e) => e.included,
+  );
+
+  const typeLiterals = referencedTypeDeclarations.map((e) => e.text).join("\n");
 
   await fsx.writeFile(schemaFile, typeLiterals);
 
@@ -120,13 +151,13 @@ async function worker({
       route,
       // even if zod schema generation failed, writing an empty hashmap file
       // to be sure next rebuild will run regardless
-      discoveredTypeDeclarations.map((e) => e.file),
+      referencedTypeDeclarations.map((e) => e.file),
       { appRoot, sourceFolder },
     ),
     { spaces: 2 },
   );
 
-  parentPort?.postMessage({ discoveredTypeDeclarations });
+  parentPort?.postMessage({ referencedTypeDeclarations });
 
   process.nextTick(() => process.exit(0));
 }
