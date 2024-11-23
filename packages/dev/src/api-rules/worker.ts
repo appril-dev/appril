@@ -33,6 +33,30 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1);
 });
 
+const generateZodSchemas = async (
+  schemaFile: string,
+  sourceText: string,
+): Promise<{
+  zodSchema?: string | undefined;
+  zodErrors?: Array<string> | undefined;
+}> => {
+  const { getZodSchemasFile, errors: zodErrors } = generate({
+    sourceText,
+    keepComments: true,
+    getSchemaName: (e) => `${e}Schema`,
+  });
+
+  if (zodErrors.length) {
+    return { zodErrors };
+  }
+
+  // providing relative path to schemaFile,
+  // ts-to-zod may use it to import circular references
+  const zodSchema = getZodSchemasFile(`./${parse(schemaFile).name}`);
+
+  return { zodSchema };
+};
+
 async function worker({
   route,
   appRoot,
@@ -41,28 +65,6 @@ async function worker({
   importZodErrorHandlerFrom,
 }: WorkerPayload) {
   console.log([route.file, "rebuilding assets"]);
-
-  const generateZodSchemas = async (): Promise<{
-    zodSchema?: string | undefined;
-    zodErrors?: Array<string> | undefined;
-  }> => {
-    // and feeding it to ts-to-zod api to get zod schema
-    const { getZodSchemasFile, errors: zodErrors } = generate({
-      sourceText: typeLiterals,
-      keepComments: true,
-      getSchemaName: (e) => `${e}Schema`,
-    });
-
-    if (zodErrors.length) {
-      return { zodErrors };
-    }
-
-    // providing relative path to schemaFile,
-    // ts-to-zod may use it to import circular references
-    const zodSchema = getZodSchemasFile(`./${parse(schemaFile).name}`);
-
-    return { zodSchema };
-  };
 
   const { typeDeclarations, paramsType, routeSpecSignatures } =
     await extractApiAssets({
@@ -97,7 +99,7 @@ async function worker({
   });
 
   for (const t of discoveredTypeDeclarations) {
-    if (t.parameters) {
+    if (t.parameters?.length) {
       // ts-to-zod does not support generics
       continue;
     }
@@ -110,10 +112,11 @@ async function worker({
   }
 
   // including types that was not explicitly referenced
-  // but are referenced by included types
-  for (const candidate of discoveredTypeDeclarations.filter(
-    (e) => !e.included,
-  )) {
+  // but are required by referenced types
+  for (const candidate of discoveredTypeDeclarations) {
+    if (candidate.included) {
+      continue;
+    }
     // filtering on every iteration to pick ones that was included after iteration started
     candidate.included = discoveredTypeDeclarations.some((e) => {
       return e.included
@@ -131,7 +134,10 @@ async function worker({
 
   await fsx.writeFile(schemaFile, typeLiterals);
 
-  const { zodSchema, zodErrors } = await generateZodSchemas();
+  const { zodSchema, zodErrors } = await generateZodSchemas(
+    schemaFile,
+    typeLiterals,
+  );
 
   await generateRulesFile(route, {
     appRoot,

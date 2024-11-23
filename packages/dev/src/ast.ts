@@ -5,8 +5,8 @@ import tsquery from "@phenomnomnominal/tsquery";
 import {
   type Node,
   type SourceFile,
-  type EnumDeclaration,
-  type TypeAliasDeclaration,
+  type ImportDeclarationStructure,
+  type ExportDeclarationStructure,
   Project,
   SyntaxKind,
 } from "ts-morph";
@@ -371,22 +371,31 @@ export const discoverTypeDeclarations = (
 
   const sourceFile = project.addSourceFileAtPath(file);
 
-  const sourceFiles: Array<[string, SourceFile, number]> = [
-    [file, sourceFile, 0],
-  ];
+  const sourceFiles: Record<
+    string, // file path
+    SourceFile
+  > = {};
+
+  const aliases: Array<{ name: string; alias: string }> = [];
 
   const traverseSourceFiles = (sourceFile: SourceFile, depth = 0) => {
     if (depth > traverseMaxDepth) {
       return;
     }
 
+    sourceFiles[sourceFile.getFilePath()] = sourceFile;
+
     for (const declaration of [
       sourceFile.getImportDeclarations(),
       sourceFile.getExportDeclarations(),
     ].flat()) {
-      const modulePath = declaration.getModuleSpecifierValue();
+      const structure = declaration.getStructure();
 
-      if (!modulePath || !prefixes.some((e) => e.test(modulePath))) {
+      if (
+        structure.moduleSpecifier
+          ? !prefixes.some((e) => e.test(structure.moduleSpecifier as string))
+          : false
+      ) {
         continue;
       }
 
@@ -396,35 +405,41 @@ export const discoverTypeDeclarations = (
         continue;
       }
 
-      const path = file.getFilePath();
+      const nameEntries =
+        declaration.getKind() === SyntaxKind.ImportDeclaration
+          ? (structure as ImportDeclarationStructure).namedImports
+          : (structure as ExportDeclarationStructure).namedExports;
 
-      if (sourceFiles.some(([p]) => p === path)) {
-        continue;
+      if (Array.isArray(nameEntries)) {
+        aliases.push(
+          ...nameEntries.flatMap((e: unknown) => {
+            const { name, alias } = (e || {}) as never;
+            return name && alias ? [{ name, alias }] : [];
+          }),
+        );
       }
 
-      sourceFiles.push([path, file, depth]);
-
+      // allow traversing same file multiple times!
       traverseSourceFiles(file, depth + 1);
     }
   };
 
   traverseSourceFiles(sourceFile);
 
-  const discoveredTypeDeclarations: Array<DiscoveredTypeDeclaration> = [];
+  const typemap: Record<
+    string, //type name
+    DiscoveredTypeDeclaration
+  > = {};
 
-  for (const [path, file] of sourceFiles) {
-    const nodeMap: Array<
-      [
-        node: EnumDeclaration | TypeAliasDeclaration,
-        parameters?: Array<string>,
-        referencedTypes?: Array<string>,
-      ]
-    > = [];
+  const nameRegexFactory = (name: string) => new RegExp(`\\b${name}\\b`);
 
-    for (const node of file.getTypeAliases()) {
+  for (const [file, sourceFile] of Object.entries(sourceFiles)) {
+    for (const node of sourceFile.getTypeAliases()) {
       const typeNode = node.getTypeNode();
+
       if (
-        [
+        !typeNode ||
+        ![
           SyntaxKind.TypeLiteral,
           SyntaxKind.TypeReference,
           SyntaxKind.UnionType,
@@ -435,72 +450,116 @@ export const discoverTypeDeclarations = (
           SyntaxKind.StringKeyword,
           SyntaxKind.BooleanKeyword,
           SyntaxKind.AnyKeyword,
-        ].includes(typeNode?.getKind() || SyntaxKind.Unknown)
+        ].includes(typeNode.getKind())
       ) {
-        const referencedTypes: Record<string, true> = {};
-
-        const traverse = (node: Node) => {
-          for (const c of node.forEachChildAsArray()) {
-            if (c.getKind() === SyntaxKind.TypeReference) {
-              referencedTypes[c.getText()] = true;
-            }
-            traverse(c);
-          }
-        };
-
-        traverse(node);
-
-        if (typeNode) {
-          traverse(typeNode);
-        }
-
-        nodeMap.push([
-          node,
-          node
-            .getChildrenOfKind(SyntaxKind.TypeParameter)
-            .map((e) => e.getName()),
-          Object.keys(referencedTypes),
-        ]);
-      }
-    }
-
-    for (const node of file.getEnums()) {
-      nodeMap.push([node]);
-    }
-
-    for (const [node, parameters, referencedTypes] of nodeMap) {
-      const name = node.getName();
-      const nameRegex = new RegExp(`\\b${name}\\b`);
-
-      if (discoveredTypeDeclarations.some((e) => e.name === name)) {
         continue;
       }
 
-      discoveredTypeDeclarations.push({
-        file: path,
-        name,
-        nameRegex,
-        text: node.getText(),
-        parameters: parameters?.length ? parameters : undefined,
-        referencedTypes: referencedTypes?.length ? referencedTypes : undefined,
-      });
-    }
-  }
+      const referencedMap: Record<string, true> = {};
 
-  for (const t of discoveredTypeDeclarations) {
-    if (t.referencedTypes) {
-      t.referencedTypesRecursive = [];
-      const traverse = (p: DiscoveredTypeDeclaration) => {
-        for (const c of discoveredTypeDeclarations.filter((e) =>
-          p.referencedTypes?.includes(e.name),
-        )) {
-          t.referencedTypesRecursive?.push(...(c.referencedTypes || []));
+      const traverse = (node: Node) => {
+        for (const c of node.forEachChildAsArray()) {
+          if (c.getKind() === SyntaxKind.TypeReference) {
+            referencedMap[c.getText()] = true;
+          }
           traverse(c);
         }
       };
-      traverse(t);
+
+      traverse(node);
+
+      const name = node.getName();
+
+      const parameters = node
+        .getChildrenOfKind(SyntaxKind.TypeParameter)
+        .map((e) => e.getName());
+
+      const referencedTypes = Object.keys(referencedMap);
+
+      // processing aliases first
+      const literal = typeNode.getText();
+
+      for (const alias of aliases) {
+        if (alias.name !== name || typemap[alias.alias]) {
+          continue;
+        }
+        typemap[alias.alias] = {
+          file,
+          name: alias.alias,
+          nameRegex: nameRegexFactory(alias.alias),
+          text: `export type ${alias.alias} = ${literal};`,
+          parameters,
+          referencedTypes,
+        };
+      }
+
+      // if same type declared in multiple files, only first one considered
+      if (typemap[name]) {
+        continue;
+      }
+
+      typemap[name] = {
+        file,
+        name,
+        nameRegex: nameRegexFactory(name),
+        text: node.getText(),
+        parameters,
+        referencedTypes,
+      };
+    }
+
+    for (const node of sourceFile.getEnums()) {
+      const name = node.getName();
+
+      // processing aliases first
+      const members = node.getMembers().map((e) => e.getText());
+
+      for (const alias of aliases) {
+        if (alias.name !== name || typemap[alias.alias]) {
+          continue;
+        }
+        typemap[alias.alias] = {
+          file,
+          name: alias.alias,
+          nameRegex: nameRegexFactory(alias.alias),
+          text: `export enum ${alias.alias} { ${members.join(", ")} };`,
+        };
+      }
+
+      // if same enum declared in multiple files, only first one considered
+      if (typemap[name]) {
+        continue;
+      }
+
+      typemap[name] = {
+        file,
+        name,
+        nameRegex: nameRegexFactory(name),
+        text: node.getText(),
+      };
     }
   }
 
-  return discoveredTypeDeclarations;
+  const typeset = Object.values(typemap);
+
+  for (const entry of typeset) {
+    if (!entry.referencedTypes?.length) {
+      continue;
+    }
+
+    entry.referencedTypesRecursive = [];
+
+    const traverse = (t: DiscoveredTypeDeclaration) => {
+      for (const c of typeset) {
+        if (t.referencedTypes?.includes(c.name)) {
+          entry.referencedTypesRecursive?.push(...(c.referencedTypes || []));
+          traverse(c);
+        }
+      }
+    };
+
+    traverse(entry);
+  }
+
+  return typeset;
 };
