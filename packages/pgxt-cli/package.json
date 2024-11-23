@@ -34,7 +34,6 @@
   "dependencies": {
     "@appril/configs": "workspace:^",
     "@appril/dev-utils": "workspace:^",
-    "@appril/pgxt": "workspace:^",
     "chokidar": "^4.0.1",
     "esbuild": "^0.24.0",
     "fs-extra": "^11.2.0",
@@ -43,5 +42,8 @@
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@types/pg": "^8.11.10"
+  },
+  "peerDependencies": {
+    "@appril/pgxt": "workspace:^"
   }
 }

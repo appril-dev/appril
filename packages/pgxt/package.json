@@ -28,6 +28,7 @@
     "build": "../../esbuild.mjs index"
   },
   "dependencies": {
+    "crc": "^4.3.2",
     "extract-pg-schema": "^5.1.2",
     "lodash-es": "^4.17.21",
     "pg": "^8.12.0",

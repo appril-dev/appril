@@ -1,3 +1,5 @@
+import crc32 from "crc/crc32";
+
 import type {
   MaterializedViewColumn,
   TableColumn,
@@ -74,7 +76,7 @@ function columnsMapper(
     let isGenerated = false;
 
     let declaredType = "unknown";
-    let importedType: ImportedType | undefined;
+    let importedType: ColumnDeclaration["importedType"] | undefined;
     let explicitType = false;
     let enumDeclaration: EnumDeclaration | undefined;
 
@@ -114,8 +116,17 @@ function columnsMapper(
       if (typeof customDef === "string") {
         declaredType = customDef as string;
       } else if ((customDef as ImportedType).import) {
-        importedType = customDef as ImportedType;
-        declaredType = `import("${importedType.from}").${importedType.import}`;
+        const importDef = customDef as ImportedType;
+        importedType = {
+          ...importDef,
+          alias: [
+            importDef.import,
+            // using both table name and column name to avoid name collisions
+            // ( at the price of importing same type multiple times )
+            crc32([fullName, name, importDef.from].join(":")),
+          ].join(""),
+        };
+        declaredType = importedType.alias;
         if (importedType.isArray) {
           isArray = true;
         }

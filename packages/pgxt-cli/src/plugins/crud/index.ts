@@ -87,25 +87,14 @@ export default (
       const typeLiterals: Array<string> = [];
       const columns: Array<ColumnDeclaration> = [];
 
-      for (const col of table.columns) {
-        let declaredType = col.declaredType;
-
-        if (col.enumDeclaration) {
-          typeLiterals.push(render(enumTypeTpl, col));
-        } else if (col.importedType) {
-          typeLiterals.push(render(importTypeTpl, col));
-          declaredType = col.importedType.isArray
-            ? `Array<${col.importedType.import}>`
-            : col.importedType.import;
+      for (const column of table.columns) {
+        if (column.enumDeclaration) {
+          typeLiterals.push(render(enumTypeTpl, column));
+        } else if (column.importedType) {
+          typeLiterals.push(render(importTypeTpl, column));
         }
-
-        if (!setup.exclude || !setup.exclude.includes(col.name)) {
-          columns.push({
-            // do not alter column itself as it is a shallow copy!
-            // rather use destructuring
-            ...col,
-            declaredType,
-          });
+        if (!setup.exclude || !setup.exclude.includes(column.name)) {
+          columns.push(column);
         }
       }
 

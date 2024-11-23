@@ -96,7 +96,7 @@ export type ColumnDeclaration = {
   isRegular: boolean;
   defaultValue: unknown;
   declaredType: string;
-  importedType?: ImportedType;
+  importedType?: ImportedType & { alias: string };
   comments: Array<string>;
   zodSchema?: string;
   enumDeclaration?: EnumDeclaration;

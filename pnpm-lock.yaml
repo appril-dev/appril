@@ -342,6 +342,9 @@ importers:
 
   packages/pgxt:
     dependencies:
+      crc:
+        specifier: ^4.3.2
+        version: 4.3.2
       extract-pg-schema:
         specifier: ^5.1.2
         version: 5.1.2

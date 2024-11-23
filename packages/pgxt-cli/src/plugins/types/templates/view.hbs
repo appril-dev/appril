@@ -1,9 +1,12 @@
 {{BANNER}}
 
+/** {{view.name}} view */
+
 {{#each enums}}import type { {{declaredName}} } from "../{{../enumsDir}}/{{name}}";
 {{/each}}
 
-/** {{view.name}} view */
+{{#each view.columns}}{{#if importedType}}import type { {{importedType.import}} as {{importedType.alias}} } from "{{importedType.from}}";
+{{/if}}{{/each}}
 
 export type {{view.recordName}} = {
 {{#each view.columns}}
