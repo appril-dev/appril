@@ -589,16 +589,19 @@ export const discoverTypeDeclarations = (
 
     entry.referencedTypesRecursive = [];
 
-    const traverse = (t: DiscoveredTypeDeclaration) => {
+    const traverse = (t: DiscoveredTypeDeclaration, depth: number) => {
+      if (depth > typeset.length) {
+        return;
+      }
       for (const c of typeset) {
         if (t.referencedTypes?.includes(c.name)) {
           entry.referencedTypesRecursive?.push(...(c.referencedTypes || []));
-          traverse(c);
+          traverse(c, depth + 1);
         }
       }
     };
 
-    traverse(entry);
+    traverse(entry, 0);
   }
 
   return typeset;
