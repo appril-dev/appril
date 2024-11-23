@@ -7,6 +7,8 @@ import {
   type SourceFile,
   type ImportDeclarationStructure,
   type ExportDeclarationStructure,
+  type TypeAliasDeclaration,
+  type InterfaceDeclaration,
   Project,
   SyntaxKind,
 } from "ts-morph";
@@ -26,6 +28,7 @@ export type DiscoveredTypeDeclaration = {
   parameters?: Array<string>;
   referencedTypes?: Array<string>;
   referencedTypesRecursive?: Array<string>;
+  aliasOf?: string;
 };
 
 export type PayloadType = {
@@ -376,7 +379,9 @@ export const discoverTypeDeclarations = (
     SourceFile
   > = {};
 
-  const aliases: Array<{ name: string; alias: string }> = [];
+  type Alias = { name: string; alias: string };
+
+  const aliases: Array<Alias> = [];
 
   const traverseSourceFiles = (sourceFile: SourceFile, depth = 0) => {
     if (depth > traverseMaxDepth) {
@@ -434,25 +439,62 @@ export const discoverTypeDeclarations = (
   const nameRegexFactory = (name: string) => new RegExp(`\\b${name}\\b`);
 
   for (const [file, sourceFile] of Object.entries(sourceFiles)) {
-    for (const node of sourceFile.getTypeAliases()) {
-      const typeNode = node.getTypeNode();
+    for (const node of [
+      sourceFile.getTypeAliases(),
+      sourceFile.getInterfaces(),
+    ].flat()) {
+      const name = node.getName();
 
-      if (
-        !typeNode ||
-        ![
-          SyntaxKind.TypeLiteral,
-          SyntaxKind.TypeReference,
-          SyntaxKind.UnionType,
-          SyntaxKind.ArrayType,
-          SyntaxKind.IntersectionType,
-          SyntaxKind.LiteralType,
-          SyntaxKind.NumberKeyword,
-          SyntaxKind.StringKeyword,
-          SyntaxKind.BooleanKeyword,
-          SyntaxKind.AnyKeyword,
-        ].includes(typeNode.getKind())
-      ) {
-        continue;
+      const parametersMap = node
+        .getChildrenOfKind(SyntaxKind.TypeParameter)
+        .reduce((a: Record<string, string>, e) => {
+          a[e.getName()] = e.getFullText();
+          return a;
+        }, {});
+
+      const parameters = Object.keys(parametersMap);
+
+      const parametersLiteral = parameters.length
+        ? `<${Object.values(parametersMap).join(",")}>`
+        : "";
+
+      let aliasTextFactory: (a: Alias) => string;
+
+      if (node.getKind() === SyntaxKind.TypeAliasDeclaration) {
+        const typeNode = (node as TypeAliasDeclaration).getTypeNode();
+
+        if (
+          !typeNode ||
+          ![
+            SyntaxKind.TypeLiteral,
+            SyntaxKind.TypeReference,
+            SyntaxKind.UnionType,
+            SyntaxKind.ArrayType,
+            SyntaxKind.IntersectionType,
+            SyntaxKind.LiteralType,
+            SyntaxKind.NumberKeyword,
+            SyntaxKind.StringKeyword,
+            SyntaxKind.BooleanKeyword,
+            SyntaxKind.AnyKeyword,
+          ].includes(typeNode.getKind())
+        ) {
+          continue;
+        }
+
+        const literal = typeNode.getFullText();
+
+        aliasTextFactory = (a) => {
+          return `export type ${a.alias + parametersLiteral} = ${literal};`;
+        };
+      } else {
+        const literal = (node as InterfaceDeclaration)
+          .getMembers()
+          .map((e) => e.getFullText())
+          .join("\n");
+
+        aliasTextFactory = (a) => {
+          return `export interface ${a.alias + parametersLiteral} { ${literal} };`;
+        };
       }
 
       const referencedMap: Record<string, true> = {};
@@ -460,7 +502,10 @@ export const discoverTypeDeclarations = (
       const traverse = (node: Node) => {
         for (const c of node.forEachChildAsArray()) {
           if (c.getKind() === SyntaxKind.TypeReference) {
-            referencedMap[c.getText()] = true;
+            const name = c.getText();
+            if (!parametersMap[name]) {
+              referencedMap[name] = true;
+            }
           }
           traverse(c);
         }
@@ -468,16 +513,9 @@ export const discoverTypeDeclarations = (
 
       traverse(node);
 
-      const name = node.getName();
-
-      const parameters = node
-        .getChildrenOfKind(SyntaxKind.TypeParameter)
-        .map((e) => e.getName());
-
       const referencedTypes = Object.keys(referencedMap);
 
       // processing aliases first
-      const literal = typeNode.getText();
 
       for (const alias of aliases) {
         if (alias.name !== name || typemap[alias.alias]) {
@@ -487,9 +525,10 @@ export const discoverTypeDeclarations = (
           file,
           name: alias.alias,
           nameRegex: nameRegexFactory(alias.alias),
-          text: `export type ${alias.alias} = ${literal};`,
+          text: aliasTextFactory(alias),
           parameters,
           referencedTypes,
+          aliasOf: name,
         };
       }
 
@@ -502,7 +541,7 @@ export const discoverTypeDeclarations = (
         file,
         name,
         nameRegex: nameRegexFactory(name),
-        text: node.getText(),
+        text: node.getFullText(),
         parameters,
         referencedTypes,
       };
@@ -512,7 +551,7 @@ export const discoverTypeDeclarations = (
       const name = node.getName();
 
       // processing aliases first
-      const members = node.getMembers().map((e) => e.getText());
+      const members = node.getMembers().map((e) => e.getFullText());
 
       for (const alias of aliases) {
         if (alias.name !== name || typemap[alias.alias]) {
@@ -522,7 +561,8 @@ export const discoverTypeDeclarations = (
           file,
           name: alias.alias,
           nameRegex: nameRegexFactory(alias.alias),
-          text: `export enum ${alias.alias} { ${members.join(", ")} };`,
+          text: `export enum ${alias.alias} { ${members.join(",")} };`,
+          aliasOf: name,
         };
       }
 
@@ -535,7 +575,7 @@ export const discoverTypeDeclarations = (
         file,
         name,
         nameRegex: nameRegexFactory(name),
-        text: node.getText(),
+        text: node.getFullText(),
       };
     }
   }
